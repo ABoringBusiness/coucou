@@ -70,6 +70,9 @@ schemes:
     build:
       targets:
         NotchBuddy: all
+      # The Swift packages (Kokoro, MLX) make Xcode's implicit-dependency search pull in
+      # CoucouAppStore too, and both build Coucou.app: "Multiple commands produce".
+      buildImplicitDependencies: false
     run:
       config: Debug
     archive:
@@ -86,6 +89,9 @@ schemes:
     build:
       targets:
         NotchBuddy: all
+      # The Swift packages (Kokoro, MLX) make Xcode's implicit-dependency search pull in
+      # CoucouAppStore too, and both build Coucou.app: "Multiple commands produce".
+      buildImplicitDependencies: false
     run:
       config: DebugCloud
     archive:
