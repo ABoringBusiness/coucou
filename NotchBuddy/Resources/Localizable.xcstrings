@@ -26466,6 +26466,136 @@
           }
         }
       }
+    },
+    "voice.lang-auto": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تلقائي"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্বয়ংক্রিয়"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automático"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatique"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वचालित"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatis"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automático"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматически"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动"
+          }
+        }
+      }
+    },
+    "voice.kokoro-fr-note": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro يتحدث الإنجليزية فقط: عندما يجيب Coucou بالفرنسية، يستخدم صوت الماك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro শুধু ইংরেজি বলে: Coucou ফরাসিতে উত্তর দিলে Mac-এর কণ্ঠ ব্যবহার করে।"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro speaks English only: when Coucou answers in French, it uses the Mac voice."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro solo habla inglés: cuando Coucou responde en francés, usa la voz del Mac."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro ne parle qu’anglais : quand Coucou répond en français, il utilise la voix du Mac."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro केवल अंग्रेज़ी बोलता है: जब Coucou फ़्रेंच में जवाब देता है, तो वह Mac की आवाज़ इस्तेमाल करता है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro hanya berbahasa Inggris: saat Coucou menjawab dalam bahasa Prancis, ia memakai suara Mac."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Kokoro só fala inglês: quando o Coucou responde em francês, usa a voz do Mac."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro говорит только по-английски: когда Coucou отвечает по-французски, используется голос Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kokoro 只会说英语：Coucou 用法语回答时，会使用 Mac 的声音。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

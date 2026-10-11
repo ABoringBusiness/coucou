@@ -1259,6 +1259,7 @@ struct SettingsView: View {
     @State private var voicePermissionsGranted: Bool = false
     @ObservedObject private var voiceEngine = VoiceEngine.shared
     @AppStorage("voiceLanguage")       private var voiceLanguage: String = "en"
+    @AppStorage("voiceListenLanguage") private var listenLanguage: String = "auto"
     @AppStorage("voiceTTSEngine")      private var ttsEngine: String = "system"
     @AppStorage("voiceElevenGender")   private var elevenGender: String = "female"
     @AppStorage("voicePitchFemale")    private var pitchFemale: Double = VoiceSettings.defaultPitchFemale
@@ -1332,6 +1333,40 @@ struct SettingsView: View {
                 && VoiceSettings.speechStatus == .granted
         }
 
+        GroupBox(String(localized: "Language")) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                    Text(String(localized: "voice.listen-language"))
+                        .frame(width: 130, alignment: .leading)
+                    Picker(String(localized: "voice.listen-language"), selection: $listenLanguage) {
+                        Text(String(localized: "voice.lang-auto")).tag("auto")
+                        Text(verbatim: "Français").tag("fr")
+                        Text(verbatim: "English").tag("en")
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 260)
+                }
+                HStack(spacing: 10) {
+                    Text(String(localized: "voice.language"))
+                        .frame(width: 130, alignment: .leading)
+                    Picker(String(localized: "voice.language"), selection: $voiceLanguage) {
+                        Text(verbatim: "Français").tag("fr")
+                        Text(verbatim: "English").tag("en")
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 180)
+                    .onChange(of: voiceLanguage) { _, _ in
+                        // Chosen by hand: Coucou no longer offers to switch.
+                        VoiceSettings.languageOfferDone = true
+                        ElevenLabsTTS.shared.reset()
+                    }
+                }
+            }
+            .padding(6)
+        }
+
         GroupBox(String(localized: "voice.tts-engine")) {
             VStack(alignment: .leading, spacing: 10) {
                 Picker(String(localized: "voice.tts-engine"), selection: $ttsEngine) {
@@ -1344,6 +1379,15 @@ struct SettingsView: View {
 
                 if ttsEngine == "kokoro" {
                     KokoroDownloadRow()
+                    if voiceLanguage == "fr" {
+                        HStack(alignment: .top, spacing: 6) {
+                            Image(systemName: "info.circle").foregroundColor(.secondary)
+                            Text(String(localized: "voice.kokoro-fr-note"))
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                 }
 
                 if ttsEngine == "elevenlabs" {
