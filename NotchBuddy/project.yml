@@ -30,6 +30,10 @@ packages:
   MLXUtilsLibrary:
     url: https://github.com/mlalma/MLXUtilsLibrary
     exactVersion: "0.0.6"
+  # Dynamic library used by KokoroSwift (English phonemes): embedded with it.
+  MisakiSwift:
+    url: https://github.com/mlalma/MisakiSwift
+    exactVersion: "1.0.6"
 
 settings:
   base:
@@ -197,8 +201,13 @@ targets:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: PHONE_LINK
           PROVISIONING_PROFILE_SPECIFIER: "Coucou Developer ID"
     dependencies:
+      # KokoroSwift and MisakiSwift are dynamic libraries: they must be copied into the app.
       - package: KokoroSwift
         product: KokoroSwift
+        embed: true
+      - package: MisakiSwift
+        product: MisakiSwift
+        embed: true
       - package: MLX
         product: MLX
       - package: MLXUtilsLibrary

@@ -329,6 +329,9 @@
 		FBBC4CDE82B5886A83A27D7A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 506824380E9C80B9BC6DCE72 /* Assets.xcassets */; };
 		FDF87CF7C5F703EDD9A7CC14 /* CloudProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28323DC20034A281F6829884 /* CloudProbe.swift */; };
 		FEFEF1EBAB0E6CA74A33C10B /* SafeWebURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FDED98F7F6C755A72C97A3 /* SafeWebURL.swift */; };
+		387629C981E34A2C9A89A4E1 /* KokoroSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 3F833E6A59ED86A929D04D12 /* KokoroSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		61EF0916045F67565C65CB80 /* MisakiSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = B776D75EB13F367CF47A170D /* MisakiSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		BB31D4C75924A6868F574820 /* MisakiSwift in Frameworks */ = {isa = PBXBuildFile; productRef = B776D75EB13F367CF47A170D /* MisakiSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -359,6 +362,18 @@
 				59FABCC0B6794FE95319825C /* CoucouNotificationContent.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B1613F79733F63E3FE7F1128 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				387629C981E34A2C9A89A4E1 /* KokoroSwift in Embed Frameworks */,
+				61EF0916045F67565C65CB80 /* MisakiSwift in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -532,6 +547,7 @@
 				A9EA458EBA699F51AB7A7DAD /* KokoroSwift in Frameworks */,
 				B8FA5CD3C0FFCBDDEE995A5B /* MLX in Frameworks */,
 				19507C4ED5B978268B6D7006 /* MLXUtilsLibrary in Frameworks */,
+				BB31D4C75924A6868F574820 /* MisakiSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -817,6 +833,7 @@
 				002591692F471861383A29CD /* Sources */,
 				A0E1A749D68BF03D3FDE4473 /* Resources */,
 				37CC26065EDFBD271EB49947 /* Frameworks */,
+				B1613F79733F63E3FE7F1128 /* Embed Frameworks */,
 				FDEB6FD7AAB82BAA78A891E1 /* Write Git Hash to Info.plist */,
 			);
 			buildRules = (
@@ -828,6 +845,7 @@
 				3F833E6A59ED86A929D04D12 /* KokoroSwift */,
 				DDB6733B1FD361795477FFEF /* MLX */,
 				E8D41ED292379A3A4AE3143B /* MLXUtilsLibrary */,
+				B776D75EB13F367CF47A170D /* MisakiSwift */,
 			);
 			productName = NotchBuddy;
 			productReference = A14A61070D293AB4BBA303F7 /* NotchBuddy.app */;
@@ -929,6 +947,7 @@
 				FA9D8E9B97631D5173FFD702 /* XCRemoteSwiftPackageReference "kokoro-ios" */,
 				790427056964F7E1C6B51A4F /* XCRemoteSwiftPackageReference "mlx-swift" */,
 				B34DB2A4E6D0684F59259CE7 /* XCRemoteSwiftPackageReference "MLXUtilsLibrary" */,
+				E8792F0F13C93B237560FCB0 /* XCRemoteSwiftPackageReference "MisakiSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6CF11AAA7898712CF6DB364A /* Products */;
@@ -2237,6 +2256,14 @@
 				revision = 4d6d1d8ff8cd012014180c9cd4cf0151e7682354;
 			};
 		};
+		E8792F0F13C93B237560FCB0 /* XCRemoteSwiftPackageReference "MisakiSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mlalma/MisakiSwift";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -2254,6 +2281,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B34DB2A4E6D0684F59259CE7 /* XCRemoteSwiftPackageReference "MLXUtilsLibrary" */;
 			productName = MLXUtilsLibrary;
+		};
+		B776D75EB13F367CF47A170D /* MisakiSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E8792F0F13C93B237560FCB0 /* XCRemoteSwiftPackageReference "MisakiSwift" */;
+			productName = MisakiSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
