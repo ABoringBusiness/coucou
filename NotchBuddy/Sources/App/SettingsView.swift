@@ -1282,9 +1282,17 @@ struct SettingsView: View {
                     Text(String(localized: "crypto.hint"))
                         .font(.system(size: 10))
                         .foregroundColor(Color(hex: "#8E939C"))
+                    Divider().padding(.vertical, 2)
+                    CryptoAccountsSettings()
                 }
-                .onChange(of: cryptoExchange) { _, _ in CryptoController.shared.settingsChanged() }
-                .onChange(of: cryptoCurrency) { _, _ in CryptoController.shared.settingsChanged() }
+                .onChange(of: cryptoExchange) { _, _ in
+                    CryptoController.shared.settingsChanged()
+                    CryptoPortfolio.shared.settingsChanged()
+                }
+                .onChange(of: cryptoCurrency) { _, _ in
+                    CryptoController.shared.settingsChanged()
+                    CryptoPortfolio.shared.settingsChanged()
+                }
 
                 Button(String(localized: "integrations.save")) {
                     saveIntegrations()

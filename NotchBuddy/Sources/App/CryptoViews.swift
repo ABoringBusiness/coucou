@@ -8,6 +8,11 @@ import AppKit
 /// on the exchange.
 struct CryptoCardView: View {
     @ObservedObject private var crypto = CryptoController.shared
+    @ObservedObject private var portfolio = CryptoPortfolio.shared
+    /// "prices" or "portfolio" (shown once an account is connected).
+    @AppStorage("cryptoCardMode") private var mode = "portfolio"
+
+    private var showsPortfolio: Bool { portfolio.hasAccounts && mode == "portfolio" }
 
     private var accent: Color {
         Color(hex: PillCatalog.definition(for: CryptoController.pillId)?.color ?? "#F7931A")
@@ -40,12 +45,20 @@ struct CryptoCardView: View {
                     .font(.system(size: 10))
                     .foregroundColor(Color(hex: "#6B7079"))
                 Spacer(minLength: 2)
+                if portfolio.hasAccounts {
+                    CryptoModeSwitch(mode: $mode)
+                }
             }
             .padding(.top, 6)
             .padding(.leading, 108)
             .padding(.trailing, 36)
 
-            if crypto.quotes.isEmpty {
+            if showsPortfolio {
+                CryptoPortfolioList()
+                    .padding(.top, 5)
+                    .padding(.leading, 108)
+                    .padding(.trailing, 12)
+            } else if crypto.quotes.isEmpty {
                 Group {
                     if !crypto.loaded {
                         Text("Loading…")
@@ -84,7 +97,10 @@ struct CryptoCardView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.top, 4)
-        .onAppear { crypto.refreshIfStale() }
+        .onAppear {
+            crypto.refreshIfStale()
+            portfolio.refreshIfStale()
+        }
     }
 }
 

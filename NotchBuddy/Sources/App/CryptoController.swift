@@ -265,7 +265,7 @@ final class CryptoController: ObservableObject {
         }
     }
 
-    private nonisolated static func fetch(_ coin: String, exchange: CryptoExchange, currency: String,
+    nonisolated static func fetch(_ coin: String, exchange: CryptoExchange, currency: String,
                                           candles: Bool) async -> CryptoQuote? {
         let pair = exchange.pair(coin, currency)
         guard let url = exchange.tickerURL(pair) else { return nil }

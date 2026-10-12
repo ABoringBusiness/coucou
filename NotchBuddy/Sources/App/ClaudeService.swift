@@ -72,6 +72,7 @@ final class KeychainStore: @unchecked Sendable {
         "calcom-api-key",
         "notion-api-key",
         "elevenlabs-api-key",
+        "crypto-accounts",
     ]
 
     private init() {
