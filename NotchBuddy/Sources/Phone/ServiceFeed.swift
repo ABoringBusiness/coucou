@@ -99,7 +99,9 @@ struct FeedRow: View {
                        bodyHex: color, showBadge: false)
                 .padding(4)
                 .frame(width: 40, height: 40)
-                .background(Color.mochiTile(hex: color), in: RoundedRectangle(cornerRadius: 11))
+                // A coloured Mochi on a neutral tile (as in the Services tab), its colour as a rim.
+                .background(Color(white: 0.16), in: RoundedRectangle(cornerRadius: 11))
+                .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Color(hex: color).opacity(0.35), lineWidth: 1))
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.item.title)
                     .font(.body.weight(.semibold))

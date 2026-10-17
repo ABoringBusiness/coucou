@@ -312,7 +312,8 @@ private struct HeroToastView: View {
             MochiStill(state: toast.state, bodyHex: toast.color, showBadge: false)
                 .padding(3)
                 .frame(width: 30, height: 30)
-                .background(Color.mochiTile(hex: toast.color), in: RoundedRectangle(cornerRadius: 9))
+                .background(Color(white: 0.18), in: RoundedRectangle(cornerRadius: 9))
+                .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Color(hex: toast.color).opacity(0.4), lineWidth: 1))
             VStack(alignment: .leading, spacing: 1) {
                 Text(toast.name)
                     .font(.caption.weight(.semibold))
