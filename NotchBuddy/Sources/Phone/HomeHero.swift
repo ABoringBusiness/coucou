@@ -382,7 +382,7 @@ struct HomeHero: View {
         var out: [HeroCast] = sessions.sortedByUrgency().dropFirst().map {
             HeroCast(id: $0.id, color: $0.color.isEmpty ? "#F5F6F8" : $0.color, state: $0.state)
         }
-        for id in PillCatalog.phoneServices {
+        for id in ServiceFeed.priority + PillCatalog.phoneServices.filter({ !ServiceFeed.priority.contains($0) }) {
             guard let snapshot = link.services[id] else { continue }
             out.append(HeroCast(id: id, color: snapshot.color,
                                 state: snapshot.tone == .ok ? .idle : snapshot.tone.botState))
@@ -391,7 +391,8 @@ struct HomeHero: View {
             out = [HeroCast(id: "stroller-orange", color: "#FB923C", state: .idle),
                    HeroCast(id: "stroller-pink", color: "#F472B6", state: .idle)]
         }
-        return Array(out.prefix(6))
+        // Three at most: a few friends, not a crowd.
+        return Array(out.prefix(3))
     }
 
     /// Changes whenever a session or a service changes in a way worth showing.

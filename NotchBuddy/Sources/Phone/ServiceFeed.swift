@@ -93,15 +93,28 @@ struct FeedRow: View {
     private var color: String { PillCatalog.definition(for: entry.pillId)?.color ?? "#C0C4CC" }
     private var name: String { PillCatalog.definition(for: entry.pillId)?.name ?? entry.pillId }
 
+    /// A plain sign for what each service does (no brand logo).
+    static func symbol(for pillId: String) -> String {
+        switch pillId {
+        case "integration_stripe": "creditcard.fill"
+        case "integration_vercel": "triangle.fill"
+        case "integration_github": "arrow.triangle.pull"
+        case "integration_resend": "envelope.fill"
+        case "integration_calcom": "calendar"
+        case "integration_n8n":    "point.3.connected.trianglepath.dotted"
+        case "integration_notion": "doc.text.fill"
+        default:                   "bell.fill"
+        }
+    }
+
     var body: some View {
         HStack(spacing: 12) {
-            MochiStill(state: entry.item.tone == .ok ? .finished : entry.item.tone.botState,
-                       bodyHex: color, showBadge: false)
-                .padding(4)
+            // The service's sign in its colour: one Mochi per line made the page a crowd.
+            Image(systemName: FeedRow.symbol(for: entry.pillId))
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color(hex: color))
                 .frame(width: 40, height: 40)
-                // A coloured Mochi on a neutral tile (as in the Services tab), its colour as a rim.
-                .background(Color(white: 0.16), in: RoundedRectangle(cornerRadius: 11))
-                .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Color(hex: color).opacity(0.35), lineWidth: 1))
+                .background(Color(hex: color).opacity(0.14), in: RoundedRectangle(cornerRadius: 11))
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.item.title)
                     .font(.body.weight(.semibold))
