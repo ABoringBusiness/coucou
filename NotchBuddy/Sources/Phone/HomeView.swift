@@ -140,6 +140,8 @@ struct AgentsTab: View {
                         }
                     }
                 }
+
+                ServiceFeedSection(link: link)
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
