@@ -58,7 +58,7 @@ struct NovaAvatarView: View {
     private var shells: [(radius: Double, lat: Int, lon: Int)] {
         detailed
             ? [(1.06, 38, 76), (1.18, 44, 88), (1.30, 34, 68)]
-            : [(1.06, 18, 34), (1.21, 16, 30)]
+            : [(1.06, 14, 26), (1.21, 12, 22)]
     }
 
     private var base: [Dot] {
@@ -88,28 +88,21 @@ struct NovaAvatarView: View {
         let side = min(size.width, size.height)
         guard side > 1 else { return }
 
-        // The original advances its own clock by 0.022 + energy*0.04 per frame.
-        // Driving it from wall time instead keeps the motion identical whether
-        // the display runs at 60 or 120Hz.
         let t = time * (1.32 + energy * 2.4)
-
         let camZ = 4.35
-        // 42° vertical field of view, as in the PerspectiveCamera.
         let focal = 1.0 / tan((42.0 * .pi / 180) / 2)
         let half = side / 2
-
-        // Additive, so overlapping dots build light the way the WebGL blend did.
-        context.blendMode = .plusLighter
 
         let waveAmp = 0.11 + energy * 0.18
         let yaw = gaze.x * 0.55 + sin(t * 0.5) * 0.1
         let pitch = -gaze.y * 0.45 + cos(t * 0.4) * 0.06
         let roll = sin(t * 0.4) * 0.08
-        let dotRadius = side * (detailed ? 0.021 : 0.034)
 
-        // One Path per brightness band: three fills a frame rather than one per
-        // dot, which is what makes this affordable at animation rate.
-        var paths = [Path(), Path(), Path()]
+        struct Projected { let px, py, r, z: Double; let band: Int; let frontness: Double }
+        var dots: [Projected] = []
+        dots.reserveCapacity(base.count)
+
+        let dotRadius = side * (detailed ? 0.0062 : 0.013)
 
         for dot in base {
             let lobe = sin(dot.x * 2.6 + t)
@@ -119,8 +112,6 @@ struct NovaAvatarView: View {
             let scale = 1 + lobe * waveAmp + ripple * (1 + energy * 1.6)
 
             var x = dot.x * scale, y = dot.y * scale, z = dot.z * scale
-
-            // Z then Y then X, matching the order the mesh applies them.
             let cr = cos(roll), sr = sin(roll)
             (x, y) = (x * cr - y * sr, x * sr + y * cr)
             let cy = cos(yaw), sy = sin(yaw)
@@ -130,26 +121,57 @@ struct NovaAvatarView: View {
 
             let depth = camZ - z
             guard depth > 0.05 else { continue }
-            let px = half + x * focal / depth * half
-            let py = half - y * focal / depth * half
-
-            // `frontness` in the original: the far side dims rather than
-            // disappearing, which is what gives the ball volume.
             let frontness = max(0.2, (z + 1.3) / 2.6)
-            let r = dotRadius * (0.72 + frontness * 0.5)
-            paths[dot.band].addEllipse(in: CGRect(x: px - r, y: py - r, width: r * 2, height: r * 2))
+            dots.append(Projected(px: half + x * focal / depth * half,
+                                  py: half - y * focal / depth * half,
+                                  r: dotRadius * (0.8 + frontness * 0.45),
+                                  z: z, band: dot.band, frontness: frontness))
         }
 
-        let bands: [Color] = [
-            Color(red: 0.96, green: 0.98, blue: 0.99).opacity(0.92),
-            Color(red: 0.70, green: 0.90, blue: 0.86).opacity(0.80),
-            Color(red: 0.45, green: 0.68, blue: 0.66).opacity(0.68),
-        ]
-        for (index, path) in paths.enumerated() where !path.isEmpty {
-            context.fill(path, with: .color(bands[index]))
+        // Painter's algorithm, because a Canvas has no depth buffer. The WebGL
+        // original relies on a dark SphereGeometry(0.92) sitting inside the
+        // shells to hide the far side; dropping it was what turned this into a
+        // white blob — every back dot drew over the front ones and additive
+        // blending saturated the lot.
+        //
+        // Order: far dots, then that core, then near dots, then the eyes. The
+        // eye sprites use depthTest:false upstream, which is "always on top".
+        let core = CORE_RADIUS * focal / (camZ) * half
+
+        func paint(_ subset: [Projected]) {
+            var paths = [Path(), Path(), Path()]
+            for d in subset {
+                paths[d.band].addEllipse(in: CGRect(x: d.px - d.r, y: d.py - d.r,
+                                                    width: d.r * 2, height: d.r * 2))
+            }
+            for (index, path) in paths.enumerated() where !path.isEmpty {
+                context.fill(path, with: .color(bandColor(index)))
+            }
         }
+
+        paint(dots.filter { $0.z < 0 })
+
+        context.fill(
+            Path(ellipseIn: CGRect(x: half - core, y: half - core, width: core * 2, height: core * 2)),
+            with: .color(Color(red: 0.020, green: 0.027, blue: 0.035).opacity(0.94))
+        )
+
+        paint(dots.filter { $0.z >= 0 })
 
         drawEyes(context: &context, side: side, focal: focal, camZ: camZ, t: t)
+    }
+
+    /// The dark inner sphere's radius in the original.
+    private let CORE_RADIUS = 0.92
+
+    /// Per-shell colour. Normal blending rather than additive: additive needs a
+    /// depth-sorted GPU to stay readable, and at 34pt it just clips to white.
+    private func bandColor(_ index: Int) -> Color {
+        switch index {
+        case 0:  return Color(red: 0.97, green: 0.99, blue: 1.00).opacity(0.97)
+        case 1:  return Color(red: 0.72, green: 0.92, blue: 0.90).opacity(0.72)
+        default: return Color(red: 0.42, green: 0.66, blue: 0.64).opacity(0.52)
+        }
     }
 
     private func drawEyes(context: inout GraphicsContext, side: CGFloat,
