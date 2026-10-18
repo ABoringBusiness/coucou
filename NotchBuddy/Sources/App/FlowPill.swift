@@ -467,32 +467,23 @@ private struct FlowAnnouncementView: View {
     }
 }
 
-/// The pill's Mochi: a mini Mochi (BotEngine, like the pills of the compact island), white, idle,
-/// so his eyes wander around. Drawn only while the pill is open.
+/// The pill's avatar.
+///
+/// Draws Nova rather than Mochi. Mochi's design, look, expressions and
+/// animations are reserved by upstream's LICENSE-ASSETS.md even though the
+/// character lives in code, so it cannot ship in a HeyApex build.
+///
+/// The name and the `active` contract are kept so every call site is unchanged,
+/// and because `active` already carries exactly what Nova wants: the pill is
+/// doing something, so the avatar should look like it.
 private struct FlowMochiView: View {
     let active: Bool
-    @StateObject private var engine: BotEngine
-
-    init(active: Bool) {
-        self.active = active
-        _engine = StateObject(wrappedValue: {
-            let e = BotEngine()
-            e.isMini = true
-            e.bodyColor = cgColorFromHex("#F5F6F8")
-            return e
-        }())
-    }
 
     var body: some View {
-        TimelineView(.animation(paused: !active)) { timeline in
-            let frame = timeline.date   // redraw on every tick, as in MiniBotCanvasView
-            Canvas { context, size in
-                _ = frame
-                MochiFrameClock.advance(engine)
-                engine.draw(context: context, size: size)
-            }
-        }
-        .onAppear { engine.setState(.idle, force: true) }
+        // `active` was a pause flag for the old engine. For Nova it is energy:
+        // the same input the bottom pill's Nova takes, so the two surfaces move
+        // together instead of each inventing a resting animation.
+        NovaAvatarView(energy: active ? 0.55 : 0)
     }
 }
 
