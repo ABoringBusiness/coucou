@@ -15890,7 +15890,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "« OK Coucou » — voice wake word"
+            "value" : "« OK HeyApex Eye » — voice wake word"
           }
         },
         "es" : {
@@ -16718,7 +16718,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Allow Coucou to control Music"
+            "value" : "Allow HeyApex Eye to control Music"
           }
         },
         "es" : {
@@ -16782,7 +16782,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Allow Coucou to control Spotify"
+            "value" : "Allow HeyApex Eye to control Spotify"
           }
         },
         "es" : {
@@ -18775,7 +18775,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose the tools you use. Coucou only shows what you declare here."
+            "value" : "Choose the tools you use. HeyApex Eye only shows what you declare here."
           }
         },
         "es" : {
@@ -19850,7 +19850,14 @@
       }
     },
     "Coucou" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HeyApex Eye"
+          }
+        }
+      }
     },
     "Coucou · github.com/Louis-CFM/coucou" : {
 
@@ -26703,7 +26710,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open Coucou"
+            "value" : "Open HeyApex Eye"
           }
         },
         "es" : {
@@ -33179,7 +33186,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Restart Coucou"
+            "value" : "Restart HeyApex Eye"
           }
         },
         "es" : {
@@ -36050,7 +36057,14 @@
       }
     },
     "Shows your Codex plan usage (weekly limit and free resets left) in the notch header. Coucou asks the Codex CLI (codex app-server) when the pill shows; nothing is installed. Codex must be signed in with ChatGPT." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows your Codex plan usage (weekly limit and free resets left) in the notch header. HeyApex Eye asks the Codex CLI (codex app-server) when the pill shows; nothing is installed. Codex must be signed in with ChatGPT."
+          }
+        }
+      }
     },
     "Shuffle off" : {
       "localizations" : {
@@ -44170,7 +44184,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When enabled, Coucou listens for the wake word « OK Coucou ». Speech recognition runs entirely on-device — no audio or transcript leaves your Mac."
+            "value" : "When enabled, HeyApex Eye listens for the wake word « OK HeyApex Eye ». Speech recognition runs entirely on-device — no audio or transcript leaves your Mac."
           }
         },
         "es" : {

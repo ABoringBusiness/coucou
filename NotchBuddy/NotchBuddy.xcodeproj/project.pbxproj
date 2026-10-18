@@ -1526,8 +1526,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.NotchBuddy;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				PROVISIONING_PROFILE_SPECIFIER = "Coucou Developer ID";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = PHONE_LINK;
@@ -1552,8 +1552,8 @@
 					"@executable_path/../../Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou.NotificationContent;
-				PRODUCT_NAME = CoucouNotificationContent;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye.NotificationContent;
+				PRODUCT_NAME = HeyApexEyeNotificationContent;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -1647,8 +1647,8 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1674,8 +1674,8 @@
 					"@executable_path/../../Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou.Widgets;
-				PRODUCT_NAME = CoucouWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye.Widgets;
+				PRODUCT_NAME = HeyApexEyeWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -1697,8 +1697,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.NotchBuddy;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				PROVISIONING_PROFILE_SPECIFIER = "Coucou Developer ID";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = PHONE_LINK;
@@ -1726,8 +1726,8 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1750,8 +1750,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = APPSTORE;
 			};
@@ -1769,8 +1769,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.NotchBuddy;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1793,8 +1793,8 @@
 					"@executable_path/../../Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou.NotificationContent;
-				PRODUCT_NAME = CoucouNotificationContent;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye.NotificationContent;
+				PRODUCT_NAME = HeyApexEyeNotificationContent;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -1821,8 +1821,8 @@
 					"@executable_path/../../Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou.Widgets;
-				PRODUCT_NAME = CoucouWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye.Widgets;
+				PRODUCT_NAME = HeyApexEyeWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -1852,8 +1852,8 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1876,8 +1876,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APPSTORE PHONE_LINK";
 			};
@@ -1904,8 +1904,8 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1930,8 +1930,8 @@
 					"@executable_path/../../Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou.NotificationContent;
-				PRODUCT_NAME = CoucouNotificationContent;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye.NotificationContent;
+				PRODUCT_NAME = HeyApexEyeNotificationContent;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -1952,8 +1952,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.NotchBuddy;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG PHONE_LINK";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -1976,8 +1976,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = APPSTORE;
 			};
@@ -2002,8 +2002,8 @@
 					"@executable_path/../../Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou.Widgets;
-				PRODUCT_NAME = CoucouWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye.Widgets;
+				PRODUCT_NAME = HeyApexEyeWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -2031,8 +2031,8 @@
 					"@executable_path/../../Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou.Widgets;
-				PRODUCT_NAME = CoucouWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye.Widgets;
+				PRODUCT_NAME = HeyApexEyeWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -2127,8 +2127,8 @@
 					"@executable_path/../../Frameworks",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou.NotificationContent;
-				PRODUCT_NAME = CoucouNotificationContent;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye.NotificationContent;
+				PRODUCT_NAME = HeyApexEyeNotificationContent;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
@@ -2152,8 +2152,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fr.louisraille.Coucou;
-				PRODUCT_NAME = Coucou;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.heyapex.eye;
+				PRODUCT_NAME = "HeyApex Eye";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APPSTORE PHONE_LINK";
 			};
