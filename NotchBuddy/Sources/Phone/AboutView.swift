@@ -30,7 +30,7 @@ struct AboutView: View {
                         .frame(width: 64, height: 64)
                         .background(Color(white: 0.16), in: RoundedRectangle(cornerRadius: 16))
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Coucou").font(.title3.weight(.semibold))
+                        Text("HeyApex Eye").font(.title3.weight(.semibold))
                         Text("Version \(version)").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
@@ -158,7 +158,7 @@ struct OnboardingView: View {
                         .frame(width: 88, height: 88)
                     Text("Your agents, in your pocket")
                         .font(.largeTitle.weight(.bold))
-                    Text("Coucou on iPhone shows what Claude Code, Cursor, Codex and your services are doing on your Mac. Three things to set up, once.")
+                    Text("HeyApex Eye on iPhone shows what Claude Code, Cursor, Codex and your services are doing on your Mac. Three things to set up, once.")
                         .font(.body)
                         .foregroundStyle(.secondary)
                 }

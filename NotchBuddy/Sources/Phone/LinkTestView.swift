@@ -24,7 +24,7 @@ struct LinkTestView: View {
 
                 Section("Sessions on your Mac") {
                     if link.sessions.isEmpty {
-                        Text("No session yet. Open Coucou on your Mac (NotchBuddyCloud).")
+                        Text("No session yet. Open HeyApex Eye on your Mac (NotchBuddyCloud).")
                             .foregroundStyle(.secondary)
                     }
                     ForEach(link.sessions) { session in
@@ -109,7 +109,7 @@ struct LinkTestView: View {
                   systemImage: "icloud.slash")
                 .foregroundStyle(.orange)
         case .zoneMissing:
-            Label("The Coucou zone doesn't exist yet. Launch Coucou on your Mac (NotchBuddyCloud scheme), then pull to refresh.",
+            Label("The HeyApex Eye zone doesn't exist yet. Launch HeyApex Eye on your Mac (NotchBuddyCloud scheme), then pull to refresh.",
                   systemImage: "tray")
                 .foregroundStyle(.orange)
         case .ready:
