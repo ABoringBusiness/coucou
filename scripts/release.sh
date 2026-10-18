@@ -13,7 +13,7 @@ VERSION="${1:?Usage: $0 <version> [--finish]}"
 MODE="${2:-}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="/tmp/coucou-release-$VERSION"
-APP="$BUILD_DIR/Coucou.app"
+APP="$BUILD_DIR/HeyApex Eye.app"
 ZIP="$BUILD_DIR/Coucou.zip"
 COMMIT_FILE="$BUILD_DIR/commit"
 TAG="v$VERSION"
@@ -105,6 +105,8 @@ if [ "$MODE" != "--finish" ]; then
     CONFIGURATION_BUILD_DIR="$BUILD_DIR"
 
   [ -f "$APP/Contents/embedded.provisionprofile" ] || die "the provisioning profile was not embedded in the app"
+  # The CloudKit container keeps its original name on purpose: it is a data
+  # contract, not a label. Renaming it orphans every record already synced.
   codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -q "iCloud.fr.louisraille.Coucou" \
     || die "the app is not signed with the iCloud entitlements"
 
@@ -145,7 +147,7 @@ $CHANGES
 ## Install
 
 1. Download Coucou.zip below and unzip it.
-2. Move Coucou.app to your Applications folder, replacing the old one if you have it.
+2. Move HeyApex Eye.app to your Applications folder, replacing the old one if you have it.
 3. Launch it, and click Open when macOS asks you to confirm.
 
 Linux and Windows: see the [README](https://github.com/Louis-CFM/coucou#readme)."

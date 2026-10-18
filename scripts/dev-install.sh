@@ -14,19 +14,19 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BUNDLE_ID="fr.louisraille.NotchBuddy"
+BUNDLE_ID="ai.heyapex.eye"
 DERIVED="${HOME}/Library/Developer/Xcode/DerivedData/CoucouDev"
-BUILT="${DERIVED}/Build/Products/DebugCloud/Coucou.app"
+BUILT="${DERIVED}/Build/Products/DebugCloud/HeyApex Eye.app"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister"
 
 # The App Store Coucou (fr.louisraille.Coucou) has the same file name: never overwrite it.
-TARGET="/Applications/Coucou.app"
+TARGET="/Applications/HeyApex Eye.app"
 if [ -d "${TARGET}" ]; then
   EXISTING=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${TARGET}/Contents/Info.plist" 2>/dev/null || echo "")
   if [ "${EXISTING}" != "${BUNDLE_ID}" ]; then
     mkdir -p "${HOME}/Applications"
-    TARGET="${HOME}/Applications/Coucou.app"
-    echo "/Applications/Coucou.app is another Coucou (${EXISTING}): installing in ~/Applications instead."
+    TARGET="${HOME}/Applications/HeyApex Eye.app"
+    echo "/Applications/HeyApex Eye.app is another build (${EXISTING}): installing in ~/Applications instead."
   fi
 fi
 
@@ -38,8 +38,8 @@ xcodebuild -scheme NotchBuddyCloud -configuration DebugCloud -allowProvisioningU
 
 echo "Quitting Coucou..."
 osascript -e "tell application id \"${BUNDLE_ID}\" to quit" >/dev/null 2>&1 || true
-for _ in 1 2 3 4 5; do pgrep -x Coucou >/dev/null || break; sleep 1; done
-pkill -x Coucou 2>/dev/null || true
+for _ in 1 2 3 4 5; do pgrep -x "HeyApex Eye" >/dev/null || break; sleep 1; done
+pkill -x "HeyApex Eye" 2>/dev/null || true
 
 echo "Installing in ${TARGET}..."
 rm -rf "${TARGET}"

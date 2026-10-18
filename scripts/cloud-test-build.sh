@@ -14,7 +14,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="/tmp/coucou-cloud-test"
-APP="$BUILD_DIR/Coucou.app"
+APP="$BUILD_DIR/HeyApex Eye.app"
 PROFILE_NAME="Coucou Developer ID"
 APP_ID="256AUJ9555.fr.louisraille.NotchBuddy"
 CONTAINER="iCloud.fr.louisraille.Coucou"
