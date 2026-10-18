@@ -2146,7 +2146,14 @@ struct SettingsView: View {
         URLSession.shared.dataTask(with: req) { data, response, _ in
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             guard let data, code == 200 else {
-                self.fetchN8nWorkflows(urls: urls, apiKey: apiKey, idx: idx + 1)
+                // Hop to main like every other branch in this method. The
+                // retry is the one that forgot, and under Swift 6 calling a
+                // main-actor method straight off a URLSession completion is an
+                // error rather than a warning, so the whole target stopped
+                // building.
+                DispatchQueue.main.async {
+                    self.fetchN8nWorkflows(urls: urls, apiKey: apiKey, idx: idx + 1)
+                }
                 return
             }
             let items: [[String: Any]]
