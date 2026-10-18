@@ -178,29 +178,29 @@ final class HubMochiTroupe: ObservableObject {
 /// A strip where a few mini Mochis live: drawn in one canvas, at the display's rate while the
 /// window shows, still otherwise. Click one to say hello.
 struct HubMochiScene: View {
-    @StateObject private var troupe: HubMochiTroupe
-    @Environment(\.hubVisible) private var visible
+    private let cast: [HubMochiSpec]
 
     init(cast: [HubMochiSpec], range: ClosedRange<CGFloat> = 0.05...0.95) {
-        _troupe = StateObject(wrappedValue: {
-            let t = HubMochiTroupe(cast: cast)
-            t.range = range
-            return t
-        }())
+        // `range` constrained where the troupe was allowed to wander. Nothing
+        // wanders now, so it is accepted and ignored rather than removed, which
+        // would break every call site for no gain.
+        _ = range
+        self.cast = cast
     }
 
     var body: some View {
+        // The troupe roamed, bounced and could be poked. That wandering IS the
+        // Mochi character, which upstream reserves, so it does not carry over —
+        // and it should not: a cast of avatars drifting around a panel competes
+        // with the panel. Nova states hold their place and speak through motion.
         GeometryReader { geo in
-            TimelineView(.animation(paused: !visible)) { timeline in
-                let frame = timeline.date
-                Canvas { context, size in
-                    _ = frame
-                    troupe.step()
-                    troupe.draw(&context, size: size)
+            HStack(spacing: geo.size.width * 0.04) {
+                ForEach(Array(cast.enumerated()), id: \.offset) { _, spec in
+                    NovaAvatarView(energy: spec.state.novaEnergy)
+                        .frame(width: spec.size * 0.68, height: spec.size * 0.68)
                 }
             }
-            .contentShape(Rectangle())
-            .onTapGesture { location in troupe.poke(at: location, in: geo.size) }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }
@@ -214,9 +214,12 @@ struct HubLiveMochi: View {
     var outfit: Outfit = .none
 
     var body: some View {
-        HubMochiScene(cast: [HubMochiSpec(color: color, size: size / 0.68, outfit: outfit, state: state, roams: false)])
-            .frame(width: size / 0.68, height: size / 0.68)
-            .frame(width: size, height: size * 0.75)
+        // Nova, not Mochi. `color` and `outfit` are kept in the signature so
+        // every call site compiles unchanged, but Nova has one look: it says
+        // what the agent is DOING through motion, and a per-pill colour would
+        // be a second, competing channel for the same fact.
+        NovaAvatarView(energy: state.novaEnergy)
+            .frame(width: size, height: size)
     }
 }
 

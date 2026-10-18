@@ -200,3 +200,33 @@ struct NovaAvatarView: View {
     .padding(26)
     .background(Color.black)
 }
+
+// MARK: - What a bot state looks like
+
+extension BotState {
+    /// How much Nova should move for this state.
+    ///
+    /// One mapping for every surface, so the pill, the minis and the hub cannot
+    /// drift into disagreeing about what "working" looks like. The scale is the
+    /// avatar's `energy`: 0 is still, 1 is the speaking peak.
+    ///
+    /// Grouped by what the user should FEEL, not by how the states are named:
+    /// something waiting on them moves most, something in progress moves
+    /// steadily, something stopped barely moves at all.
+    var novaEnergy: Double {
+        switch self {
+        case .idle:                       return 0
+        case .sleeping:                   return 0
+        // Waiting on a person. This is the only group allowed to be loud,
+        // because it is the only group a person has to act on.
+        case .approval, .question:        return 0.78
+        // In progress. Enough motion to read as alive across a room, not
+        // enough to pull the eye off whatever the user is actually doing.
+        case .working, .thinking,
+             .searching:                  return 0.42
+        // Stopped, and not going anywhere without help.
+        case .error, .dizzy, .ratelimit:  return 0.5
+        case .finished:                   return 0.3
+        }
+    }
+}
