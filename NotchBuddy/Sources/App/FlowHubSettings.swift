@@ -188,7 +188,7 @@ struct HubKeyCap: View {
             .font(.system(size: 12.5, weight: .semibold))
             .padding(.horizontal, 10)
             .frame(height: 26)
-            .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.08)))
+            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(Color.white.opacity(0.08)))
     }
 }
 

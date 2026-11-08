@@ -81,8 +81,8 @@ struct HubHomePage: View {
                 }
                 .padding(.horizontal, 10)
                 .frame(height: 30)
-                .background(RoundedRectangle(cornerRadius: 8).fill(HubTheme.card))
-                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(HubTheme.line))
+                .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.card))
+                .overlay(RoundedRectangle(cornerRadius: HubTheme.r).strokeBorder(HubTheme.line))
             }
             if store.history.isEmpty {
                 HubCard {
@@ -106,8 +106,8 @@ struct HubHomePage: View {
                                 HubEntryRow(entry: entry)
                             }
                         }
-                        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(HubTheme.card))
-                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(HubTheme.line))
+                        .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
+                        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.line))
                     }
                 }
             }
@@ -232,9 +232,9 @@ private struct HubNotesPromo: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HubHeroBackdrop(color: HubTheme.accent, light: light, cornerRadius: 14).allowsHitTesting(false))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(HubTheme.accent.opacity(0.2)))
+        .background(HubHeroBackdrop(color: HubTheme.accent, light: light, cornerRadius: HubTheme.r).allowsHitTesting(false))
+        .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.accent.opacity(0.2)))
         .onContinuousHover { phase in
             switch phase {
             case .active(let point): light.target = point
@@ -274,9 +274,9 @@ struct HubSetupCard: View {
             Spacer(minLength: 0)
         }
         .padding(18)
-        .background(HubHeroBackdrop(color: HubTheme.accent, light: light, cornerRadius: 14).allowsHitTesting(false))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(HubTheme.accent.opacity(0.2)))
+        .background(HubHeroBackdrop(color: HubTheme.accent, light: light, cornerRadius: HubTheme.r).allowsHitTesting(false))
+        .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.accent.opacity(0.2)))
         .onContinuousHover { phase in
             switch phase {
             case .active(let point): light.target = point

@@ -71,28 +71,89 @@ enum HubPage: String, CaseIterable, Identifiable {
     }
 }
 
-/// The colors of the Coucou Flow window: the island's dark, with Coucou's orange.
+/// The window's surface system: PACE, the same one the HeyApex HUD, the pill
+/// and the twelve web surfaces use (electron/shared/pace.css in the frontend
+/// repository). The names here are unchanged so upstream merges keep applying;
+/// only the values moved, from an orange-accented generic dark theme onto the
+/// product's own palette.
+///
+/// THE RULE, carried over from pace.css: colour reports STATE, never identity.
+/// The window is graphite until something is happening, then exactly one tone
+/// says what. Mint is rationed — ready, done, you beat something. The old
+/// `accent` orange was on every control at rest, which made it mean nothing;
+/// orange survives as `hold`, which is the one thing it was ever saying.
 enum HubTheme {
-    /// OLED black: the window and the sidebar.
-    static let window = Color.black
-    static let sidebar = Color.black
-    /// The big card on the right, where the pages are.
-    static let panel = Color(hex: "#0E0F11")
-    static let card = Color(hex: "#18191C")
-    static let field = Color(hex: "#1F2024")
-    static let line = Color.white.opacity(0.07)
-    static let text = Color(hex: "#F5F6F8")
-    static let body = Color(hex: "#E1E3E6")
-    static let secondary = Color(hex: "#8E939C")
-    static let muted = Color(hex: "#6B7079")
-    static let accent = Color(hex: "#FB923C")
-    static let onAccent = Color(hex: "#170C04")
-    static let green = Color(hex: "#34D399")
-    static let red = Color(hex: "#FF453A")
-    /// One color per person in a call: you first, then the others.
-    static let speakers: [Color] = ["#3B9EFF", "#34D399", "#A78BFA", "#F7B32B", "#F472B6", "#22D3EE"].map { Color(hex: $0) }
+    /// Pace --pace-ground. Not pure black: the island's near-black.
+    static let window = Pace.ground
+    static let sidebar = Pace.ground
+    /// The big card on the right, where the pages are. --pace-surface, opaque.
+    static let panel = Pace.surface
+    static let card = Pace.card
+    static let field = Pace.field
+    /// ONE hairline. --pace-line.
+    static let line = Pace.line
+    static let text = Pace.ink
+    static let body = Color(hex: "#D5DCD9")
+    static let secondary = Pace.ink2
+    static let muted = Pace.ink3
+    /// --pace-mint: ready · done · you beat something.
+    static let accent = Pace.mint
+    static let onAccent = Pace.onMint
+    static let green = Pace.mint
+    static let red = Pace.fail
+
+    /// The state tones. Every one of them is a pace.css tone, and a control at
+    /// rest wears none of them.
+    /// Recording · hot mic · the agent has your cursor.
+    static let live = Pace.live
+    /// The agent is acting.
+    static let act = Pace.act
+    /// Working on it.
+    static let think = Pace.think
+    /// Needs you — a decision only you can make.
+    static let hold = Pace.hold
+    /// It did not work.
+    static let fail = Pace.fail
+
+    /// ONE radius. pace.css ships 4px and the product asked for 5; before this
+    /// the window drew eleven distinct corner radii.
+    static let r = Pace.r
+    static let rPill = Pace.rPill
+
+    /// One color per person in a call: you first, then the others. This is the
+    /// one place identity, not state, picks the colour, so the tones are the
+    /// pace set rather than a second palette.
+    static let speakers: [Color] = [Pace.act, Pace.mint, Pace.think, Pace.hold, Pace.live, Color(hex: "#2DD4BF")]
 
     static func speaker(_ index: Int) -> Color { speakers[max(0, index) % speakers.count] }
+}
+
+/// Every `GroupBox` in the window, reskinned in one place.
+///
+/// The settings pages build 32 of them and upstream keeps adding more; styling
+/// them through the environment means a new one is on Pace the day it lands,
+/// with no diff of ours in the file that declares it. The system box drew a
+/// bordered card with a plain sentence-case title; this draws a Pace card with
+/// the mono eyebrow the rest of the product labels sections with.
+struct PaceGroupBoxStyle: GroupBoxStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            configuration.label
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .tracking(1.6)
+                .textCase(.uppercase)
+                .foregroundColor(HubTheme.secondary)
+            configuration.content
+                .foregroundColor(HubTheme.body)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
+        .overlay(
+            RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous)
+                .strokeBorder(HubTheme.line)
+        )
+    }
 }
 
 private struct HubPageKey: EnvironmentKey {
@@ -205,11 +266,11 @@ struct FlowHubView: View {
             page
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous)
                         .fill(HubTheme.panel)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.white.opacity(0.07)))
+                .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(Color.white.opacity(0.07)))
                 .padding(.top, 10)
                 .padding(.bottom, 10)
                 .padding(.trailing, 10)
@@ -218,6 +279,7 @@ struct FlowHubView: View {
         .foregroundColor(HubTheme.text)
         .preferredColorScheme(.dark)
         .tint(HubTheme.accent)
+        .groupBoxStyle(PaceGroupBoxStyle())
         .environment(\.hubVisible, windowState.visible)
         .environment(\.hubPage, router.page)
     }
@@ -306,8 +368,8 @@ private struct HubSidebar: View {
                 Spacer(minLength: 0)
             }
             .padding(10)
-            .background(RoundedRectangle(cornerRadius: 10).fill(HubTheme.card))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.white.opacity(0.06)))
+            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.card))
+            .overlay(RoundedRectangle(cornerRadius: HubTheme.r).strokeBorder(Color.white.opacity(0.06)))
         }
         .buttonStyle(.plain)
     }
@@ -346,7 +408,7 @@ private struct HubSidebarItem: View {
             .foregroundColor(selected ? HubTheme.text : Color(hex: "#B7BBC2"))
             .padding(.horizontal, 10)
             .frame(height: 32)
-            .background(RoundedRectangle(cornerRadius: 9)
+            .background(RoundedRectangle(cornerRadius: HubTheme.r)
                 .fill(Color.white.opacity(selected ? 0.08 : (hover ? 0.04 : 0))))
             .contentShape(Rectangle())
         }
@@ -416,8 +478,8 @@ struct HubCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) { content() }
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(HubTheme.card))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(HubTheme.line))
+            .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
+            .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.line))
     }
 }
 
@@ -472,9 +534,9 @@ struct HubButtonStyle: ButtonStyle {
             .foregroundColor(primary ? HubTheme.onAccent : HubTheme.text)
             .padding(.horizontal, 14)
             .frame(height: 34)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
+            .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous)
                 .fill(primary ? HubTheme.accent : Color(hex: "#1D1E22")))
-            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
+            .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous)
                 .strokeBorder(primary ? Color.clear : Color.white.opacity(0.1)))
             .opacity(configuration.isPressed ? 0.75 : 1)
             .contentShape(Rectangle())
@@ -494,7 +556,7 @@ struct HubIconButton: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(hover ? HubTheme.text : Color(hex: "#A4A9B1"))
                 .frame(width: 28, height: 28)
-                .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hover ? 0.1 : 0.05)))
+                .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(Color.white.opacity(hover ? 0.1 : 0.05)))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -516,8 +578,8 @@ struct HubField: View {
             .font(.system(size: 13))
             .padding(.horizontal, 12)
             .frame(height: 34)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(HubTheme.field))
-            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color.white.opacity(0.1)))
+            .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.field))
+            .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(Color.white.opacity(0.1)))
             .onSubmit(onSubmit)
     }
 }

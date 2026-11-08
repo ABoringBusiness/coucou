@@ -86,7 +86,7 @@ private struct HubNotesList: View {
             }
             .foregroundColor(HubTheme.secondary)
             .padding(10)
-            .background(RoundedRectangle(cornerRadius: 10).fill(HubTheme.card))
+            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.card))
         }
         .padding(.horizontal, 14)
         .padding(.bottom, 14)
@@ -176,7 +176,7 @@ private struct HubNoteRow: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 10)
+            .background(RoundedRectangle(cornerRadius: HubTheme.r)
                 .fill(Color.white.opacity(selected ? 0.07 : (hover ? 0.035 : 0))))
             .contentShape(Rectangle())
         }
@@ -460,7 +460,7 @@ private struct HubNoteDetail: View {
             .menuIndicator(.hidden)
             .fixedSize()
             .frame(width: 34, height: 34)
-            .background(RoundedRectangle(cornerRadius: 9).fill(Color(hex: "#1D1E22")))
+            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(Color(hex: "#1D1E22")))
         }
     }
 
@@ -695,8 +695,8 @@ private struct HubTodos: View {
             }
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(HubTheme.card))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(HubTheme.line))
+        .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
+        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.line))
     }
 }
 

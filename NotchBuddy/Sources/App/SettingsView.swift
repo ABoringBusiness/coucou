@@ -543,7 +543,7 @@ struct SettingsView: View {
 
                 Text(String(format: String(localized: "settings.slots-used %lld"), Int64(state.activeIntegrations.count)))
                     .font(.system(size: 11))
-                    .foregroundColor(state.activeIntegrations.count >= 4 ? .orange : .secondary)
+                    .foregroundColor(state.activeIntegrations.count >= 4 ? Pace.hold : .secondary)
 
                 Picker(String(localized: "settings.main-pill"), selection: $state.mainPillId) {
                     ForEach(PillCatalog.available.filter { $0.category == .workspace && !$0.comingSoon }, id: \.id) { def in
@@ -579,10 +579,10 @@ struct SettingsView: View {
                 if hookNeedsUpdate {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
+                            .foregroundColor(Pace.hold)
                         Text(String(localized: "hooks.outdated"))
                             .font(.system(size: 11))
-                            .foregroundColor(.orange)
+                            .foregroundColor(Pace.hold)
                     }
                     #if APPSTORE
                     Button(String(localized: "hooks.update")) { installHooksAppStore() }
@@ -913,7 +913,7 @@ struct SettingsView: View {
                     if !hermesSupportsApprovals {
                         Text("Requires a newer version of Hermes — run: hermes update")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(Pace.hold)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text(hermesApprovalsEnabled
@@ -1403,7 +1403,7 @@ struct SettingsView: View {
 
                 HStack(alignment: .top, spacing: 6) {
                     Image(systemName: webKeySaved ? "checkmark.circle.fill" : "exclamationmark.circle")
-                        .foregroundColor(webKeySaved ? .green : .orange)
+                        .foregroundColor(webKeySaved ? Pace.mint : Pace.hold)
                     Text(webKeySaved ? String(localized: "voice.setting-web-desc")
                                      : String(localized: "voice.setting-web-nokey"))
                         .font(.system(size: 11))
@@ -1415,7 +1415,7 @@ struct SettingsView: View {
                 if voiceEngine.recognizerUnavailable {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
+                            .foregroundColor(Pace.hold)
                         Text("No speech recognition model available on this device. Install one in System Settings \u{2192} Keyboard \u{2192} Dictation.")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
@@ -1610,7 +1610,7 @@ struct SettingsView: View {
     }
 
     private var micStatusIcon:  String { VoiceSettings.micStatus    == .granted ? "checkmark.circle.fill" : "xmark.circle.fill" }
-    private var micStatusColor: Color  { VoiceSettings.micStatus    == .granted ? .green : .red }
+    private var micStatusColor: Color  { VoiceSettings.micStatus    == .granted ? Pace.mint : Pace.fail }
     private var micStatusLabel: String {
         switch VoiceSettings.micStatus {
         case .granted:      return String(localized: "Granted")
@@ -1619,7 +1619,7 @@ struct SettingsView: View {
         }
     }
     private var speechStatusIcon:  String { VoiceSettings.speechStatus == .granted ? "checkmark.circle.fill" : "xmark.circle.fill" }
-    private var speechStatusColor: Color  { VoiceSettings.speechStatus == .granted ? .green : .red }
+    private var speechStatusColor: Color  { VoiceSettings.speechStatus == .granted ? Pace.mint : Pace.fail }
     private var speechStatusLabel: String {
         switch VoiceSettings.speechStatus {
         case .granted:      return String(localized: "Granted")
@@ -2146,7 +2146,10 @@ struct SettingsView: View {
         URLSession.shared.dataTask(with: req) { data, response, _ in
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             guard let data, code == 200 else {
-                self.fetchN8nWorkflows(urls: urls, apiKey: apiKey, idx: idx + 1)
+                // The retry hops back to the main actor: this closure runs on a
+                // URLSession queue, and the method it calls is main-actor bound
+                // like every other member of a View.
+                DispatchQueue.main.async { self.fetchN8nWorkflows(urls: urls, apiKey: apiKey, idx: idx + 1) }
                 return
             }
             let items: [[String: Any]]

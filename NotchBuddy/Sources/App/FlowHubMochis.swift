@@ -309,8 +309,8 @@ struct HubHero<Trailing: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .frame(height: compact ? 116 : 170)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(theme.color.opacity(0.16)))
+        .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(theme.color.opacity(0.16)))
         // The light follows the pointer over the band.
         .onContinuousHover { phase in
             switch phase {
@@ -479,9 +479,9 @@ struct HubGlowCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 10) { content() }
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HubHeroBackdrop(color: color, light: light, cornerRadius: 14).allowsHitTesting(false))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(color.opacity(0.18)))
+            .background(HubHeroBackdrop(color: color, light: light, cornerRadius: HubTheme.r).allowsHitTesting(false))
+            .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(color.opacity(0.18)))
             .onContinuousHover { phase in
                 switch phase {
                 case .active(let point): light.target = point

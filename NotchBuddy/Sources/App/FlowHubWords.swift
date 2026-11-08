@@ -99,8 +99,8 @@ private struct HubChip: View {
         .padding(.leading, 11)
         .padding(.trailing, 9)
         .frame(height: 30)
-        .background(RoundedRectangle(cornerRadius: 8).fill(HubTheme.field))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.white.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.field))
+        .overlay(RoundedRectangle(cornerRadius: HubTheme.r).strokeBorder(Color.white.opacity(0.08)))
         .onHover { hover = $0 }
     }
 }
@@ -126,8 +126,8 @@ struct HubSnippetsPage: View {
                     .scrollContentBackground(.hidden)
                     .padding(8)
                     .frame(height: 90)
-                    .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(HubTheme.field))
-                    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color.white.opacity(0.1)))
+                    .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.field))
+                    .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(Color.white.opacity(0.1)))
                     .overlay(alignment: .topLeading) {
                         if text.isEmpty {
                             Text("hub.snippet-text-placeholder")
@@ -162,7 +162,7 @@ struct HubSnippetsPage: View {
                             .foregroundColor(Color(hex: "#FDBA74"))
                             .padding(.horizontal, 9)
                             .padding(.vertical, 3)
-                            .background(RoundedRectangle(cornerRadius: 6).fill(HubTheme.accent.opacity(0.14)))
+                            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.accent.opacity(0.14)))
                         Spacer()
                         HubIconButton(symbol: "pencil", help: String(localized: "hub.edit")) {
                             editing = snippet.id
