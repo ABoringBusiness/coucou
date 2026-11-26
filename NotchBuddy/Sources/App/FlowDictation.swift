@@ -89,6 +89,7 @@ final class FlowDictation: ObservableObject {
 
     private var logic = FlowKeyLogic()
     private var monitors: [Any] = []
+    private var hostObservers: [NSObjectProtocol] = []
     private var current: Listen?
     private var startTask: Task<Void, Never>?
     private var tickTask: Task<Void, Never>?
@@ -110,11 +111,14 @@ final class FlowDictation: ObservableObject {
         pill.model.cancelDictation = { [weak self] in self?.cancelAll() }
         pill.model.toggleNote = { NoteTaker.shared.toggleFromPill() }
         pill.model.openHub = { FlowHubController.shared.show() }
+        hostObservers = HeyApexHost.observeLifecycle { [weak self] in
+            self?.refresh()
+        }
     }
 
     /// The pill's microphone: hands-free, as after a double tap, until ✓ or the key.
     func startHandsFree() {
-        guard isEnabled, logic.phase == .idle, current == nil else { return }
+        guard isEnabled, !HeyApexHost.managesBottomPill, logic.phase == .idle, current == nil else { return }
         logic.lock()
         begin()
         pill.model.phase = .locked
@@ -130,14 +134,14 @@ final class FlowDictation: ObservableObject {
     /// At launch: listens for the key if Flow dictation is on.
     func start() {
         refresh()
-        if isEnabled, FlowStore.shared.engine == .parakeet { Parakeet.shared.preload() }
+        if isEnabled, !HeyApexHost.managesBottomPill, FlowStore.shared.engine == .parakeet { Parakeet.shared.preload() }
     }
 
     func refresh() {
         removeMonitors()
         trusted = AXIsProcessTrusted()
         pill.setEnabled(isEnabled)
-        guard isEnabled else {
+        guard isEnabled, !HeyApexHost.managesBottomPill else {
             cancelAll()
             trustTask?.cancel(); trustTask = nil
             return
@@ -157,7 +161,7 @@ final class FlowDictation: ObservableObject {
         let now = AXIsProcessTrusted()
         guard now != trusted else { return }
         trusted = now
-        guard isEnabled else { return }
+        guard isEnabled, !HeyApexHost.managesBottomPill else { return }
         removeMonitors()
         installMonitors()
         if !now { waitForTrust() }
@@ -198,7 +202,7 @@ final class FlowDictation: ObservableObject {
         trustTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(2))
-                guard let self, self.isEnabled else { return }
+                guard let self, self.isEnabled, !HeyApexHost.managesBottomPill else { return }
                 if AXIsProcessTrusted() {
                     self.trusted = true
                     self.removeMonitors()
@@ -321,7 +325,7 @@ final class FlowDictation: ObservableObject {
                 self.logic.reset()
                 self.current = nil
                 self.pill.flash(.failed)
-                self.pill.announce(FlowAnnouncement(symbol: "mic.slash.fill", tint: "#FF6B6B", text: String(localized: "flow.ann.mic"),
+                self.pill.announce(FlowAnnouncement(symbol: "mic.slash.fill", tint: "#FF6A4D", text: String(localized: "flow.ann.mic"),
                                                     action: String(localized: "flow.ann.settings"))) {
                     if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
                         NSWorkspace.shared.open(url)

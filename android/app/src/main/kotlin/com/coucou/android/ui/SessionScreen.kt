@@ -101,7 +101,7 @@ fun SessionScreen(model: AppModel, pillId: String, onBack: () -> Unit) {
                             trailing = {
                                 Text(
                                     stringResource(R.string.files_counts, f.added, f.removed), maxLines = 1,
-                                    style = TypeScale.SECONDARY.style(t.textDim.c()).copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace),
+                                    style = TypeScale.SECONDARY.style(t.textDim.c(), tabular = true).copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace),
                                 )
                             },
                         )

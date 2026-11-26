@@ -271,6 +271,7 @@ class IslandOverlay(
 
     // The island is black: it is the camera hole grown. Colours are the shared always-dark ones.
     private val ink = Color(IslandSurface.BLACK)
+    private val textColor = Color(IslandSurface.TEXT)
     private val dim = Color(IslandSurface.TEXT_DIM)
 
     @Composable
@@ -358,7 +359,7 @@ class IslandOverlay(
             MochiView(engine, Modifier.size(34.dp))
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text(s.agent, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(s.agent, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (s.text.isNotBlank()) Text(s.text, color = dim, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
@@ -381,12 +382,12 @@ class IslandOverlay(
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(s.agent, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    Text(s.agent, color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(label), color = dim, fontSize = 12.sp, maxLines = 1)
                 }
                 val text = if (s.kind == IslandSpec.Kind.QUESTION) stringResource(R.string.island_answer_on_pc) else s.text
-                if (text.isNotBlank()) Text(text, color = Color.White, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (text.isNotBlank()) Text(text, color = textColor, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
     }
@@ -402,7 +403,7 @@ class IslandOverlay(
                 Column(Modifier.weight(1f)) {
                     Text(s.agent, style = TypeScale.SECONDARY.style(dim), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     // What kind of action, never the command: the exact text is in the app and in the lock prompt.
-                    Text(stringResource(R.string.approval_wants, s.text), style = TypeScale.HEADLINE.style(Color.White), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(stringResource(R.string.approval_wants, s.text), style = TypeScale.HEADLINE.style(textColor), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

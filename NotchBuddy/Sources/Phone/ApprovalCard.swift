@@ -12,12 +12,18 @@ struct ApprovalCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Waiting for your OK").font(.subheadline.weight(.semibold)).foregroundStyle(.orange)
+            HStack(spacing: 7) {
+                Circle().fill(Pace.hold).frame(width: 7, height: 7)
+                Text("Waiting for your OK").font(.subheadline.weight(.semibold)).foregroundStyle(Pace.hold)
+            }
             Text(session.approvalCommand.isEmpty ? "The agent asks for a permission." : session.approvalCommand)
                 .font(.callout.monospaced())
+                .foregroundStyle(Pace.ink)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
-                .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
+                .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                    .strokeBorder(Pace.line, lineWidth: 1))
                 .textSelection(.enabled)
             if let sent {
                 HStack(spacing: 12) {
@@ -25,17 +31,17 @@ struct ApprovalCard: View {
                         // Apple Pay's "Done": the ring, then the check, draw themselves.
                         DrawnCheckmark(size: 34)
                     } else {
-                        Image(systemName: "xmark.circle.fill").font(.title).foregroundStyle(.red)
+                        Image(systemName: "xmark.circle.fill").font(.title).foregroundStyle(Pace.fail)
                             .symbolEffect(.bounce, value: sent)
                     }
                     Text(sent == .allow ? "Allowed, sent to your Mac" : "Denied, sent to your Mac")
                         .font(.callout.weight(.semibold))
-                        .foregroundStyle(sent == .allow ? .green : .red)
+                        .foregroundStyle(sent == .allow ? Pace.mint : Pace.fail)
                 }
                 .transition(.scale(scale: 0.8).combined(with: .opacity))
             } else if session.approvalFingerprint.isEmpty {
                 Text("Answer on your Mac. This request can't be answered from the iPhone.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(Pace.ink3)
             } else {
                 ApprovalChoiceButtons(disabled: sending != nil) {
                     Task { await send(.deny) }
@@ -43,15 +49,16 @@ struct ApprovalCard: View {
                     Task { await send(.allow) }
                 }
                 Text("Allow asks for Face ID. The request expires after 2 minutes.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption.monospacedDigit()).foregroundStyle(Pace.ink3)
             }
             if let error {
-                Text(error).font(.caption).foregroundStyle(.red)
+                Text(error).font(.caption).foregroundStyle(Pace.fail)
             }
         }
         .padding(16)
-        .glassCard()
-        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Color.orange.opacity(0.35), lineWidth: 1))
+        .glassCard(cornerRadius: Pace.rIslandCard)
+        .overlay(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+            .strokeBorder(Pace.hold.opacity(0.35), lineWidth: 1))
         .animation(.spring(duration: 0.5, bounce: 0.3), value: sent)
         .onChange(of: session.approvalFingerprint) { sent = nil; error = nil }
     }
@@ -104,11 +111,11 @@ struct ReviewSheet: View {
                             MochiLive(state: session.state)
                                 .padding(6)
                                 .frame(width: 52, height: 52)
-                                .background(Color.mochiTile(hex: session.color), in: RoundedRectangle(cornerRadius: 14))
+                                .background(Color.mochiTile(hex: session.color), in: RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("\(session.pillName) · \(session.title)").font(.headline)
                                 if !session.macName.isEmpty {
-                                    Text(session.macName).font(.caption).foregroundStyle(.secondary)
+                                    Text(session.macName).font(.caption).foregroundStyle(Pace.ink3)
                                 }
                             }
                         }
@@ -124,8 +131,8 @@ struct ReviewSheet: View {
                             Text(expired
                                  ? "Your Mac waits 2 minutes for an answer, then the agent asks again in its own window."
                                  : "It was answered there (in the terminal or VS Code), or the command went ahead.")
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
+                                .font(.callout.monospacedDigit())
+                                .foregroundStyle(Pace.ink2)
                                 .multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity)
@@ -134,7 +141,7 @@ struct ReviewSheet: View {
                 }
                 .padding(16)
             }
-            .background(Color.black)
+            .background(Pace.ground)
             .navigationTitle("Review")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -176,11 +183,15 @@ struct HistoryView: View {
                 .listRowBackground(Color.clear)
             }
             ForEach(days, id: \.day) { day in
-                Section(Self.dayTitle(day.day)) {
+                Section {
                     ForEach(day.logs) { log in row(log) }
+                } header: {
+                    Text(Self.dayTitle(day.day)).textCase(nil)
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Pace.ground)
         .navigationTitle("History")
     }
 
@@ -190,7 +201,7 @@ struct HistoryView: View {
             MochiStill(state: log.decision == .allow ? .finished : .error, bodyHex: pill?.color ?? "#FFFFFF")
                 .padding(3)
                 .frame(width: 34, height: 34)
-                .background(Color(white: 0.16), in: RoundedRectangle(cornerRadius: 9))
+                .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
             VStack(alignment: .leading, spacing: 3) {
                 Text(log.summary)
                     .font(.callout.monospaced())
@@ -198,10 +209,12 @@ struct HistoryView: View {
                 HStack(spacing: 6) {
                     Label(log.decision == .allow ? "Allowed" : "Denied",
                           systemImage: log.decision == .allow ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .foregroundStyle(log.decision == .allow ? .green : .red)
-                    Text(pill?.name ?? log.pillId).foregroundStyle(.secondary)
+                        .foregroundStyle(log.decision == .allow ? Pace.mint : Pace.fail)
+                    Text(pill?.name ?? log.pillId).foregroundStyle(Pace.ink3)
                     Spacer(minLength: 0)
-                    Text(log.date, format: .dateTime.hour().minute()).foregroundStyle(.tertiary)
+                    Text(log.date, format: .dateTime.hour().minute())
+                        .monospacedDigit()
+                        .foregroundStyle(Pace.ink3)
                 }
                 .font(.caption)
             }

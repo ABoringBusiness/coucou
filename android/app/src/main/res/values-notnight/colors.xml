@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The light variant of the Widgets (the system is in day mode). The tone and tint colours do not change. -->
 <resources>
-    <color name="widget_card">#FFF7F7FA</color>
-    <color name="widget_border">#FFD2D4DC</color>
-    <color name="widget_text">#FF1C1C1E</color>
-    <color name="widget_text_soft">#D91C1C1E</color>
-    <color name="widget_text_secondary">#B31C1C1E</color>
+    <color name="widget_bg">#FFEEEEF2</color>
+    <color name="widget_card">#FFF6F6F9</color>
+    <color name="widget_inner">#FFEBEBF0</color>
+    <color name="widget_border">#FFD0D3DC</color>
+    <color name="widget_text">#FF131316</color>
+    <color name="widget_text_soft">#D9131316</color>
+    <color name="widget_text_secondary">#B3131316</color>
     <color name="widget_button">#14000000</color>
     <!-- The orange as text on the light card needs a deeper shade to be readable. -->
     <color name="widget_tone_attention_text">#FFA4570A</color>

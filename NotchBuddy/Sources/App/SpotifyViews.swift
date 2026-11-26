@@ -23,7 +23,7 @@ struct SpotifyPill: View {
 
             // Visual fills
             Capsule()
-                .fill(isHovered ? Color(hex: task.color).opacity(0.18) : Color(hex: "#0E0F11"))
+                .fill(isHovered ? Color(hex: task.color).opacity(0.18) : Pace.ground)
                 .allowsHitTesting(false)
             Capsule()
                 .stroke(Color(hex: task.color).opacity(isHovered ? 0.55 : 0.14), lineWidth: 1)
@@ -42,7 +42,7 @@ struct SpotifyPill: View {
             // Title — trailing padding grows on hover to make room for buttons
             Text(task.name)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(isHovered ? Color(hex: task.color).lighter(by: 0.3) : Color(hex: "#6B7079"))
+                .foregroundColor(isHovered ? Color(hex: task.color).lighter(by: 0.3) : Pace.ink3)
                 .lineLimit(1)
                 .truncationMode(.tail)
                 .padding(.leading, 34)
@@ -120,13 +120,13 @@ struct SpotifyCardView: View {
                         Circle().fill(green).frame(width: 6, height: 6)
                         Text(track.isAd ? String(localized: "Advertisement") : track.title)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#F5F6F8"))
+                            .foregroundColor(Pace.ink)
                             .lineLimit(1).truncationMode(.tail)
                     }
                     if !subtitle.isEmpty {
                         Text(subtitle)
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#8E939C"))
+                            .foregroundColor(Pace.ink3)
                             .lineLimit(1).truncationMode(.tail)
                     }
                 }
@@ -158,30 +158,30 @@ struct SpotifyCardView: View {
         HStack(spacing: 0) {
             HStack(spacing: 10) {
                 NowPlayingIconButton(icon: "shuffle", size: 10,
-                                  tint: controller.shuffling ? green : Color(hex: "#6B7079"),
+                                  tint: controller.shuffling ? green : Pace.ink3,
                                   help: controller.shuffling ? "Shuffle on" : "Shuffle off") {
                     controller.setShuffling(!controller.shuffling)
                 }
-                NowPlayingIconButton(icon: "backward.fill", size: 11, tint: Color(hex: "#C5C8CD"), help: "Previous") {
+                NowPlayingIconButton(icon: "backward.fill", size: 11, tint: Pace.ink2, help: "Previous") {
                     controller.previousTrack()
                 }
                 Button(action: { controller.playPause() }) {
                     ZStack {
-                        Circle().fill(Color(hex: "#F5F6F8"))
+                        Circle().fill(Pace.ink)
                         Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(Color(hex: "#0E0F11"))
+                            .foregroundColor(Pace.ground)
                             .offset(x: controller.isPlaying ? 0 : 1)
                     }
                     .frame(width: 20, height: 20)
                 }
                 .buttonStyle(NowPlayingPressStyle())
                 .help(controller.isPlaying ? String(localized: "Pause") : String(localized: "Play"))
-                NowPlayingIconButton(icon: "forward.fill", size: 11, tint: Color(hex: "#C5C8CD"), help: "Next") {
+                NowPlayingIconButton(icon: "forward.fill", size: 11, tint: Pace.ink2, help: "Next") {
                     controller.nextTrack()
                 }
                 NowPlayingIconButton(icon: "repeat", size: 10,
-                                  tint: controller.repeating ? green : Color(hex: "#6B7079"),
+                                  tint: controller.repeating ? green : Pace.ink3,
                                   help: controller.repeating ? "Repeat on" : "Repeat off") {
                     controller.setRepeating(!controller.repeating)
                 }
@@ -199,11 +199,11 @@ struct SpotifyCardView: View {
             header(dot: green)
             HStack(spacing: 5) {
                 Circle()
-                    .fill(installed ? Color(hex: "#22C55E") : Color(hex: "#F4505E"))
+                    .fill(installed ? Pace.mint : Pace.fail)
                     .frame(width: 5, height: 5)
                 Text(installed ? String(localized: "Not playing") : String(localized: "Spotify not installed"))
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
             }
             .padding(.leading, 108)
             .padding(.top, 2)
@@ -221,10 +221,10 @@ struct SpotifyCardView: View {
 
     private var deniedView: some View {
         VStack(alignment: .leading, spacing: 4) {
-            header(dot: Color(hex: "#F4505E"))
+            header(dot: Pace.fail)
             Text("Allow HeyApex Eye to control Spotify")
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#8E939C"))
+                .foregroundColor(Pace.ink2)
                 .padding(.leading, 108)
                 .padding(.trailing, 12)
             Button("Open Settings…") { controller.openAutomationSettings() }
@@ -241,10 +241,10 @@ struct SpotifyCardView: View {
             Circle().fill(dot).frame(width: 7, height: 7)
             Text("Spotify")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "#F5F6F8"))
+                .foregroundColor(Pace.ink)
             Text(PillCatalog.definition(for: SpotifyController.pillId)?.subtitle ?? "Integration")
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#8E939C"))
+                .foregroundColor(Pace.ink3)
             Spacer(minLength: 2)
         }
         .padding(.top, 6)

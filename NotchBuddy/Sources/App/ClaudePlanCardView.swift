@@ -19,14 +19,14 @@ struct ClaudePlanCardView: View {
             HStack(spacing: 6) {
                 let dominant = usage.flatMap { ClaudePlanGauge.dominantPct($0) }
                 Circle()
-                    .fill(Color(hex: ClaudePlanGauge.color(for: dominant)))
+                    .fill(Pace.gaugeTone(for: dominant))
                     .frame(width: 7, height: 7)
                 Text(String(localized: "plan.card.title"))
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Text(subtitleText)
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .font(.system(size: 11).monospacedDigit())
+                    .foregroundColor(Pace.ink3)
                     .lineLimit(1)
                     .fixedSize()
             }
@@ -106,16 +106,16 @@ struct GaugeRowView: View {
     var body: some View {
         HStack(spacing: 5) {
             Text(label)
-                .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#6B7079"))
+                .font(.system(size: 11).monospacedDigit())
+                .foregroundColor(Pace.ink3)
                 .frame(width: 40, alignment: .leading)
             if let w = window {
                 let pct = ClaudePlanGauge.effectivePct(w)
-                let accent = Color(hex: ClaudePlanGauge.color(for: pct))
+                let accent = Pace.gaugeTone(for: pct)
                 // Fixed-width bar (~50pt)
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color.white.opacity(0.08))
+                        .fill(Pace.line)
                         .frame(width: 50, height: 4)
                     Capsule()
                         .fill(accent)
@@ -124,20 +124,20 @@ struct GaugeRowView: View {
                 .frame(width: 50, height: 4)
                 Text("\(Int(pct.rounded()))%")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .foregroundColor(Pace.ink2)
                     .monospacedDigit()
                     .frame(width: 30, alignment: .trailing)
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 8))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
                 Text(resetLabel(w))
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .font(.system(size: 10).monospacedDigit())
+                    .foregroundColor(Pace.ink3)
                     .fixedSize()
             } else {
                 Text("—")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
                 Spacer()
             }
         }

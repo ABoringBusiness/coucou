@@ -15,9 +15,10 @@ struct CaptureCardView: View {
                 VStack(alignment: .leading, spacing: 7) {
                     Text("capture.ready")
                         .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Pace.ink)
                     Text(verbatim: hint)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#9398A1"))
+                        .foregroundColor(Pace.ink3)
                         .lineLimit(1)
                         .truncationMode(.tail)
                     HStack(spacing: 7) {
@@ -39,8 +40,8 @@ struct CaptureCardView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 104, height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: 1))
+                .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).stroke(Pace.line, lineWidth: 1))
         }
     }
 

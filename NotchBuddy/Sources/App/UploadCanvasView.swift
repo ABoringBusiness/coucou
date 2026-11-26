@@ -91,7 +91,7 @@ struct UploadCanvasView: View {
         var c = ctx
 
         // ── Island background ──────────────────────────────────────
-        c.fill(Path(CGRect(x:0, y:0, width:640, height:176)), with: .color(Color.black))
+        c.fill(Path(CGRect(x:0, y:0, width:640, height:176)), with: .color(Pace.notchBlack))
 
         // ── Card ──────────────────────────────────────────────────
         let cardPath = roundedRect(CGRect(x: USC.CARD_X, y: USC.CARD_Y, width: USC.CARD_W, height: USC.CARD_H), r: USC.CARD_R)
@@ -99,17 +99,17 @@ struct UploadCanvasView: View {
         var cardCtx = c
         cardCtx.clip(to: cardPath)
         cardCtx.fill(Path(CGRect(x: USC.CARD_X, y: USC.CARD_Y, width: USC.CARD_W, height: USC.CARD_H)),
-                     with: .color(Color(red:0.051, green:0.055, blue:0.063)))
+                     with: .color(Pace.card))
 
-        // Green glow from card bottom — grows slowly with upload progress
+        // Mint glow from card bottom — grows slowly with upload progress
         if f.greenWash > 0 {
             // Center at card bottom edge; gradient fans upward through the card
             let gx = USC.CARD_X + USC.CARD_W/2
             let gy = USC.CARD_Y + USC.CARD_H   // bottom of card
             let gGrad = Gradient(stops: [
-                .init(color: Color(red:0.157,green:0.831,blue:0.510).opacity(f.greenWash * 0.90), location:0),
-                .init(color: Color(red:0.157,green:0.831,blue:0.510).opacity(f.greenWash * 0.30), location:0.55),
-                .init(color: Color(red:0.157,green:0.831,blue:0.510).opacity(0), location:1)
+                .init(color: Pace.mint.opacity(f.greenWash * 0.90), location:0),
+                .init(color: Pace.mint.opacity(f.greenWash * 0.30), location:0.55),
+                .init(color: Pace.mint.opacity(0), location:1)
             ])
             cardCtx.fill(Path(CGRect(x:USC.CARD_X,y:USC.CARD_Y,width:USC.CARD_W,height:USC.CARD_H)),
                          with: .radialGradient(gGrad, center:CGPoint(x:gx,y:gy),
@@ -121,8 +121,8 @@ struct UploadCanvasView: View {
             var borderCtx = c
             borderCtx.opacity = f.zoneAlpha
             let borderColor = f.zoneOver
-                ? Color(red:0.204,green:0.831,blue:0.600).opacity(0.55)
-                : Color.white.opacity(0.14)
+                ? Pace.mint.opacity(0.55)
+                : Pace.line
             let inset = CGRect(x: USC.CARD_X+0.75, y: USC.CARD_Y+0.75,
                                width: USC.CARD_W-1.5, height: USC.CARD_H-1.5)
             // dashPhase increases → pattern marches left-to-right at ~20 pt/s
@@ -162,17 +162,17 @@ struct UploadCanvasView: View {
 
         let label = Text("Drop your files here")
             .font(.system(size:13, weight:.medium))
-            .foregroundColor(Color(hex:"#D5D7DB"))
+            .foregroundColor(Pace.body)
         tCtx.draw(label, at: CGPoint(x: USC.TEXT_X, y: USC.TEXT_Y - 4), anchor: .leading)
 
         let chips = ["PDF","Images","Code","Docs"]
         var cx = USC.TEXT_X
         for chip in chips {
-            let chipText = Text(chip).font(.system(size:11, weight:.medium)).foregroundColor(Color(hex:"#B9BDC4"))
+            let chipText = Text(chip).font(.system(size:11, weight:.medium)).foregroundColor(Pace.ink2)
             // measure approximate width
             let estW = Double(chip.count) * 6.5 + 16
             tCtx.fill(roundedRect(CGRect(x:cx, y:USC.TEXT_Y+9, width:estW, height:18), r:9),
-                      with: .color(Color.white.opacity(0.07)))
+                      with: .color(Pace.raised))
             tCtx.draw(chipText, at: CGPoint(x: cx + 8, y: USC.TEXT_Y + 18), anchor: .leading)
             cx += estW + 6
         }
@@ -191,7 +191,7 @@ struct UploadCanvasView: View {
         let name = state.droppedFile?.name ?? "file"
         let label = Text("Uploading \(name)")
             .font(.system(size:12.5, weight:.medium))
-            .foregroundColor(Color(hex:"#A9ADB5"))
+            .foregroundColor(Pace.ink2)
         pCtx.draw(label, at: CGPoint(x: x0, y: by-30), anchor: .leading)
 
         // Checkmark or percentage
@@ -200,35 +200,30 @@ struct UploadCanvasView: View {
             ckCtx.concatenate(CGAffineTransform(translationX: CGFloat(x1-8), y: CGFloat(by-30)))
             ckCtx.concatenate(CGAffineTransform(scaleX: CGFloat(f.check), y: CGFloat(f.check)))
             var circle = Path(); circle.addEllipse(in: CGRect(x:-8,y:-8,width:16,height:16))
-            ckCtx.fill(circle, with: .color(Color(hex:"#34D399")))
+            ckCtx.fill(circle, with: .color(Pace.mint))
             var ck = Path()
             ck.move(to: CGPoint(x:-3.6,y:0.2)); ck.addLine(to: CGPoint(x:-1,y:2.8)); ck.addLine(to: CGPoint(x:3.8,y:-2.6))
-            ckCtx.stroke(ck, with: .color(Color(red:0.027,green:0.075,blue:0.055)),
+            ckCtx.stroke(ck, with: .color(Pace.onMint),
                          style: StrokeStyle(lineWidth:2, lineCap:.round, lineJoin:.round))
         } else {
             let pct = Text("\(Int(f.progress*100)) %")
                 .font(.system(size:12.5, weight:.medium).monospacedDigit())
-                .foregroundColor(Color(hex:"#A9ADB5"))
+                .foregroundColor(Pace.ink2)
             pCtx.draw(pct, at: CGPoint(x: x1, y: by-30), anchor: .trailing)
         }
 
         // Bar track
         if barLen > 0 {
             pCtx.fill(roundedRect(CGRect(x:x0, y:by-3, width:barLen, height:6), r:3),
-                      with: .color(Color.white.opacity(0.08)))
+                      with: .color(Pace.line))
         }
 
         // Bar fill
         let fx = usLerp(USC.BAR_X0, USC.BAR_X1, f.progress)
         if fx > x0 + 1 {
-            // Flash color at completion
-            let flashGreen = Color(
-                red:   usLerp(0.204, 0.431, f.flash),
-                green: usLerp(0.827, 0.906, f.flash),
-                blue:  usLerp(0.600, 0.718, f.flash))
             let fillGrad = Gradient(stops: [
-                .init(color: Color(hex:"#1FA87A"), location:0),
-                .init(color: flashGreen, location:1)
+                .init(color: Pace.mint, location:0),
+                .init(color: f.flash > 0.25 ? Pace.mint2 : Pace.mint, location:1)
             ])
             pCtx.fill(roundedRect(CGRect(x:x0, y:by-3, width:fx-x0, height:6), r:3),
                       with: .linearGradient(fillGrad,
@@ -242,8 +237,8 @@ struct UploadCanvasView: View {
                    - usProgressAt(f.t,      progStart:USC.T_PROG_START, progEnd:f.progEnd)) / 0.01
             let tl = max(8, min(34, 8 + v*40))
             let tGrad = Gradient(stops:[
-                .init(color: Color(red:0.204,green:0.831,blue:0.600,opacity:0), location:0),
-                .init(color: Color(red:0.431,green:0.906,blue:0.718,opacity:0.6), location:1)
+                .init(color: Pace.mint.opacity(0), location:0),
+                .init(color: Pace.mint2.opacity(0.6), location:1)
             ])
             var glowCtx = pCtx
             glowCtx.addFilter(.blur(radius:3))
@@ -265,28 +260,28 @@ struct UploadCanvasView: View {
         let name = state.droppedFile?.name ?? "file"
         let titleText = Text("\(name) is ready.")
             .font(.system(size:14, weight:.semibold))
-            .foregroundColor(Color(hex:"#F5F6F8"))
+            .foregroundColor(Pace.ink)
         cCtx.draw(titleText, at: CGPoint(x:114, y:80), anchor: .leading)
 
         let subText = Text("What do you want to do with it?")
             .font(.system(size:12.5))
-            .foregroundColor(Color(hex:"#9398A1"))
+            .foregroundColor(Pace.ink3)
         cCtx.draw(subText, at: CGPoint(x:114, y:100), anchor: .leading)
 
-        // Primary button (white fill)
-        cCtx.fill(roundedRect(CGRect(x:114,y:113,width:168,height:26), r:13),
-                  with: .color(Color(hex:"#F5F6F8")))
+        // Primary button (mint fill)
+        cCtx.fill(roundedRect(CGRect(x:114,y:113,width:168,height:26), r:Double(Pace.rCtrl)),
+                  with: .color(Pace.mint))
         let btn1 = Text("Ask a question about it")
-            .font(.system(size:12.5, weight:.medium))
-            .foregroundColor(Color(red:0.043,green:0.047,blue:0.055))
+            .font(.system(size:12.5, weight:.semibold))
+            .foregroundColor(Pace.onMint)
         cCtx.draw(btn1, at: CGPoint(x:198, y:126), anchor: .center)
 
         // Secondary button (dim fill)
-        cCtx.fill(roundedRect(CGRect(x:290,y:113,width:120,height:26), r:13),
-                  with: .color(Color.white.opacity(0.09)))
+        cCtx.fill(roundedRect(CGRect(x:290,y:113,width:120,height:26), r:Double(Pace.rCtrl)),
+                  with: .color(Pace.raised2))
         let btn2 = Text("Send by email")
             .font(.system(size:12.5, weight:.medium))
-            .foregroundColor(Color(hex:"#F1F2F4"))
+            .foregroundColor(Pace.ink)
         cCtx.draw(btn2, at: CGPoint(x:350, y:126), anchor: .center)
     }
 
@@ -306,8 +301,8 @@ struct UploadCanvasView: View {
 
         // ── Body gradient ──────────────────────────────────────────
         let bodyGrad = Gradient(stops:[
-            .init(color: Color(hex:"#EDEDEF"), location:0),
-            .init(color: Color(hex:"#C4C5CA"), location:1)
+            .init(color: Pace.ink, location:0),
+            .init(color: Pace.ink2, location:1)
         ])
         c.fill(bp, with: .linearGradient(bodyGrad,
             startPoint:  CGPoint(x:  rx*0.7, y: -ry*0.9),
@@ -467,7 +462,7 @@ struct UploadCanvasView: View {
             let px  = usLerp(sx0,ex,kk), py = usLerp(sy0,ey,kk) - sin(.pi*k)*6
             let rad = 2.2*(1-k*0.5)
             var pp = Path(); pp.addEllipse(in: CGRect(x:px-rad, y:py-rad, width:rad*2, height:rad*2))
-            ctx.fill(pp, with: .color(Color(red:0.204,green:0.831,blue:0.600).opacity(1-k)))
+            ctx.fill(pp, with: .color(Pace.mint.opacity(1-k)))
         }
     }
 

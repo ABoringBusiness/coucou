@@ -24,12 +24,12 @@ struct VoiceResultView: View {
                               : "xmark.circle.fill")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(state.voiceResult?.outcome == .success
-                                             ? Color(hex: "#34D399")
-                                             : Color(hex: "#F4505E"))
+                                             ? Pace.mint
+                                             : Pace.fail)
 
                         Text(state.voiceResult?.message ?? "")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "#F5F6F8"))
+                            .foregroundColor(Pace.ink)
                     }
                 }
                 .padding(.trailing, 18)

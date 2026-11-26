@@ -16,7 +16,7 @@ struct FlowSettingsBox: View {
 
                 Text(String(format: String(localized: "flow.how %@"), flow.key.label))
                     .font(.system(size: 11))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Pace.ink2)
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 8) {
@@ -34,7 +34,7 @@ struct FlowSettingsBox: View {
                 if flow.key == .fn {
                     Text(String(localized: "flow.fn-help"))
                         .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Pace.ink2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
@@ -42,11 +42,11 @@ struct FlowSettingsBox: View {
                     if flow.trusted {
                         Label(String(localized: "flow.access-ok"), systemImage: "checkmark.circle.fill")
                             .font(.system(size: 11))
-                            .foregroundColor(.green)
+                            .foregroundColor(Pace.mint)
                     } else {
                         HStack(alignment: .top, spacing: 6) {
                             Image(systemName: "exclamationmark.circle")
-                                .foregroundColor(.orange)
+                                .foregroundColor(Pace.hold)
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(String(localized: "flow.accessibility"))
                                     .font(.system(size: 11))
@@ -61,7 +61,7 @@ struct FlowSettingsBox: View {
 
                 Text(String(localized: "flow.privacy"))
                     .font(.system(size: 11))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Pace.ink3)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(6)

@@ -2,6 +2,51 @@
 import AppKit
 import SwiftUI
 
+/// Detects whether HeyApex Desktop (`com.aboringbusiness.heyapex`) is running or installed so
+/// HeyApex Eye never paints a duplicate bottom-center pill, fights `fnkey-helper`, or crowds the Dock.
+@MainActor
+enum HeyApexHost {
+    nonisolated static let desktopBundleID = "com.aboringbusiness.heyapex"
+    nonisolated static let forceStandaloneKey = "coucouForceStandaloneFlow"
+
+    static var forceStandalone: Bool {
+        UserDefaults.standard.bool(forKey: forceStandaloneKey)
+    }
+
+    static var isDesktopRunning: Bool {
+        !NSRunningApplication.runningApplications(withBundleIdentifier: desktopBundleID).isEmpty
+    }
+
+    /// True when HeyApex Desktop owns the bottom-center pill and modifier-key dictation.
+    static var managesBottomPill: Bool {
+        !forceStandalone && isDesktopRunning
+    }
+
+    /// True when HeyApex Desktop is installed or currently managing the bottom pill.
+    static var isDesktopInstalled: Bool {
+        if managesBottomPill { return true }
+        let fm = FileManager.default
+        if fm.fileExists(atPath: "/Applications/HeyApex.app") { return true }
+        let userApp = (NSHomeDirectory() as NSString).appendingPathComponent("Applications/HeyApex.app")
+        if fm.fileExists(atPath: userApp) { return true }
+        return NSWorkspace.shared.urlForApplication(withBundleIdentifier: desktopBundleID) != nil
+    }
+
+    /// Subscribes to launch/termination of `com.aboringbusiness.heyapex` with zero polling.
+    static func observeLifecycle(onChange: @escaping @MainActor () -> Void) -> [NSObjectProtocol] {
+        let nc = NSWorkspace.shared.notificationCenter
+        let handler: @Sendable (Notification) -> Void = { note in
+            let bundleID = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+            guard bundleID == desktopBundleID else { return }
+            MainActor.assumeIsolated { onChange() }
+        }
+        return [
+            nc.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main, using: handler),
+            nc.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main, using: handler)
+        ]
+    }
+}
+
 /// The edge of the screen the pill lives on, centred on it.
 enum FlowPillEdge: String, CaseIterable, Identifiable {
     case bottom, left, right
@@ -22,7 +67,7 @@ struct FlowAnnouncement: Equatable, Identifiable {
     /// An SF Symbol.
     var symbol: String
     /// Its colour.
-    var tint: String = "#FB923C"
+    var tint: String = "#FFB020"
     var text: String
     /// The button's title, if there is something to do.
     var action: String?
@@ -204,11 +249,11 @@ struct FlowPillView: View {
         } else if let text = model.tooltip ?? (vertical ? messageText : nil) {
             Text(text)
                 .font(.system(size: 12.5, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Pace.ink)
                 .padding(.horizontal, 14)
                 .frame(height: 30)
-                .background(Capsule().fill(Color.black.opacity(0.94)))
-                .overlay(Capsule().strokeBorder(Color.white.opacity(0.14)))
+                .background(Capsule().fill(Pace.ground.opacity(0.95)))
+                .overlay(Capsule().strokeBorder(Pace.line))
                 .fixedSize()
                 .transition(.scale(scale: 0.8, anchor: bubbleAnchor).combined(with: .opacity))
         }
@@ -239,13 +284,13 @@ struct FlowPillView: View {
         let length = open ? openLength : Self.restingLength
         let thickness = open ? Self.openThickness : Self.restingThickness
         return ZStack {
-            // Resting, the pill is see-through: whatever is behind it stays readable. Open, it is black.
+            // Resting, the pill is see-through: whatever is behind it stays readable. Open, obsidian ground.
             Capsule()
-                .fill(Color.black.opacity(open ? 0.94 : 0.28))
+                .fill(Pace.ground.opacity(open ? 0.95 : 0.30))
             Capsule()
-                .strokeBorder(Color.white.opacity(open ? 0.16 : 0.42), lineWidth: open ? 1 : 1.2)
+                .strokeBorder(open ? Pace.line : Pace.lineCtrl, lineWidth: open ? 1 : 1.2)
             Capsule()
-                .strokeBorder(Color(hex: "#F97316").opacity(look == .handsFree ? 0.85 : 0), lineWidth: 1.5)
+                .strokeBorder(Pace.hold.opacity(look == .handsFree ? 0.85 : 0), lineWidth: 1.5)
             content
                 .opacity(open ? 1 : 0)
                 .scaleEffect(open ? 1 : 0.5)
@@ -297,7 +342,7 @@ struct FlowPillView: View {
                 mochi
                 Image(systemName: model.phase == .failed ? "mic.slash.fill" : "doc.on.clipboard.fill")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(Color(hex: "#E8E9EC"))
+                    .foregroundColor(model.phase == .failed ? Pace.fail : Pace.ink)
             }
             .padding(.vertical, 13)
             .fixedSize()
@@ -308,7 +353,7 @@ struct FlowPillView: View {
                 case .copied, .failed, .pastedAgain:
                     Text(messageText ?? "")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color(hex: "#E8E9EC"))
+                        .foregroundColor(model.phase == .failed ? Pace.fail : Pace.ink)
                         .fixedSize()
                 case .idle:
                     noteContent
@@ -321,37 +366,35 @@ struct FlowPillView: View {
         }
     }
 
-    /// Mochi, drawn by the same engine as the compact island's mini Mochis: his eyes wander all
-    /// around while you speak. 22 pt wide like a pill's Mochi (the canvas is larger, as there).
+    /// HeyApex Eye mini companion orb inside the standalone pill.
     private var mochi: some View {
         // Still while only a recorded call shows: the pill costs nothing during a long call.
-        FlowMochiView(active: model.phase != .idle || model.hovered)
-            .frame(width: 22 / 0.6, height: 22 / 0.6)
+        FlowMochiView(active: model.phase != .idle || model.hovered, phase: model.phase)
             .frame(width: 22, height: 22, alignment: .center)
     }
 
-    /// A call being recorded: a red dot, the time, and a button to stop.
+    /// A call being recorded: a live dot, the time, and a button to stop.
     @ViewBuilder private var noteContent: some View {
         if let start = model.noteStartedAt {
             line(spacing: vertical ? 6 : 8) {
                 Circle()
-                    .fill(Color(hex: "#FF453A"))
+                    .fill(Pace.live)
                     .frame(width: 8, height: 8)
-                    .shadow(color: Color(hex: "#FF453A").opacity(0.6), radius: 3)
+                    .shadow(color: Pace.live.opacity(0.6), radius: 3)
                 TimelineView(.periodic(from: start, by: 1)) { context in
                     Text(NoteBuilder.clock(context.date.timeIntervalSince(start)))
                         .font(.system(size: vertical ? 10 : 12, weight: .semibold).monospacedDigit())
-                        .foregroundColor(Color(hex: "#E8E9EC"))
+                        .foregroundColor(Pace.ink)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                         .frame(maxWidth: vertical ? 30 : nil)
                 }
                 Button { model.stopNote?() } label: {
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.white)
+                        .fill(Pace.ink)
                         .frame(width: 8, height: 8)
                         .frame(width: 22, height: 22)
-                        .background(Circle().fill(Color.white.opacity(0.16)))
+                        .background(Circle().fill(Pace.raised2))
                 }
                 .buttonStyle(.plain)
                 .help(String(localized: "notes.stop"))
@@ -382,7 +425,7 @@ struct FlowPillView: View {
             HStack(alignment: .center, spacing: 3.2) {
                 ForEach(0..<FlowBands.count, id: \.self) { i in
                     Capsule()
-                        .fill(Color.white.opacity(0.94))
+                        .fill((model.phase == .thinking ? Pace.think : Pace.ink).opacity(0.94))
                         .frame(width: 3.4, height: 3.4 + 16 * CGFloat(levels[i]))
                 }
             }
@@ -405,9 +448,9 @@ private struct PillButton: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: small ? 10 : 12, weight: .bold))
-                .foregroundColor(filled ? .black : .white)
+                .foregroundColor(filled ? Pace.onMint : Pace.ink)
                 .frame(width: small ? 24 : 28, height: small ? 24 : 28)
-                .background(Circle().fill(filled ? Color.white : Color.white.opacity(hover ? 0.22 : 0.10)))
+                .background(Circle().fill(filled ? Pace.mint : (hover ? Pace.raised2 : Pace.raised)))
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -432,17 +475,17 @@ private struct FlowAnnouncementView: View {
                 .foregroundColor(Color(hex: announcement.tint))
             Text(announcement.text)
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Pace.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: 270, alignment: .leading)
             if let action = announcement.action {
                 Button(action: act) {
                     Text(action)
-                        .font(.system(size: 12.5, weight: .bold))
-                        .foregroundColor(.black)
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundColor(Pace.onMint)
                         .padding(.horizontal, 13)
                         .frame(height: 28)
-                        .background(Capsule().fill(Color(hex: "#F5F1EA")))
+                        .background(Capsule().fill(Pace.mint))
                 }
                 .buttonStyle(.plain)
                 .fixedSize()
@@ -450,9 +493,9 @@ private struct FlowAnnouncementView: View {
             Button(action: dismiss) {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(Color.white.opacity(0.6))
+                    .foregroundColor(Pace.ink2)
                     .frame(width: 22, height: 22)
-                    .background(Circle().fill(Color.white.opacity(0.08)))
+                    .background(Circle().fill(Pace.raised))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(String(localized: "flow.ann.dismiss"))
@@ -460,36 +503,58 @@ private struct FlowAnnouncementView: View {
         .padding(.leading, 16)
         .padding(.trailing, 10)
         .padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.black.opacity(0.95)))
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.white.opacity(0.14)))
+        .background(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous).fill(Pace.card.opacity(0.96)))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous).strokeBorder(Pace.line))
         .shadow(color: .black.opacity(0.4), radius: 14, y: 6)
         .fixedSize()
     }
 }
 
-/// The pill's Mochi: a mini Mochi (BotEngine, like the pills of the compact island), white, idle,
-/// so his eyes wander around. Drawn only while the pill is open.
+/// The pill's mini HeyApex Eye orb: tracks gentle ambient gaze and blinks while the pill is open.
 private struct FlowMochiView: View {
     let active: Bool
+    var phase: FlowPillModel.Phase = .idle
     @StateObject private var engine: BotEngine
 
-    init(active: Bool) {
+    init(active: Bool, phase: FlowPillModel.Phase = .idle) {
         self.active = active
+        self.phase = phase
         _engine = StateObject(wrappedValue: {
             let e = BotEngine()
             e.isMini = true
-            e.bodyColor = cgColorFromHex("#F5F6F8")
             return e
         }())
     }
 
+    private var glyphState: BotState {
+        switch phase {
+        case .listening:            return .working
+        case .locked:               return .approval
+        case .thinking:             return .thinking
+        case .failed:               return .error
+        case .copied, .pastedAgain: return .finished
+        case .idle:                 return .idle
+        }
+    }
+
     var body: some View {
         TimelineView(.animation(paused: !active)) { timeline in
-            let frame = timeline.date   // redraw on every tick, as in MiniBotCanvasView
+            let frame = timeline.date
             Canvas { context, size in
                 _ = frame
                 MochiFrameClock.advance(engine)
-                engine.draw(context: context, size: size)
+                HeyApexEyeGlyph.draw(
+                    context: context,
+                    size: size,
+                    state: glyphState,
+                    eyeShape: engine.eyeOverride ?? engine.cfg.eye,
+                    gazeX: engine.yaw / 0.62,
+                    gazeY: engine.pitch / 0.50,
+                    open: engine.open,
+                    bob: engine.oy,
+                    isStatic: false,
+                    radiusScale: 0.40
+                )
             }
         }
         .onAppear { engine.setState(.idle, force: true) }
@@ -517,6 +582,7 @@ final class FlowPillController {
     private var announceTask: Task<Void, Never>?
     private var unhoverTask: Task<Void, Never>?
     private var screenObserver: NSObjectProtocol?
+    private var hostObservers: [NSObjectProtocol] = []
     private var mouseMonitors: [Any] = []
 
     /// Whether Flow dictation is on (the resting pill shows).
@@ -526,9 +592,15 @@ final class FlowPillController {
         self.bands = bands
         model.stopNote = { NoteTaker.shared.stop() }
         model.dismissAnnouncement = { [weak self] in self?.dismissAnnouncement() }
+        hostObservers = HeyApexHost.observeLifecycle { [weak self] in
+            self?.updateVisibility()
+        }
     }
 
-    private var shouldShow: Bool { dictationOn || model.noteStartedAt != nil || model.announcement != nil }
+    var shouldShow: Bool {
+        guard !HeyApexHost.managesBottomPill else { return false }
+        return dictationOn || model.noteStartedAt != nil || model.announcement != nil
+    }
 
     /// The Notetaker records (a date) or stopped (nil): the pill shows it even when dictation is off.
     func setNote(_ start: Date?) {
@@ -709,6 +781,10 @@ final class FlowPillController {
     /// The key is down: open on the screen the mouse is on.
     func listen() {
         restTask?.cancel()
+        guard !HeyApexHost.managesBottomPill else {
+            panel?.orderOut(nil)
+            return
+        }
         if panel == nil { build() }
         guard let panel else { return }
         place(panel, onMouseScreen: true)

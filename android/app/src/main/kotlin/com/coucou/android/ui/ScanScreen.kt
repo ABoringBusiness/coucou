@@ -176,12 +176,12 @@ private fun Message(text: String, onBack: () -> Unit) {
 /** A dimmed frame with a clear square in the middle, where the code should be. */
 @Composable
 private fun Viewfinder() {
-    val accent = Color.White
+    val accent = Color(IslandSurface.PRIMARY)
     Canvas(Modifier.fillMaxSize()) {
         val side = size.minDimension * 0.7f
         val left = (size.width - side) / 2f
         val top = (size.height - side) / 2f
-        val dim = Color(0x99000000)
+        val dim = Color(IslandSurface.BLACK).copy(alpha = 0.6f)
         drawRect(dim, Offset.Zero, Size(size.width, top))
         drawRect(dim, Offset(0f, top + side), Size(size.width, size.height - top - side))
         drawRect(dim, Offset(0f, top), Size(left, side))

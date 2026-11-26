@@ -54,10 +54,10 @@ struct IslandContainer: View {
         let greetingActive = state.mode == .expanded && state.view == .greeting
 
         return ZStack(alignment: .topLeading) {
-            // Black island shape
+            // Pure hardware notch black so the top seamlessly merges into MacBook camera housing
             IslandShape(width: islandWidth, height: islandHeight,
                         cornerRadius: cornerRadius, topRadius: islandTopRadius)
-                .fill(Color.black)
+                .fill(Pace.notchBlack)
 
             // Content
             if state.mode == .expanded {
@@ -90,14 +90,18 @@ struct IslandContainer: View {
                                               cornerRadius: cornerRadius, topRadius: islandTopRadius))
                         .transition(.opacity)
                 }
+
+                // Subtle 1pt specular hairline border around the expanded island perimeter
+                IslandShape(width: islandWidth, height: islandHeight,
+                            cornerRadius: cornerRadius, topRadius: islandTopRadius)
+                    .stroke(Pace.line, lineWidth: 1)
+                    .allowsHitTesting(false)
             }
 
             // Single BotPlacement — always alive in the view tree so spring animations
             // fire from the current position (e.g. choose at 60,101) when canvas deactivates.
-            // Hidden during upload canvas or greeting (both draw their own Mochi).
+            // Hidden during upload canvas or greeting (both draw their own companion).
             BotPlacement(state: state, islandW: islandWidth, islandH: islandHeight)
-                // Keep idle animations inside the resting strip. Expanded views
-                // retain the panel's full height for particles and hands.
                 .mask(alignment: .topLeading) {
                     Rectangle().frame(width: islandWidth,
                                       height: state.mode == .expanded ? 320 : islandHeight)
@@ -107,18 +111,18 @@ struct IslandContainer: View {
 
             CountdownBar(state: state, islandW: islandWidth)
 
-            // Under the island while the pointer is on Mochi: how the Mac is doing.
+            // Under the island while the pointer is on the companion: how the Mac is doing.
             VitalsHoverLine(islandW: islandWidth, islandH: islandHeight)
 
             if demoEngine.isActive {
-                Text(verbatim: "DEMO")
-                    .font(.system(size: 8, weight: .bold, design: .monospaced))
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 5)
+                Text(verbatim: "Demo")
+                    .font(.system(size: 8.5, weight: .semibold))
+                    .foregroundColor(Pace.onMint)
+                    .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color(hex: "#4ADE80"))
+                    .background(Pace.mint)
                     .clipShape(Capsule())
-                    .position(x: 18, y: islandHeight - 8)
+                    .position(x: 20, y: islandHeight - 8)
                     .transition(.opacity.combined(with: .scale(scale: 0.8)))
                     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: demoEngine.isActive)
             }
@@ -289,7 +293,6 @@ struct BotPlacement: View {
         let isUploading = state.view == .uploading
 
         Group {
-            // No glow in uploading mode — the tiny dot doesn't need it
             if state.mode == .expanded && !isUploading {
                 Circle()
                     .fill(RadialGradient(
@@ -299,21 +302,15 @@ struct BotPlacement: View {
                         ]),
                         center: .center,
                         startRadius: 0,
-                        endRadius: diameter * 1.1
+                        endRadius: diameter * 1.05
                     ))
-                    .frame(width: diameter * 2.2, height: diameter * 2.2)
+                    .frame(width: diameter * 2.1, height: diameter * 2.1)
                     .blur(radius: 6)
                     .opacity(botGlowOpacity(state.effectiveState))
                     .position(x: cx, y: cy)
                     .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
             }
 
-            // Uploading: no particle overhang (no hearts during upload), positioned directly at cy.
-            // BotEngine cy = H/2 + 0 + oy*R + R*0.06 ≈ H/2 (body centered in canvas).
-            // With .position(x:y:) placing the frame center at (uploadCx, cy), bot is at cy ✓.
-            //
-            // Normal: extra 40pt canvas at top for heart particles; position offset up by 20pt;
-            // BotEngine compensates with cy = H/2 + particleOverhang/2 + oy*R + R*0.06.
             if isUploading {
                 TimelineView(.animation) { tl in
                     let elapsed: Double = {
@@ -321,7 +318,6 @@ struct BotPlacement: View {
                         return tl.date.timeIntervalSince(start)
                     }()
                     let t = min(1.0, max(0, elapsed / state.uploadDuration))
-                    // cx = 36 + 526*t: bot center at fill right edge (bar left=36, width=526)
                     let uploadCx = 36 + CGFloat(t * (2 - t)) * 526
                     BotCanvasView(state: state, particleOverhang: 0, paused: state.mochiOnDesktop)
                         .frame(width: canvasSize, height: canvasSize)
@@ -330,7 +326,6 @@ struct BotPlacement: View {
                 }
                 .transition(.scale(scale: 0.01, anchor: .center).combined(with: .opacity))
             } else {
-                // Invisible while Mochi lives on the desktop: no drawing either.
                 BotCanvasView(state: state, particleOverhang: overhang, paused: state.mochiOnDesktop)
                     .frame(width: canvasSize, height: canvasSize + overhang)
                     .opacity(state.isDraggingBot || state.mochiOnDesktop ? 0 : opacity)
@@ -341,32 +336,25 @@ struct BotPlacement: View {
                     .transition(.scale(scale: 0.01, anchor: .center).combined(with: .opacity))
             }
         }
-        // Branch switch (uploading ↔ normal) animates with a fast spring: uploading dot
-        // scales out at bar-end while normal bot scales in at choose position.
         .animation(.spring(response: 0.36, dampingFraction: 0.72), value: isUploading)
-        // Slap, drag, and hover are handled by the AppKit NSEvent monitor in
-        // IslandWindowController — not SwiftUI gestures — so this is safe.
         .allowsHitTesting(false)
     }
 
     private func botGlowColor(_ s: BotState) -> Color {
         switch s {
-        case .working:   return Color(hex: "#3B9EFF")
-        case .thinking:  return Color(hex: "#A78BFA")
-        case .searching: return Color(hex: "#6366F1")
-        case .approval:  return Color(hex: "#F5A524")
-        case .error:     return Color(hex: "#F4505E")
-        case .finished:  return Color(hex: "#34D399")
-        case .ratelimit: return Color(hex: "#F59E0B")
-        default:         return Color.white
+        case .working:                      return Pace.act
+        case .thinking, .searching:         return Pace.think
+        case .approval, .question, .ratelimit: return Pace.hold
+        case .error, .dizzy:                return Pace.fail
+        case .finished, .idle, .sleeping:   return Pace.mint
         }
     }
 
     private func botGlowOpacity(_ s: BotState) -> Double {
         switch s {
-        case .idle, .sleeping: return 0.15
-        case .dizzy:           return 0.0
-        default:               return 0.65
+        case .idle, .sleeping: return 0.08
+        case .dizzy:           return 0.14
+        default:               return 0.22
         }
     }
 }
@@ -381,9 +369,6 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
     case .expanded:
         let layout = IslandConst.viewLayouts[view]!
         let diameter = layout.botDiameter
-        // Uploading: Mochi dot rides the leading edge of the progress fill.
-        // Bar in island coords: left=36, width=526. cx = 36 + progress*526 (dot center at fill right edge).
-        // cy comes from ViewLayout.botY (bar center in island coords).
         if view == .uploading {
             let cx = 36 + CGFloat(uploadProgress) * 526
             return (cx, layout.botY ?? 103, diameter, 1)
@@ -393,7 +378,6 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
         if let fixedY = layout.botY {
             cy = fixedY
         } else {
-            // Center of the fixed 84pt card (VStack top=8, header=34 → content starts at y=42)
             let headerBottom: CGFloat = 42
             let cardH: CGFloat = 84
             cy = headerBottom + (islandH - headerBottom - cardH) / 2 + cardH / 2
@@ -428,13 +412,11 @@ struct CountdownBar: View {
     var body: some View {
         GeometryReader { _ in
             Rectangle()
-                .fill(Color.white.opacity(0.35))
+                .fill(Pace.mint.opacity(0.55))
                 .frame(width: barWidth, height: 2)
                 .cornerRadius(2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         }
-        // The bar only exists in the open island: its 10 Hz timer runs only then
-        // (CLAUDE.md: 0 % CPU when the island is hidden).
         .onAppear { if state.mode == .expanded { startTimer() } }
         .onChange(of: state.mode) { _, mode in
             if mode == .expanded { startTimer() } else { stopTimer() }
@@ -467,8 +449,6 @@ struct CountdownBar: View {
         let elapsed = Date.now.timeIntervalSince(state.lastActivity)
         let remaining = autoClose - elapsed
         let target: CGFloat = remaining < window ? max(0, CGFloat(remaining / window) * 160) : 0
-        // The timer ticks at 10 Hz; a linear animation over the same 0.1 s glides between ticks,
-        // so the bar shrinks on every display frame instead of in 10 steps a second.
         if target < barWidth && barWidth - target < 40 {
             withAnimation(.linear(duration: 0.1)) { barWidth = target }
         } else if target != barWidth {
@@ -492,16 +472,11 @@ struct IslandContentView: View {
             ZStack {
                 ForEach(IslandView.allCases, id: \.self) { v in
                     let active = state.view == v
-                    // Views that fill available height instead of the fixed 98pt content frame:
-                    // chat (prompt) is always flexible; mail is flexible only when active so
-                    // it doesn't push the ZStack taller when inactive.
                     let isTall = v == .prompt || (v == .mail && active)
                     let anim: Animation = active
                         ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
                         : .easeIn(duration: 0.16)
                     IslandViewContent(view: v, state: state)
-                        // Views behind the active one stay mounted (for the cross-fade)
-                        // but stop their endless animations: nobody sees them.
                         .environment(\.islandViewActive, active)
                         .frame(maxWidth: .infinity)
                         .frame(height: isTall ? nil : 98)
@@ -517,7 +492,7 @@ struct IslandContentView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 10)
-        .foregroundColor(Color(hex: "#F5F6F8"))
+        .foregroundColor(Pace.ink)
     }
 }
 
@@ -529,13 +504,11 @@ struct IslandHeader: View {
     @State private var soundHovered = false
     @State private var closeHovered = false
 
-    /// Pending approval or mail draft: the island refuses to fold (fsm.isHeldOpen), so the
-    /// close cross is not shown.
     private var heldOpen: Bool { state.pendingApproval != nil || state.voiceMailDraft != nil }
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left: tab capsules
+            // Left: architectural tab controls
             HStack(spacing: 5) {
                 TabButton(icon: "house.fill", view: .overview, state: state)
                 TabButton(icon: "bubble.left.fill", view: .prompt, state: state, preAction: {
@@ -554,8 +527,6 @@ struct IslandHeader: View {
             // Right: plan pill (GitHub build, home view only) + action icons
             HStack(spacing: 8) {
                 #if !APPSTORE
-                // Claude and Codex both on: only Claude here (two pills and the icons do not
-                // clear the notch); Codex is a row in the Claude plan card.
                 if state.view == .overview && state.showPlanInNotch && state.planRelayInstalled {
                     ClaudePlanHeaderPill(state: state)
                 } else if state.view == .overview && state.showCodexPlanInNotch {
@@ -570,7 +541,7 @@ struct IslandHeader: View {
                     }) {
                         Image(systemName: state.view == .settings ? "gearshape.fill" : "gearshape")
                             .font(.system(size: 14))
-                            .foregroundColor(state.view == .settings || gearHovered ? Color(hex: "#F5F6F8") : Color(hex: "#8E939C"))
+                            .foregroundColor(state.view == .settings || gearHovered ? Pace.ink : Pace.ink3)
                     }
                     .buttonStyle(.plain)
                     .onHover { gearHovered = $0 }
@@ -578,19 +549,18 @@ struct IslandHeader: View {
                     Button(action: { state.soundEnabled.toggle() }) {
                         Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
                             .font(.system(size: 14))
-                            .foregroundColor(soundHovered ? Color(hex: "#F5F6F8") : Color(hex: "#8E939C"))
+                            .foregroundColor(soundHovered ? Pace.ink : Pace.ink3)
                     }
                     .buttonStyle(.plain)
                     .onHover { soundHovered = $0 }
 
-                    // Fold back to the compact island now, without waiting for the timer.
                     if !heldOpen {
                         Button(action: {
                             NotificationCenter.default.post(name: .islandCollapse, object: nil)
                         }) {
                             Image(systemName: "xmark")
                                 .font(.system(size: 14))
-                                .foregroundColor(closeHovered ? Color(hex: "#F5F6F8") : Color(hex: "#8E939C"))
+                                .foregroundColor(closeHovered ? Pace.ink : Pace.ink3)
                         }
                         .buttonStyle(.plain)
                         .help(String(localized: "Close"))
@@ -625,13 +595,17 @@ struct TabButton: View {
         }) {
             Image(systemName: icon)
                 .font(.system(size: 13))
-                .foregroundColor(isOn ? Color(hex: "#F5F6F8") : (isHovered ? Color(hex: "#B0B5BE") : Color(hex: "#8E939C")))
+                .foregroundColor(isOn ? Pace.ink : (isHovered ? Pace.ink2 : Pace.ink3))
                 .frame(width: 30, height: 22)
                 .background(
-                    isOn ? Color(hex: "#1D1F23") :
-                    isHovered ? Color.white.opacity(0.07) : Color.clear
+                    isOn ? Pace.sunk :
+                    isHovered ? Pace.raised : Color.clear
                 )
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                        .stroke(isOn ? Pace.line : Color.clear, lineWidth: 1)
+                )
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
@@ -646,9 +620,15 @@ struct ClaudePlanHeaderPill: View {
     var codex: Bool = false
     @State private var isHovered = false
 
-    private var effectiveColor: String {
-        if codex { return CodexPlanGauge.color(state.codexPlanUsage) }
-        return ClaudePlanGauge.color(for: (state.demoPlanUsageOverride ?? state.claudePlanUsage).flatMap { ClaudePlanGauge.dominantPct($0) })
+    private var dominantPct: Double? {
+        if codex {
+            return state.codexPlanUsage.flatMap { ClaudePlanGauge.dominantPct($0.planUsage) }
+        }
+        return (state.demoPlanUsageOverride ?? state.claudePlanUsage).flatMap { ClaudePlanGauge.dominantPct($0) }
+    }
+
+    private var gaugeTone: Color {
+        Pace.gaugeTone(for: dominantPct)
     }
 
     private var label: String {
@@ -672,13 +652,12 @@ struct ClaudePlanHeaderPill: View {
         }) {
             HStack(spacing: 4) {
                 Circle()
-                    .fill(Color(hex: effectiveColor))
+                    .fill(gaugeTone)
                     .frame(width: 6, height: 6)
                 Text(label)
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(isActive
-                                     ? Color(hex: effectiveColor).lighter(by: 0.3)
-                                     : Color(hex: "#6B7079"))
+                    .monospacedDigit()
+                    .foregroundColor(isActive ? Pace.ink : Pace.ink2)
                     .lineLimit(1)
                     .fixedSize()
             }
@@ -686,13 +665,11 @@ struct ClaudePlanHeaderPill: View {
             .padding(.vertical, 4)
             .background(
                 Capsule()
-                    .fill(isActive
-                          ? Color(hex: effectiveColor).opacity(0.18)
-                          : Color(hex: "#0E0F11"))
+                    .fill(isActive ? Pace.sunk : Pace.card)
             )
             .overlay(
                 Capsule()
-                    .stroke(Color(hex: effectiveColor).opacity(isActive ? 0.55 : 0.14), lineWidth: 1)
+                    .stroke(isActive ? gaugeTone.opacity(0.45) : Pace.line, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -704,7 +681,7 @@ struct ClaudePlanHeaderPill: View {
 }
 #endif
 
-// MARK: - Compact mini mochi grid (2×2 to the right of the notch)
+// MARK: - Compact mini companion grid (2×2 to the right of the notch)
 
 struct CompactMiniGrid: View {
     @ObservedObject var state: AppState

@@ -96,7 +96,7 @@ fun HeroCard(
                 StateDot(linkDot)
                 Spacer(Modifier.width(8.dp))
                 Text(linkText, Modifier.weight(1f), style = TypeScale.LABEL.style(dim), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (running > 0) Text(stringResource(R.string.home_running, running), style = TypeScale.LABEL.style(dim), maxLines = 1)
+                if (running > 0) Text(stringResource(R.string.home_running, running), style = TypeScale.LABEL.style(dim, tabular = true), maxLines = 1)
             }
             if (focus == null) {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -201,7 +201,7 @@ fun RecentPanel(decisions: List<Decision>, onAll: () -> Unit) {
                 ) {
                     StateDot(if (d.allowed) StatusColors.online else t.danger.c())
                     Text(HomeText.recent(d.allowed, d.tool), Modifier.weight(1f), style = TypeScale.BODY.style(t.text.c()), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(whenText, style = TypeScale.SECONDARY.style(t.textDim.c()), maxLines = 1)
+                    Text(whenText, style = TypeScale.SECONDARY.style(t.textDim.c(), tabular = true), maxLines = 1)
                 }
             }
         }

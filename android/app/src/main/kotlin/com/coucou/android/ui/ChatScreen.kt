@@ -356,7 +356,7 @@ private fun Composer(model: AppModel, text: String, refusal: ChatSession.Refusal
         }
         if (note != null) Text(note, style = TypeScale.SECONDARY.style(t.danger.c()))
         else if (length > limit * 9 / 10) {
-            Text(stringResource(R.string.chat_count, length, limit), style = TypeScale.SECONDARY.style(t.textDim.c()))
+            Text(stringResource(R.string.chat_count, length, limit), style = TypeScale.SECONDARY.style(t.textDim.c(), tabular = true))
         }
     }
 }

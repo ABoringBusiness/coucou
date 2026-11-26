@@ -82,9 +82,9 @@ struct ShortcutsSettingsView: View {
                 .onChange(of: specs[action]) { _, _ in specChanged(action) }
 
             if hasSysConf {
-                conflictTag(String(localized: "shortcut.conflict.system"), color: .orange)
+                conflictTag(String(localized: "shortcut.conflict.system"), color: Pace.hold)
             } else if hasIntConf {
-                conflictTag(String(localized: "shortcut.conflict.duplicate"), color: .red)
+                conflictTag(String(localized: "shortcut.conflict.duplicate"), color: Pace.fail)
             }
         }
         .padding(.vertical, 5)
@@ -97,7 +97,7 @@ struct ShortcutsSettingsView: View {
             .foregroundColor(color)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(color.opacity(0.1))
+            .background(color.opacity(0.14))
             .clipShape(Capsule())
     }
 
@@ -113,7 +113,7 @@ struct ShortcutsSettingsView: View {
                             .frame(width: 90, alignment: .leading)
                         Text(pair.description)
                             .font(.system(size: 12))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Pace.ink2)
                         Spacer()
                     }
                     .padding(.vertical, 4)

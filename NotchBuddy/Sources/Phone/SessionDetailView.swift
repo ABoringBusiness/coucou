@@ -23,7 +23,7 @@ struct SessionDetailView: View {
                         QuestionCard(link: link, session: session, payload: payload)
                             .transition(.phaseCard)
                     } else if !session.question.isEmpty {
-                        waiting(title: "Question", text: session.question, monospaced: false, color: .cyan,
+                        waiting(title: "Question", text: session.question, monospaced: false, color: Pace.act,
                                 footnote: "Answer on your Mac: this question can't be answered from the iPhone.")
                     }
                     if let turn {
@@ -66,11 +66,11 @@ struct SessionDetailView: View {
         // The agent's color, moving softly behind the top of the screen.
         .background(alignment: .top) {
             ZStack {
-                Color.black
+                Pace.ground
                 if let session {
                     // The Mac sends the colour it paints with: the user's own, if they picked one.
                     AgentBackdrop(hex: session.color.isEmpty
-                                  ? PillCatalog.definition(for: session.id)?.color ?? "#C0C4CC"
+                                  ? PillCatalog.definition(for: session.id)?.color ?? "#34D399"
                                   : session.color)
                         .frame(height: 360)
                         .mask(LinearGradient(colors: [.black, .black.opacity(0.5), .clear],
@@ -107,7 +107,7 @@ struct SessionDetailView: View {
         }
         .task(id: turn?.endedAt) {
             guard let turn, turn.endedAt != nil else { shareImage = nil; return }
-            shareImage = TurnShareCard.render(turn: turn, color: session?.color ?? "#4A86E8")
+            shareImage = TurnShareCard.render(turn: turn, color: session?.color ?? "#34D399")
         }
     }
 
@@ -120,7 +120,7 @@ struct SessionDetailView: View {
                         ScrollView {
                             LastTurnView(turn: past, working: false).padding(16)
                         }
-                        .background(Color.black)
+                        .background(Pace.ground)
                         .navigationTitle(past.startedAt.formatted(date: .abbreviated, time: .shortened))
                         .navigationBarTitleDisplayMode(.inline)
                     } label: {
@@ -128,19 +128,20 @@ struct SessionDetailView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(past.headline)
                                     .font(.callout)
+                                    .foregroundStyle(Pace.ink)
                                     .lineLimit(2)
                                     .multilineTextAlignment(.leading)
                                 Text(past.startedAt, format: .dateTime.hour().minute())
-                                    .font(.caption2)
-                                    .foregroundStyle(.tertiary)
+                                    .font(.caption2.monospacedDigit())
+                                    .foregroundStyle(Pace.ink3)
                             }
                             Spacer(minLength: 6)
                             if !past.files.isEmpty {
                                 Text("\(past.files.count) file\(past.files.count == 1 ? "" : "s")")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(Pace.ink2)
                             }
-                            Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary)
+                            Image(systemName: "chevron.right").font(.caption2).foregroundStyle(Pace.ink3)
                         }
                         .padding(.vertical, 8)
                         .contentShape(Rectangle())
@@ -157,13 +158,15 @@ struct SessionDetailView: View {
             MochiLive(state: session.state)
                 .padding(10)
                 .frame(width: 84, height: 84)
-                .background(Color.mochiTile(hex: session.color), in: RoundedRectangle(cornerRadius: 22))
+                .background(Color.mochiTile(hex: session.color), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             VStack(alignment: .leading, spacing: 4) {
                 // "VS Code · coucou", or just "VS Code" when there's no project name.
                 Text(session.title == session.pillName ? session.pillName : "\(session.pillName) · \(session.title)")
                     .font(.headline)
+                    .foregroundStyle(Pace.ink)
                 Text(session.statusText)
                     .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
                     .foregroundStyle(session.statusColor)
                     .contentTransition(.interpolate)
                 HStack(spacing: 4) {
@@ -172,13 +175,14 @@ struct SessionDetailView: View {
                         Text("·")
                     }
                     Text(session.updatedAt, style: .relative)
+                        .monospacedDigit()
                 }
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Pace.ink2)
                 if !session.cwd.isEmpty {
                     Label(Self.shortPath(session.cwd), systemImage: "folder")
                         .font(.caption2.monospaced())
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(Pace.ink3)
                         .lineLimit(1)
                         .truncationMode(.head)
                         .textSelection(.enabled)
@@ -202,15 +206,19 @@ struct SessionDetailView: View {
             Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(color)
             Text(text)
                 .font(monospaced ? .callout.monospaced() : .callout)
+                .foregroundStyle(Pace.ink)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
-                .background(Color(white: 0.16), in: RoundedRectangle(cornerRadius: 12))
+                .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                    .strokeBorder(Pace.line, lineWidth: 1))
                 .textSelection(.enabled)
-            Text(footnote).font(.caption).foregroundStyle(.secondary)
+            Text(footnote).font(.caption).foregroundStyle(Pace.ink3)
         }
         .padding(16)
-        .background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: 22))
-        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(color.opacity(0.7), lineWidth: 1.5))
+        .background(Pace.card, in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+            .strokeBorder(color.opacity(0.35), lineWidth: 1))
     }
 
     private func plan(_ session: SessionItem) -> some View {
@@ -219,11 +227,13 @@ struct SessionDetailView: View {
                 ForEach(Array(session.steps.enumerated()), id: \.offset) { index, step in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         Image(systemName: icon(index, session))
-                            .foregroundStyle(index == session.stepIndex && session.isWorking ? Color.accentColor : Color.secondary)
+                            .foregroundStyle(index < session.stepIndex || session.state == .finished
+                                             ? Pace.mint
+                                             : (index == session.stepIndex && session.isWorking ? Pace.act : Pace.ink3))
                             .font(.footnote)
                         Text(step)
                             .font(.callout)
-                            .foregroundStyle(index > session.stepIndex ? Color.secondary : Color.primary)
+                            .foregroundStyle(index > session.stepIndex ? Pace.ink3 : Pace.ink)
                     }
                 }
             }
@@ -238,12 +248,15 @@ struct SessionDetailView: View {
 
     private func card<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .monospacedDigit()
+                .foregroundStyle(Pace.ink3)
             content()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .glassCard()
+        .glassCard(cornerRadius: Pace.rIslandCard)
     }
 }
 

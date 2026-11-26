@@ -78,7 +78,7 @@ struct OverviewView: View {
                                     .frame(width: 7, height: 7)
                                 Text(agent.name)
                                     .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(Color(hex: "#F5F6F8"))
+                                    .foregroundColor(Pace.ink)
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                                     .layoutPriority(1)
@@ -90,14 +90,15 @@ struct OverviewView: View {
                                     }
                                 }())
                                     .font(.system(size: 11))
-                                    .foregroundColor(Color(hex: "#8E939C"))
+                                    .foregroundColor(Pace.ink3)
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                                 Spacer(minLength: 2)
                                 if agent.steps.count > 1 {
                                     Text("\(min(agent.stepIndex + 1, agent.steps.count))/\(agent.steps.count)")
                                         .font(.system(size: 11))
-                                        .foregroundColor(Color(hex: "#6B7079"))
+                                        .monospacedDigit()
+                                        .foregroundColor(Pace.ink3)
                                         .fixedSize()
                                 }
                             }
@@ -164,10 +165,11 @@ struct OverviewView: View {
                     Button(action: { openAgentTarget(agent) }) {
                         Image(systemName: "arrow.up.right")
                             .font(.system(size: 8, weight: .medium))
-                            .foregroundColor(Color(hex: "#5F646D"))
+                            .foregroundColor(Pace.ink3)
                             .frame(width: 16, height: 16)
-                            .background(Color.white.opacity(0.07))
+                            .background(Pace.sunk)
                             .clipShape(Circle())
+                            .overlay(Circle().stroke(Pace.line, lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 8)
@@ -319,9 +321,10 @@ struct EmptyStateView: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Nothing running right now.")
                         .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Pace.ink)
                     Text("Drop a file or window, or ask me anything.")
                         .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#9398A1"))
+                        .foregroundColor(Pace.ink3)
                 }
                 Spacer()
                 PrimaryButton("Ask Claude") {
@@ -361,13 +364,13 @@ struct ApprovalView: View {
                     if let count = approval?.queueCount, count > 1 {
                         Text(verbatim: "1/\(count)")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#8E939C"))
+                            .foregroundColor(Pace.ink3)
                             .monospacedDigit()
                     }
                 }
                 CodeBlock(text: approval?.command ?? approval?.tool ?? "…")
                 HStack(spacing: 8) {
-                    SecondaryButton("Deny") {
+                    DangerButton("Deny") {
                         HookServer.shared.sendApprovalDecision("deny", for: shownId)
                     }
                     PrimaryButton("Allow") {
@@ -428,26 +431,28 @@ struct QuestionView: View {
                         if q.questions.count > 1 {
                             Text("\(qi + 1)/\(q.questions.count)")
                                 .font(.system(size: 10))
-                                .foregroundColor(Color(hex: "#6B7079"))
+                                .monospacedDigit()
+                                .foregroundColor(Pace.ink3)
                         }
                         Button("Reply in terminal") { HookServer.shared.sendQuestionAsk() }
                             .buttonStyle(.plain)
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .foregroundColor(Pace.ink3)
                             .underline()
                     }
                     // Optional short header label above question text
                     if !item.header.isEmpty {
                         Text(item.header)
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .foregroundColor(Pace.ink3)
                     }
                     Text(item.question)
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color(hex: "#F5F6F8"))
+                        .foregroundColor(Pace.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     // Options (wrapping) or "Other…" compact inline row
                     if curOther {
+                        let illuminated = otherFieldFocused || !curOtherText.isEmpty
                         HStack(spacing: 6) {
                             TextField("Your answer…", text: Binding(
                                 get: { qi < otherTexts.count ? otherTexts[qi] : "" },
@@ -455,29 +460,37 @@ struct QuestionView: View {
                             ))
                             .textFieldStyle(.plain)
                             .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "#F5F6F8"))
+                            .foregroundColor(Pace.ink)
                             .focused($otherFieldFocused)
                             .onAppear { otherFieldFocused = true }
                             .onSubmit { commitOtherAndProceed(q: q, qi: qi, isLast: isLast) }
                             .onExitCommand { if qi < showOther.count { showOther[qi] = false } }
                             .padding(.horizontal, 8).padding(.vertical, 5)
-                            .background(Color.white.opacity(0.07))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .background(Pace.sunk)
+                            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                                    .stroke(illuminated ? Pace.mint.opacity(0.50) : Pace.line, lineWidth: 1)
+                            )
                             Button(isLast ? "Send" : "Next") {
                                 commitOtherAndProceed(q: q, qi: qi, isLast: isLast)
                             }
                             .buttonStyle(.plain)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(curOtherText.isEmpty ? Color(hex: "#6B7079") : Color(hex: "#F5F6F8"))
-                            .padding(.horizontal, 8).padding(.vertical, 5)
-                            .background(Color.white.opacity(curOtherText.isEmpty ? 0.05 : 0.15))
-                            .clipShape(Capsule())
+                            .foregroundColor(curOtherText.isEmpty ? Pace.ink3 : Pace.onMint)
+                            .padding(.horizontal, 9).padding(.vertical, 5)
+                            .background(curOtherText.isEmpty ? Pace.sunk : Pace.mint)
+                            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                                    .stroke(curOtherText.isEmpty ? Pace.line : Color.clear, lineWidth: 1)
+                            )
                             .disabled(curOtherText.isEmpty)
                             Button { if qi < showOther.count { showOther[qi] = false } } label: {
                                 Text("✕").font(.system(size: 9))
                             }
                             .buttonStyle(.plain)
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .foregroundColor(Pace.ink3)
                         }
                     } else if item.hasDescriptions {
                         VStack(alignment: .leading, spacing: 6) {
@@ -493,20 +506,23 @@ struct QuestionView: View {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(opt.label)
                                             .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(isSelected ? Color(hex: "#67E8F9") : Color(hex: "#F5F6F8"))
+                                            .foregroundColor(isSelected ? Pace.mint : Pace.ink)
                                         if !opt.description.isEmpty {
                                             Text(opt.description)
                                                 .font(.system(size: 11))
-                                                .foregroundColor(Color(hex: "#9AA0A8"))
+                                                .foregroundColor(Pace.ink3)
                                                 .multilineTextAlignment(.leading)
                                                 .fixedSize(horizontal: false, vertical: true)
                                         }
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, 10).padding(.vertical, 6)
-                                    .background(isSelected ? Color(hex: "#22D3EE").opacity(0.22) : Color.white.opacity(0.07))
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(isSelected ? Color(hex: "#22D3EE").opacity(0.55) : Color.white.opacity(0.1), lineWidth: 1))
+                                    .background(isSelected ? Pace.mintSoft : Pace.sunk)
+                                    .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                                            .stroke(isSelected ? Pace.mint : Pace.line, lineWidth: 1)
+                                    )
                                 }
                                 .buttonStyle(.plain)
                                 .keyboardShortcut(KeyEquivalent(Character(String(idx + 1))), modifiers: [])
@@ -526,10 +542,13 @@ struct QuestionView: View {
                                         Text(opt.label)
                                             .font(.system(size: 12, weight: .medium))
                                             .padding(.horizontal, 8).padding(.vertical, 4)
-                                            .background(isSelected ? Color(hex: "#22D3EE").opacity(0.22) : Color.white.opacity(0.07))
-                                            .foregroundColor(isSelected ? Color(hex: "#67E8F9") : Color(hex: "#C5C8CD"))
-                                            .clipShape(RoundedRectangle(cornerRadius: 7))
-                                            .overlay(RoundedRectangle(cornerRadius: 7).stroke(isSelected ? Color(hex: "#22D3EE").opacity(0.55) : Color.white.opacity(0.1), lineWidth: 1))
+                                            .background(isSelected ? Pace.mintSoft : Pace.sunk)
+                                            .foregroundColor(isSelected ? Pace.mint : Pace.ink2)
+                                            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                                                    .stroke(isSelected ? Pace.mint : Pace.line, lineWidth: 1)
+                                            )
                                     }
                                     .buttonStyle(.plain)
                                     .keyboardShortcut(KeyEquivalent(Character(String(idx + 1))), modifiers: [])
@@ -652,7 +671,7 @@ struct ErrorView: View {
                     .font(.system(size: 15, weight: .semibold))
                 Text(detail)
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#FF8D97"))
+                    .foregroundColor(Pace.fail)
                     .lineLimit(2)
                     .truncationMode(.tail)
                 HStack(spacing: 8) {
@@ -774,27 +793,30 @@ struct DiffCardView: View {
                             .font(.system(size: 12, weight: .semibold))
                             .lineLimit(1)
                     }
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 }
                 .buttonStyle(.plain)
                 Spacer(minLength: 2)
                 if diff.added > 0 {
                     Text("+\(diff.added)")
                         .font(.system(size: 10, weight: .medium).monospaced())
-                        .foregroundColor(Color(hex: "#22C55E"))
+                        .monospacedDigit()
+                        .foregroundColor(Pace.mint)
                 }
                 if diff.removed > 0 {
                     Text("−\(diff.removed)")
                         .font(.system(size: 10, weight: .medium).monospaced())
-                        .foregroundColor(Color(hex: "#F4505E"))
+                        .monospacedDigit()
+                        .foregroundColor(Pace.fail)
                 }
                 Button(action: { openInEditor(diff) }) {
                     Image(systemName: "arrow.up.right")
                         .font(.system(size: 8, weight: .medium))
-                        .foregroundColor(Color(hex: "#5F646D"))
+                        .foregroundColor(Pace.ink3)
                         .frame(width: 14, height: 14)
-                        .background(Color.white.opacity(0.07))
+                        .background(Pace.sunk)
                         .clipShape(Circle())
+                        .overlay(Circle().stroke(Pace.line, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
             }
@@ -805,11 +827,11 @@ struct DiffCardView: View {
             if diff.tooLarge {
                 Text("Diff too large")
                     .font(.system(size: 10.5))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
             } else if allLines.isEmpty {
                 Text("No changes")
                     .font(.system(size: 10.5))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
@@ -850,16 +872,16 @@ struct DiffLineRowView: View {
 
     private var bgColor: Color {
         switch line.kind {
-        case .added:   return Color(hex: "#22C55E").opacity(0.12)
-        case .removed: return Color(hex: "#F4505E").opacity(0.12)
+        case .added:   return Pace.mint.opacity(0.12)
+        case .removed: return Pace.fail.opacity(0.12)
         case .context: return Color.clear
         }
     }
     private var fgColor: Color {
         switch line.kind {
-        case .added:   return Color(hex: "#86EFAC")
-        case .removed: return Color(hex: "#FCA5A5")
-        case .context: return Color(hex: "#6B7079")
+        case .added:   return Pace.mint
+        case .removed: return Pace.fail
+        case .context: return Pace.ink3
         }
     }
     private var symbol: String {
@@ -874,9 +896,9 @@ struct DiffLineRowView: View {
         HStack(spacing: 0) {
             Text(symbol)
                 .font(.system(size: 10.5).monospaced())
-                .foregroundColor(line.kind == .added ? Color(hex: "#22C55E") :
-                                 line.kind == .removed ? Color(hex: "#F4505E") :
-                                 Color(hex: "#454850"))
+                .foregroundColor(line.kind == .added ? Pace.mint :
+                                 line.kind == .removed ? Pace.fail :
+                                 Pace.ink3.opacity(0.55))
                 .frame(width: 12, alignment: .leading)
             Text(line.text)
                 .font(.system(size: 10.5).monospaced())
@@ -897,9 +919,12 @@ struct ConfusedView: View {
         ZStack {
             CardBackground(wash: .pink)
             VStack(alignment: .leading, spacing: 5) {
-                Text("Too many hits at once.").font(.system(size: 15, weight: .semibold))
+                Text("Too many hits at once.")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Pace.ink)
                 Text("Give me a sec — back to work in three seconds.")
-                    .font(.system(size: 13)).foregroundColor(Color(hex: "#9398A1"))
+                    .font(.system(size: 13))
+                    .foregroundColor(Pace.ink3)
             }
             .padding(.leading, 128)
             .padding(.trailing, 18)
@@ -914,46 +939,44 @@ struct UploadView: View {
     @ObservedObject var state: AppState
 
     private func borderOpacity(breathAngle: Double) -> Double {
-        let breathe = 0.11 + 0.04 * (sin(breathAngle) * 0.5 + 0.5)
+        let breathe = 0.12 + 0.05 * (sin(breathAngle) * 0.5 + 0.5)
         return state.fileDragOver ? 0.65 : breathe
     }
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(hex: "#0E0F11"))
-            // The dashes march at 20 pt/s and the border breathes at 0.9 rad/s, computed from the
-            // clock on every display frame (it was a 20 Hz timer, visibly stepped). Runs only while
-            // this is the open view.
+            RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                .fill(Pace.card)
             TimelineView(.animation(paused: state.view != .upload || state.mode != .expanded)) { tl in
                 let t = tl.date.timeIntervalSinceReferenceDate
                 let dashPhase = CGFloat((t * 20).truncatingRemainder(dividingBy: 11))
                 let opacity = borderOpacity(breathAngle: t * 0.9)
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
                     .stroke(
                         state.fileDragOver
-                            ? Color(hex: "#22C55E").opacity(opacity)
+                            ? Pace.mint.opacity(opacity)
                             : Color.white.opacity(opacity),
                         style: StrokeStyle(lineWidth: 1.5, dash: [6, 5], dashPhase: dashPhase)
                     )
             }
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
                 .fill(RadialGradient(
-                    colors: [Color(hex: "#22C55E").opacity(state.fileDragOver ? 0.13 : 0), Color.clear],
+                    colors: [Pace.mint.opacity(state.fileDragOver ? 0.10 : 0), Color.clear],
                     center: .bottom, startRadius: 0, endRadius: 200
                 ))
             VStack(alignment: .leading, spacing: 8) {
                 Text("Drop your files here")
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(state.fileDragOver ? Color(hex: "#34D399") : Color(hex: "#D5D7DB"))
+                    .foregroundColor(state.fileDragOver ? Pace.mint : Pace.ink)
                 HStack(spacing: 6) {
                     ForEach(["PDF", "Images", "Code", "Docs"], id: \.self) { label in
                         Text(label)
                             .font(.system(size: 11))
                             .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(Color.white.opacity(0.07))
-                            .foregroundColor(Color(hex: "#B9BDC4"))
+                            .background(Pace.sunk)
+                            .foregroundColor(Pace.ink2)
                             .clipShape(Capsule())
+                            .overlay(Capsule().stroke(Pace.line, lineWidth: 1))
                     }
                 }
             }
@@ -968,61 +991,52 @@ struct UploadView: View {
 struct UploadingView: View {
     @ObservedObject var state: AppState
 
-    // Bar geometry in content coords (content has 10pt H padding each side).
-    // Island bar: left=36, right=562 (640-78), width=526.
-    // Content bar: left=26, width=526.
-    // barTop=58 → island y = content_start(42)+58 = 100; bot cy=103 (center = barTop+3).
     private let barLeft: CGFloat  = 26
     private let barWidth: CGFloat = 526
     private let barTop: CGFloat   = 58
 
     var body: some View {
-        // TimelineView fires at display refresh rate — progress derived from elapsed wall time,
-        // not from @Published uploadProgress (which only flips to 1.0 at completion).
-        // Only runs while this view is shown (it stays mounted behind the others).
         TimelineView(.animation(paused: state.view != .uploading || state.mode != .expanded)) { tl in
             let elapsed: Double = {
                 guard let start = state.uploadStartTime else { return 0 }
                 return tl.date.timeIntervalSince(start)
             }()
             let t        = min(1.0, max(0, elapsed / state.uploadDuration))
-            let progress = CGFloat(t * (2 - t))          // ease-out quad
+            let progress = CGFloat(t * (2 - t))
             let fillWidth = max(0, barWidth * progress)
-            let isDone   = state.uploadProgress >= 0.999  // only true after handle() sets it
+            let isDone   = state.uploadProgress >= 0.999
 
             ZStack(alignment: .topLeading) {
-                // Background: dark base
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color(hex: "#141518"))
+                RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                    .fill(Pace.card)
 
-                // Permanent green radial wash — brighter at completion
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
                     .fill(RadialGradient(
-                        colors: [Color(hex: "#34D399").opacity(isDone ? 0.28 : 0.14), Color.clear],
+                        colors: [Pace.mint.opacity(isDone ? 0.10 : 0.05), Color.clear],
                         center: UnitPoint(x: 0.5, y: 1.4),
                         startRadius: 0,
                         endRadius: 260
                     ))
 
                 // Bar track
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.white.opacity(0.09))
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(Pace.sunk)
                     .frame(width: barWidth, height: 6)
                     .offset(x: barLeft, y: barTop)
 
                 // Bar fill
-                RoundedRectangle(cornerRadius: 3)
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .fill(LinearGradient(
-                        colors: [Color(hex: "#1FA87A"), Color(hex: "#34D399")],
+                        colors: [Pace.mint, Pace.mint2],
                         startPoint: .leading, endPoint: .trailing
                     ))
                     .frame(width: fillWidth, height: 6)
                     .offset(x: barLeft, y: barTop)
 
-                // Glow trail behind dot leading edge
+                // Glow trail behind companion leading edge
                 if progress > 0.01 {
                     Ellipse()
-                        .fill(Color(hex: "#6EE7B7").opacity(0.45))
+                        .fill(Pace.mint.opacity(0.35))
                         .frame(width: 28, height: 12)
                         .blur(radius: 5)
                         .offset(x: barLeft + fillWidth - 14, y: barTop - 3)
@@ -1033,29 +1047,28 @@ struct UploadingView: View {
                     if isDone {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "#34D399"))
+                            .foregroundColor(Pace.mint)
                         Text("  \(state.droppedFile?.name ?? "File")")
                             .font(.system(size: 12.5, weight: .semibold))
-                            .foregroundColor(Color(hex: "#34D399"))
+                            .foregroundColor(Pace.mint)
                             .lineLimit(1).truncationMode(.middle)
                     } else {
                         Text(String(format: String(localized: "Uploading %@"), state.droppedFile?.name ?? "file"))
                             .font(.system(size: 12.5))
-                            .foregroundColor(Color(hex: "#A9ADB5"))
+                            .foregroundColor(Pace.ink2)
                             .lineLimit(1).truncationMode(.middle)
                         Spacer(minLength: 8)
                         Text("\(Int(progress * 100)) %")
                             .font(.system(size: 12.5, weight: .medium))
-                            .foregroundColor(Color(hex: "#A9ADB5"))
+                            .foregroundColor(Pace.ink2)
                             .monospacedDigit()
                     }
                 }
                 .frame(width: barWidth)
                 .offset(x: barLeft, y: barTop - 22)
 
-                // Subtle top border (same as CardBackground)
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.white.opacity(0.035), lineWidth: 1)
+                RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                    .stroke(isDone ? Pace.mint.opacity(0.28) : Pace.line, lineWidth: 1)
             }
         }
     }
@@ -1073,7 +1086,10 @@ struct ChooseView: View {
                 let fileName = state.droppedFile?.name ?? "file"
                 Text(String(format: String(localized: "file.ready %@"), fileName))
                     .font(.system(size: 14, weight: .semibold))
-                Text("What do you want to do with it?").font(.system(size: 12.5)).foregroundColor(Color(hex: "#9398A1"))
+                    .foregroundColor(Pace.ink)
+                Text("What do you want to do with it?")
+                    .font(.system(size: 12.5))
+                    .foregroundColor(Pace.ink3)
                 HStack(spacing: 8) {
                     PrimaryButton("Ask a question") { state.view = .prompt }
                     SecondaryButton("Send by email") { state.view = .mail }
@@ -1094,16 +1110,21 @@ struct MailView: View {
     @State private var bodyText: String = ""
     @State private var statusMsg: String = ""
     @State private var isSending = false
+    @FocusState private var bodyFocused: Bool
 
     var body: some View {
+        let bodyIlluminated = bodyFocused || !bodyText.isEmpty
         ZStack(alignment: .leading) {
             CardBackground(wash: nil)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
-                    Text("New email").font(.system(size: 12, weight: .semibold))
+                    Text("New email")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Pace.ink)
                     if let name = state.droppedFile?.name {
                         Text(String(format: String(localized: "mail.with %@"), name))
-                            .font(.system(size: 12)).foregroundColor(Color(hex: "#8E939C"))
+                            .font(.system(size: 12))
+                            .foregroundColor(Pace.ink3)
                             .lineLimit(1).truncationMode(.middle)
                     }
                 }
@@ -1115,15 +1136,20 @@ struct MailView: View {
                 TextEditor(text: $bodyText)
                     .scrollContentBackground(.hidden)
                     .font(.system(size: 12.5))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
+                    .focused($bodyFocused)
                     .frame(height: 44)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .background(Pace.sunk)
+                    .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                            .stroke(bodyIlluminated ? Pace.mint.opacity(0.50) : Pace.line, lineWidth: 1)
+                    )
 
                 if !statusMsg.isEmpty {
-                    Text(statusMsg).font(.system(size: 11)).foregroundColor(Color(hex: "#FF8D97"))
+                    Text(statusMsg).font(.system(size: 11)).foregroundColor(Pace.fail)
                 }
 
                 HStack(spacing: 8) {
@@ -1411,19 +1437,20 @@ struct PromptView: View {
                     } label: {
                         HStack(spacing: 5) {
                             Circle()
-                                .fill(Color(hex: state.chatProvider.accentHex))
+                                .fill(Pace.mint)
                                 .frame(width: 6, height: 6)
                             Text(state.activeChatModel)
                                 .font(.system(size: 10.5, weight: .medium))
-                                .foregroundColor(Color(hex: "#7B8089"))
+                                .foregroundColor(Pace.ink2)
                             Image(systemName: "chevron.up.chevron.down")
                                 .font(.system(size: 8))
-                                .foregroundColor(Color(hex: "#5C6370"))
+                                .foregroundColor(Pace.ink3)
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.white.opacity(0.06))
+                        .background(Pace.sunk)
                         .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Pace.line, lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                     .popover(isPresented: $showModelPicker, arrowEdge: .bottom) {
@@ -1433,10 +1460,12 @@ struct PromptView: View {
                 }
                 .padding(.horizontal, 10)
 
+                let composerIlluminated = focused || !text.isEmpty
                 HStack(spacing: 8) {
                     TextField(state.chatHistory.isEmpty ? String(localized: "Ask me anything…") : String(localized: "Continue…"), text: $text)
                         .textFieldStyle(.plain)
                         .font(.system(size: 13))
+                        .foregroundColor(Pace.ink)
                         .focused($focused)
                         .onSubmit { sendMessage() }
 
@@ -1450,7 +1479,7 @@ struct PromptView: View {
                     } label: {
                         Image(systemName: dictation.isRecording ? "mic.fill" : "mic")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(dictation.isRecording ? Color(hex: "#F4505E") : Color(hex: "#8E939C"))
+                            .foregroundColor(dictation.isRecording ? Pace.live : Pace.ink3)
                             .frame(width: 18, height: 18)
                             .contentShape(Rectangle())
                     }
@@ -1465,14 +1494,18 @@ struct PromptView: View {
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(Color(hex: "#0B0C0E"))
+                            .foregroundColor(text.isEmpty ? Pace.ink3 : Pace.onMint)
                     }
                     .buttonStyle(SendButtonStyle())
                     .disabled(text.isEmpty)
                 }
                 .padding(.horizontal, 10).padding(.vertical, 6)
-                .background(Color.white.opacity(0.07))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .background(Pace.sunk)
+                .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                        .stroke(composerIlluminated ? Pace.mint.opacity(0.50) : Pace.line, lineWidth: 1)
+                )
                 .simultaneousGesture(TapGesture().onEnded { focused = true })
             }
             .padding(.leading, 84)
@@ -1574,6 +1607,7 @@ struct ModelPickerView: View {
             }
             ChipFlowLayout(spacing: 6) {
                 ForEach(visibleProviders, id: \.self) { provider in
+                    let isActiveProvider = state.chatProvider == provider
                     Button {
                         guard provider != state.chatProvider else { return }
                         withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
@@ -1584,35 +1618,37 @@ struct ModelPickerView: View {
                     } label: {
                         HStack(spacing: 5) {
                             Circle()
-                                .fill(Color(hex: provider.accentHex))
+                                .fill(isActiveProvider ? Pace.mint : Pace.ink3)
                                 .frame(width: 7, height: 7)
                             Text(provider.displayName)
-                                .font(.system(size: 12, weight: state.chatProvider == provider ? .semibold : .regular))
+                                .font(.system(size: 12, weight: isActiveProvider ? .semibold : .regular))
+                                .foregroundColor(isActiveProvider ? Pace.mint : Pace.ink2)
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(state.chatProvider == provider
-                                    ? Color(hex: provider.accentHex).opacity(0.18)
-                                    : Color.white.opacity(0.06))
-                        .overlay(Capsule().stroke(
-                            state.chatProvider == provider
-                                ? Color(hex: provider.accentHex).opacity(0.5)
-                                : Color.white.opacity(0.1),
-                            lineWidth: 1))
-                        .clipShape(Capsule())
+                        .background(isActiveProvider ? Pace.mintSoft : Pace.sunk)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).stroke(
+                                isActiveProvider ? Pace.mint : Pace.line,
+                                lineWidth: 1
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
                     }
                     .buttonStyle(.plain)
                 }
             }
 
-            Divider().opacity(0.2)
+            Rectangle()
+                .fill(Pace.line)
+                .frame(height: 1)
 
             // Model list for current provider — fetched dynamically
             modelListView
                 .frame(height: 260, alignment: .top)
         }
         .padding(14)
-        .background(Color(hex: "#16171B"))
+        .background(Pace.card)
         .onAppear {
             // Force-refresh local providers every time the picker opens
             if state.chatProvider.isLocal {
@@ -1637,19 +1673,20 @@ struct ModelPickerView: View {
                 ProgressView().scaleEffect(0.7)
                 Text("Loading models…")
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8A8F98"))
+                    .foregroundColor(Pace.ink3)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 4)
         } else if let error = state.providerModelFetchError[state.chatProvider] {
             Text(error)
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#8A8F98"))
+                .foregroundColor(Pace.ink3)
                 .padding(.vertical, 4)
         } else if let models = state.fetchedProviderModels[state.chatProvider] {
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(models, id: \.id) { model in
+                        let isSelectedModel = state.activeChatModel == model.id
                         Button {
                             switch state.chatProvider {
                             case .anthropic: state.claudeModel = model.id
@@ -1667,22 +1704,18 @@ struct ModelPickerView: View {
                             HStack {
                                 Text(model.label)
                                     .font(.system(size: 12))
-                                    .foregroundColor(state.activeChatModel == model.id
-                                                     ? Color(hex: state.chatProvider.accentHex)
-                                                     : Color(hex: "#C8CDD4"))
+                                    .foregroundColor(isSelectedModel ? Pace.mint : Pace.ink2)
                                 Spacer()
-                                if state.activeChatModel == model.id {
+                                if isSelectedModel {
                                     Image(systemName: "checkmark")
                                         .font(.system(size: 10, weight: .semibold))
-                                        .foregroundColor(Color(hex: state.chatProvider.accentHex))
+                                        .foregroundColor(Pace.mint)
                                 }
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 6)
-                            .background(state.activeChatModel == model.id
-                                        ? Color(hex: state.chatProvider.accentHex).opacity(0.1)
-                                        : Color.clear)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .background(isSelectedModel ? Pace.mintSoft : Color.clear)
+                            .clipShape(RoundedRectangle(cornerRadius: Pace.r, style: .continuous))
                         }
                         .buttonStyle(.plain)
                     }
@@ -1703,12 +1736,16 @@ struct ChatBubble: View {
                     Spacer(minLength: 32)
                     Text(message.content)
                         .font(.system(size: 12.5))
-                        .foregroundColor(Color(hex: "#F1F2F4"))
+                        .foregroundColor(Pace.ink)
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
                         .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(Color.white.opacity(0.13))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .background(Pace.sunk)
+                        .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                                .stroke(Pace.line, lineWidth: 1)
+                        )
                 } else {
                     Group {
                         if isStreaming {
@@ -1716,7 +1753,7 @@ struct ChatBubble: View {
                                 let show = Int(tl.date.timeIntervalSinceReferenceDate / 0.5).isMultiple(of: 2)
                                 Text(message.content + (show ? "▌" : " "))
                                     .font(.system(size: 12.5))
-                                    .foregroundColor(Color(hex: "#B0B5BE"))
+                                    .foregroundColor(Pace.body)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         } else {
@@ -1724,8 +1761,8 @@ struct ChatBubble: View {
                         }
                     }
                     .padding(.horizontal, 8).padding(.vertical, 6)
-                    .background(Color.white.opacity(0.05))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .background(Pace.raised)
+                    .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
                     Spacer(minLength: 8)
                 }
             }
@@ -1740,7 +1777,7 @@ struct TypingDotsView: View {
         HStack(spacing: 4) {
             ForEach(0..<3, id: \.self) { i in
                 Circle()
-                    .fill(Color(hex: "#6B7079"))
+                    .fill(Pace.ink3)
                     .frame(width: 5, height: 5)
                     .scaleEffect(phase ? 1.2 : 0.6)
                     .animation(
@@ -1797,22 +1834,32 @@ struct ResultView: View {
                 VStack(alignment: .leading, spacing: 7) {
                     Text(result.title)
                         .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Pace.ink)
 
                     VStack(spacing: 4) {
                         ForEach(result.items.prefix(3), id: \.label) { item in
                             HStack {
-                                Text(item.label).font(.system(size: 12.5, weight: .semibold))
+                                Text(item.label)
+                                    .font(.system(size: 12.5, weight: .semibold))
+                                    .foregroundColor(Pace.ink)
                                 Spacer()
-                                Text(item.detail).font(.system(size: 12.5)).foregroundColor(Color(hex: "#9398A1"))
+                                Text(item.detail)
+                                    .font(.system(size: 12.5))
+                                    .monospacedDigit()
+                                    .foregroundColor(Pace.ink2)
                             }
                             .padding(.horizontal, 10).padding(.vertical, 6)
-                            .background(Color.white.opacity(0.05))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .background(Pace.sunk)
+                            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                                    .stroke(Pace.line, lineWidth: 1)
+                            )
                         }
                     }
 
                     if let note = result.note {
-                        Text(note).font(.system(size: 11)).foregroundColor(Color(hex: "#6E737C"))
+                        Text(note).font(.system(size: 11)).foregroundColor(Pace.ink3)
                     }
 
                     HStack(spacing: 8) {
@@ -2054,22 +2101,22 @@ struct IntegrationCardView: View {
     private var statusDot: Color {
         #if !APPSTORE
         if task.id == "integration_music" {
-            if appState.musicAutomationDenied { return Color(hex: "#F4505E") }
-            return appState.musicPlaying ? Color(hex: "#FA2D48") : Color(hex: "#22C55E")
+            if appState.musicAutomationDenied { return Pace.fail }
+            return appState.musicPlaying ? Pace.live : Pace.mint
         }
         #endif
         #if !APPSTORE
         if task.id == "integration_mail" {
-            if mailController.automationDenied { return Color(hex: "#F4505E") }
-            return mailController.isMailRunning ? Color(hex: "#22C55E") : Color(hex: "#6B7079")
+            if mailController.automationDenied { return Pace.fail }
+            return mailController.isMailRunning ? Pace.mint : Pace.ink3
         }
         #endif
-        if PillCatalog.definition(for: task.id)?.comingSoon == true { return Color(hex: "#6B7079") }
+        if PillCatalog.definition(for: task.id)?.comingSoon == true { return Pace.ink3 }
         let svcErr = task.id == "integration_stripe" ? appState.stripeError
                    : task.id == "integration_calcom"  ? appState.calcomError
                    : nil
-        if svcErr != nil { return Color(hex: "#F4505E") }
-        return isConfigured ? Color(hex: "#22C55E") : Color(hex: "#F4505E")
+        if svcErr != nil { return Pace.fail }
+        return isConfigured ? Pace.mint : Pace.fail
     }
 
     private var statusLabel: String {
@@ -2214,18 +2261,19 @@ struct IntegrationCardView: View {
                         .frame(width: 7, height: 7)
                     Text(task.name)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "#F5F6F8"))
+                        .foregroundColor(Pace.ink)
                         .lineLimit(1).truncationMode(.tail)
                         .layoutPriority(1)
                     Text(PillCatalog.definition(for: task.id)?.sessionSubtitle ?? "Agent")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                         .lineLimit(1).truncationMode(.tail)
                     Spacer(minLength: 2)
                     if task.steps.count > 1 {
                         Text("\(min(task.stepIndex + 1, task.steps.count))/\(task.steps.count)")
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .monospacedDigit()
+                            .foregroundColor(Pace.ink3)
                             .fixedSize()
                     }
                 }
@@ -2251,10 +2299,10 @@ struct IntegrationCardView: View {
                     Text(task.id == "integration_claude" ? ClaudeHost.pillName(hostApp: task.hostApp)
                                                          : PillCatalog.definition(for: task.id)?.name ?? task.name)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "#F5F6F8"))
+                        .foregroundColor(Pace.ink)
                     Text(PillCatalog.definition(for: task.id)?.subtitle ?? "Integration")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                     Spacer(minLength: 2)
                 }
                 .padding(.top, 6)
@@ -2265,7 +2313,7 @@ struct IntegrationCardView: View {
                     Circle().fill(statusDot).frame(width: 5, height: 5)
                     Text(statusLabel)
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#6B7079"))
+                        .foregroundColor(Pace.ink3)
                 }
                 .padding(.leading, 108)
                 .padding(.top, 2)
@@ -2274,12 +2322,12 @@ struct IntegrationCardView: View {
                     if task.id == "integration_claude", task.hostApp != nil {
                         Button("Open \(ClaudeHost.name(for: task.hostApp))") { ClaudeHost.activate(task.hostApp) }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: task.color).opacity(0.7))
+                            .foregroundColor(Pace.mint)
                             .buttonStyle(.plain)
                     } else if task.id == "integration_claude" {
                         Button("Open Visual Studio Code") { openVSCode() }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: task.color).opacity(0.7))
+                            .foregroundColor(Pace.mint)
                             .buttonStyle(.plain)
                     } else if task.id == "agent_cursor" {
                         #if !APPSTORE
@@ -2290,7 +2338,7 @@ struct IntegrationCardView: View {
                                                                    completionHandler: nil)
                             }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: task.color).opacity(0.85))
+                            .foregroundColor(Pace.mint)
                             .buttonStyle(.plain)
                         }
                         #endif
@@ -2303,7 +2351,7 @@ struct IntegrationCardView: View {
                                                                    completionHandler: nil)
                             }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: task.color).opacity(0.85))
+                            .foregroundColor(Pace.mint)
                             .buttonStyle(.plain)
                         }
                         #endif
@@ -2313,19 +2361,19 @@ struct IntegrationCardView: View {
                                 switchChatProvider(provider)
                             }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: task.color).opacity(0.85))
+                            .foregroundColor(Pace.mint)
                             .buttonStyle(.plain)
                         }
                     } else if task.id == "integration_music" {
                         #if !APPSTORE
                         Button("Open Music") { MusicController.shared.openMusic() }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: task.color).opacity(0.85))
+                            .foregroundColor(Pace.mint)
                             .buttonStyle(.plain)
                         if appState.musicAutomationDenied {
                             Button("Open Settings…") { MusicController.shared.openAutomationSettings() }
                                 .font(.system(size: 11))
-                                .foregroundColor(Color(hex: "#8E939C"))
+                                .foregroundColor(Pace.ink3)
                                 .buttonStyle(.plain)
                         }
                         #endif
@@ -2333,19 +2381,18 @@ struct IntegrationCardView: View {
                         #if !APPSTORE
                         Button("Open Mail") { MailController.shared.openMail() }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: task.color).opacity(0.85))
+                            .foregroundColor(Pace.mint)
                             .buttonStyle(.plain)
                         if mailController.automationDenied {
                             Button("Open Settings…") { MailController.shared.openAutomationSettings() }
                                 .font(.system(size: 11))
-                                .foregroundColor(Color(hex: "#8E939C"))
+                                .foregroundColor(Pace.ink3)
                                 .buttonStyle(.plain)
                         }
                         #endif
                     } else if n8nHasActivity {
-                        // Clickable pill — tap to open execution detail
                         let success = task.state == .finished
-                        let accent  = success ? Color(hex: "#22C55E") : Color(hex: "#F4505E")
+                        let accent  = success ? Pace.mint : Pace.fail
                         Button(action: {
                             withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { showingDetail = true }
                         }) {
@@ -2353,34 +2400,34 @@ struct IntegrationCardView: View {
                                 Circle().fill(accent).frame(width: 5, height: 5)
                                 Text(task.steps.first ?? "Workflow")
                                     .font(.system(size: 11))
-                                    .foregroundColor(Color(hex: "#C5C8CD"))
+                                    .foregroundColor(Pace.ink2)
                                     .lineLimit(1).truncationMode(.tail)
                                 Image(systemName: "ellipsis")
                                     .font(.system(size: 8, weight: .medium))
-                                    .foregroundColor(Color(hex: "#6B7079"))
+                                    .foregroundColor(Pace.ink3)
                             }
                             .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(accent.opacity(0.1))
+                            .background(Pace.sunk)
                             .clipShape(Capsule())
-                            .overlay(Capsule().stroke(accent.opacity(0.22), lineWidth: 1))
+                            .overlay(Capsule().stroke(accent.opacity(0.32), lineWidth: 1))
                         }
                         .buttonStyle(.plain)
                     } else if let url = openURL {
                         Button("Open \(task.name)") { NSWorkspace.shared.open(url) }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: task.color).opacity(0.85))
+                            .foregroundColor(Pace.mint)
                             .buttonStyle(.plain)
                     }
                     if task.id == "integration_stripe" && isConfigured {
                         Button("Refresh") { Task { @MainActor in StripePoller.shared.pollNow() } }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: "#0570DE").opacity(0.85))
+                            .foregroundColor(Pace.ink2)
                             .buttonStyle(.plain)
                     }
                     if task.id == "integration_calcom" && isConfigured {
                         Button("Refresh") { Task { @MainActor in CalcomPoller.shared.pollNow() } }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: "#C9956A").opacity(0.85))
+                            .foregroundColor(Pace.ink2)
                             .buttonStyle(.plain)
                     }
                     // Settings button: shown when not configured, except cursor/codex and music
@@ -2399,7 +2446,7 @@ struct IntegrationCardView: View {
                             NotificationCenter.default.post(name: .openFullSettings, object: section)
                         }
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                         .buttonStyle(.plain)
                     }
                 }
@@ -2452,14 +2499,14 @@ struct VercelDeploymentListView: View {
             // Header
             HStack(spacing: 6) {
                 Circle()
-                    .fill(Color(hex: "#7C5CFF"))
+                    .fill(Pace.mint)
                     .frame(width: 7, height: 7)
                 Text("Vercel")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Text("Deployments")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink3)
             }
             .padding(.top, 6)
             .padding(.leading, 108)
@@ -2469,21 +2516,22 @@ struct VercelDeploymentListView: View {
             VStack(alignment: .leading, spacing: 3) {
                 // First deployment — highlighted, with detail button
                 if let first = deployments.first {
-                    let accent = Color(hex: first.isSuccess ? "#22C55E" : "#F4505E")
+                    let accent = first.isSuccess ? Pace.mint : Pace.fail
                     HStack(spacing: 5) {
                         Circle().fill(accent).frame(width: 5, height: 5)
                         Text(first.projectName)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: "#C5C8CD"))
+                            .foregroundColor(Pace.ink)
                             .lineLimit(1).truncationMode(.tail)
                             .layoutPriority(1)
                         Text(first.timeAgo)
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .monospacedDigit()
+                            .foregroundColor(Pace.ink3)
                         Button(action: onOpenDetail) {
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 8, weight: .medium))
-                                .foregroundColor(Color(hex: "#6B7079"))
+                                .foregroundColor(Pace.ink3)
                                 .frame(width: 18, height: 18)
                                 .contentShape(Rectangle())
                         }
@@ -2491,23 +2539,28 @@ struct VercelDeploymentListView: View {
                     }
                     .padding(.horizontal, 8).padding(.vertical, 3)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(accent.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .background(Pace.sunk)
+                    .clipShape(RoundedRectangle(cornerRadius: Pace.r, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                            .stroke(Pace.line, lineWidth: 1)
+                    )
                 }
 
                 // Remaining deployments — plain rows, identical structure → perfect alignment
                 ForEach(Array(deployments.dropFirst().prefix(2))) { dep in
-                    let accent = Color(hex: dep.isSuccess ? "#22C55E" : "#F4505E")
+                    let accent = dep.isSuccess ? Pace.mint : Pace.fail
                     HStack(spacing: 5) {
                         Circle().fill(accent).frame(width: 5, height: 5)
                         Text(dep.projectName)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: "#9398A1"))
+                            .foregroundColor(Pace.ink2)
                             .lineLimit(1).truncationMode(.tail)
                             .layoutPriority(1)
                         Text(dep.timeAgo)
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .monospacedDigit()
+                            .foregroundColor(Pace.ink3)
                     }
                     .padding(.horizontal, 8).padding(.vertical, 3)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -2528,7 +2581,7 @@ struct VercelDetailView: View {
     let deployment: VercelDeployment
     let onClose: () -> Void
 
-    private var accent: Color { Color(hex: deployment.isSuccess ? "#22C55E" : "#F4505E") }
+    private var accent: Color { deployment.isSuccess ? Pace.mint : Pace.fail }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -2537,7 +2590,7 @@ struct VercelDetailView: View {
                 Button(action: onClose) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(Color(hex: "#6B7079"))
+                        .foregroundColor(Pace.ink3)
                         .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                 }
@@ -2546,7 +2599,7 @@ struct VercelDetailView: View {
                 Circle().fill(accent).frame(width: 6, height: 6)
                 Text(deployment.projectName)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                     .lineLimit(1).truncationMode(.middle)
                     .layoutPriority(1)
                 Spacer(minLength: 2)
@@ -2563,18 +2616,19 @@ struct VercelDetailView: View {
                 if let commit = deployment.commitMessage {
                     Text(commit)
                         .font(.system(size: 10.5))
-                        .foregroundColor(Color(hex: "#C5C8CD"))
+                        .foregroundColor(Pace.ink2)
                         .lineLimit(2)
                 }
                 HStack(spacing: 8) {
                     if let branch = deployment.branch {
                         Label(branch, systemImage: "arrow.branch")
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .foregroundColor(Pace.ink3)
                     }
                     Text(deployment.timeAgo + " ago")
                         .font(.system(size: 10))
-                        .foregroundColor(Color(hex: "#6B7079"))
+                        .monospacedDigit()
+                        .foregroundColor(Pace.ink3)
                 }
                 Button(action: {
                     if let url = URL(string: "https://\(deployment.url)") {
@@ -2583,7 +2637,7 @@ struct VercelDetailView: View {
                 }) {
                     Text(deployment.url)
                         .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(Color(hex: "#7C5CFF").opacity(0.85))
+                        .foregroundColor(Pace.mint)
                         .lineLimit(1).truncationMode(.middle)
                 }
                 .buttonStyle(.plain)
@@ -2603,7 +2657,7 @@ struct ResendPulseDot: View {
     @State private var on = false
     var body: some View {
         Circle()
-            .fill(Color(hex: "#22C55E"))
+            .fill(Pace.mint)
             .frame(width: 4, height: 4)
             .opacity(on ? 1 : 0.2)
             .onAppear {
@@ -2621,19 +2675,19 @@ struct ResendCardView: View {
             // Header
             HStack(spacing: 6) {
                 Circle()
-                    .fill(Color(hex: "#22C55E"))
+                    .fill(Pace.mint)
                     .frame(width: 7, height: 7)
                 Text("Resend")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Text("Emails")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink3)
                 if let total {
                     ResendPulseDot()
                     Text("\(total)")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(hex: "#C5C8CD"))
+                        .foregroundColor(Pace.ink2)
                         .monospacedDigit()
                 }
             }
@@ -2644,42 +2698,48 @@ struct ResendCardView: View {
             // Email rows — first is highlighted, rest plain (same structure as Vercel list)
             VStack(alignment: .leading, spacing: 3) {
                 if let first = emails.first {
-                    let accent = Color(hex: first.isDelivered ? "#22C55E" : "#F4505E")
+                    let accent = first.isDelivered ? Pace.mint : Pace.fail
                     HStack(spacing: 5) {
                         Circle().fill(accent).frame(width: 5, height: 5)
                         Text(first.recipientShort)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: "#C5C8CD"))
+                            .foregroundColor(Pace.ink)
                             .lineLimit(1).truncationMode(.tail)
                             .layoutPriority(1)
                         Text(first.timeAgo)
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .monospacedDigit()
+                            .foregroundColor(Pace.ink3)
                         if !first.subject.isEmpty {
                             Text(first.subject)
                                 .font(.system(size: 10))
-                                .foregroundColor(Color(hex: "#4D5159"))
+                                .foregroundColor(Pace.ink3)
                                 .lineLimit(1).truncationMode(.tail)
                         }
                     }
                     .padding(.horizontal, 8).padding(.vertical, 3)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(accent.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .background(Pace.sunk)
+                    .clipShape(RoundedRectangle(cornerRadius: Pace.r, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                            .stroke(Pace.line, lineWidth: 1)
+                    )
                 }
 
                 ForEach(Array(emails.dropFirst().prefix(2))) { email in
-                    let accent = Color(hex: email.isDelivered ? "#22C55E" : "#F4505E")
+                    let accent = email.isDelivered ? Pace.mint : Pace.fail
                     HStack(spacing: 5) {
                         Circle().fill(accent).frame(width: 5, height: 5)
                         Text(email.recipientShort)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: "#9398A1"))
+                            .foregroundColor(Pace.ink2)
                             .lineLimit(1).truncationMode(.tail)
                             .layoutPriority(1)
                         Text(email.timeAgo)
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#6B7079"))
+                            .monospacedDigit()
+                            .foregroundColor(Pace.ink3)
                     }
                     .padding(.horizontal, 8).padding(.vertical, 3)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -2703,12 +2763,12 @@ private func ciWorstState(_ prs: [GitHubPR]) -> CIState {
     return .unknown
 }
 
-private func ciColor(_ state: CIState) -> String {
+private func ciTone(_ state: CIState) -> Color {
     switch state {
-    case .failure: return "#F4505E"
-    case .pending: return "#F5A524"
-    case .success: return "#22C55E"
-    case .unknown: return "#6B7079"
+    case .failure: return Pace.fail
+    case .pending: return Pace.hold
+    case .success: return Pace.mint
+    case .unknown: return Pace.ink3
     }
 }
 
@@ -2730,18 +2790,19 @@ struct GitHubPulseCardView: View {
             // Header
             HStack(spacing: 6) {
                 Circle()
-                    .fill(Color(hex: "#F4505E"))
+                    .fill(Pace.mint)
                     .frame(width: 7, height: 7)
                 Text("GitHub")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 if let s = stats {
                     // Stars + 7-day mini-row → opens Activity detail
                     Button(action: { onTapSection(.activity) }) {
                         HStack(spacing: 4) {
                             Text("★ \(formatCount(s.totalStars))")
                                 .font(.system(size: 11))
-                                .foregroundColor(Color(hex: "#8E939C"))
+                                .monospacedDigit()
+                                .foregroundColor(Pace.ink3)
                                 .lineLimit(1)
                             if let act = activity {
                                 HStack(spacing: 2) {
@@ -2756,7 +2817,6 @@ struct GitHubPulseCardView: View {
                     }
                     .buttonStyle(.plain)
                 } else if let act = activity {
-                    // No stats yet but activity loaded — show mini-row only
                     Button(action: { onTapSection(.activity) }) {
                         HStack(spacing: 2) {
                             ForEach(act.lastDays(7), id: \.date) { day in
@@ -2770,7 +2830,7 @@ struct GitHubPulseCardView: View {
                 } else {
                     Text("Overview")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                 }
             }
             .padding(.top, 6)
@@ -2791,7 +2851,7 @@ struct GitHubPulseCardView: View {
                     return "\(n)"
                 }()
                 GitHubStatRow(
-                    icon: "arrow.triangle.pull", iconColor: ciColor(prWorst),
+                    icon: "arrow.triangle.pull", iconColor: ciTone(prWorst),
                     label: String(localized: "My PRs"), value: prValue
                 ) { onTapSection(.myPRs) }
 
@@ -2799,28 +2859,28 @@ struct GitHubPulseCardView: View {
                 let reviewCount = pulse.toReview.count
                 GitHubStatRow(
                     icon: "eye",
-                    iconColor: reviewCount > 0 ? "#8AB4F8" : "#6B7079",
+                    iconColor: reviewCount > 0 ? Pace.hold : Pace.ink3,
                     label: String(localized: "To review"),
                     value: "\(reviewCount)"
                 ) { onTapSection(.toReview) }
 
                 // Default branch CI
                 let mainWorst = mainCIWorst(pulse.mainCI)
-                let (ciIcon, ciIconColor, ciValue): (String, String, String) = {
+                let (ciIcon, ciIconTone, ciValue): (String, Color, String) = {
                     switch mainWorst {
                     case .failure:
                         let n = pulse.mainCI.filter { $0.ci == .failure }.count
-                        return ("xmark.octagon.fill", "#F4505E", "\(n) failing")
+                        return ("xmark.octagon.fill", Pace.fail, "\(n) failing")
                     case .pending:
-                        return ("checkmark.seal.fill", "#F5A524", "running")
+                        return ("checkmark.seal.fill", Pace.hold, "running")
                     case .success:
-                        return ("checkmark.seal.fill", "#22C55E", "all green")
+                        return ("checkmark.seal.fill", Pace.mint, "all green")
                     case .unknown:
-                        return ("checkmark.seal.fill", "#6B7079", pulse.mainCI.isEmpty ? "no repos" : "unknown")
+                        return ("checkmark.seal.fill", Pace.ink3, pulse.mainCI.isEmpty ? "no repos" : "unknown")
                     }
                 }()
                 GitHubStatRow(
-                    icon: ciIcon, iconColor: ciIconColor,
+                    icon: ciIcon, iconColor: ciIconTone,
                     label: "Default branch CI", value: ciValue
                 ) { onTapSection(.mainCI) }
             }
@@ -2841,7 +2901,7 @@ struct GitHubPulseCardView: View {
 
 private struct GitHubStatRow: View {
     let icon: String
-    let iconColor: String
+    let iconColor: Color
     let label: String
     let value: String
     let action: () -> Void
@@ -2851,15 +2911,15 @@ private struct GitHubStatRow: View {
             HStack(spacing: 7) {
                 Image(systemName: icon)
                     .font(.system(size: 10))
-                    .foregroundColor(Color(hex: iconColor))
+                    .foregroundColor(iconColor)
                     .frame(width: 14)
                 Text(label)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
                 Spacer()
                 Text(value)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .foregroundColor(Pace.ink2)
                     .monospacedDigit()
             }
             .frame(maxWidth: .infinity)
@@ -2920,7 +2980,7 @@ struct GitHubDetailView: View {
                             Text(title)
                                 .font(.system(size: 12, weight: .semibold))
                         }
-                        .foregroundColor(Color(hex: "#F5F6F8"))
+                        .foregroundColor(Pace.ink)
                     }
                     .buttonStyle(.plain)
                     Spacer(minLength: 2)
@@ -2933,7 +2993,7 @@ struct GitHubDetailView: View {
                 if items.isEmpty && repoItems.isEmpty {
                     Text("Nothing here")
                         .font(.system(size: 10.5))
-                        .foregroundColor(Color(hex: "#6B7079"))
+                        .foregroundColor(Pace.ink3)
                         .padding(.top, 8)
                         .padding(.leading, 108)
                 } else {
@@ -2949,7 +3009,7 @@ struct GitHubDetailView: View {
                             }
                         }
                     }
-                    .frame(maxHeight: 60)  // 3 rows × 20 pt; rest scrolls
+                    .frame(maxHeight: 60)
                     .mask(
                         Group {
                             if totalItems > 3 {
@@ -3011,7 +3071,6 @@ private struct GitHubActivityDetailContent: View {
 
     @State private var hoveredDay: ContributionDay? = nil
 
-    // Dynamic grid: s=7pt, spacing=1.5pt; numWeeks = floor((202 + 1.5) / (7 + 1.5)) = 23
     private let squareSize: CGFloat = 7
     private let spacing: CGFloat = 1.5
     private var numWeeks: Int { Int((202 + spacing) / (squareSize + spacing)) }
@@ -3043,7 +3102,7 @@ private struct GitHubActivityDetailContent: View {
                         Text("Activity")
                             .font(.system(size: 12, weight: .semibold))
                     }
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 }
                 .buttonStyle(.plain)
                 Spacer(minLength: 2)
@@ -3056,7 +3115,8 @@ private struct GitHubActivityDetailContent: View {
                     }) {
                         Text(headerRight)
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#8E939C"))
+                            .monospacedDigit()
+                            .foregroundColor(Pace.ink3)
                             .lineLimit(1)
                     }
                     .buttonStyle(.plain)
@@ -3094,7 +3154,7 @@ private struct GitHubActivityDetailContent: View {
             } else {
                 Text("Loading…")
                     .font(.system(size: 10.5))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
                     .padding(.top, 8)
                     .padding(.leading, 108)
             }
@@ -3125,19 +3185,19 @@ private struct GitHubActivityDetailContent: View {
 
 private func contributionColor(_ level: Int) -> Color {
     switch level {
-    case 1: return Color(hex: "#0E4429")
-    case 2: return Color(hex: "#006D32")
-    case 3: return Color(hex: "#26A641")
-    case 4: return Color(hex: "#39D353")
-    default: return Color.white.opacity(0.06)
+    case 1: return Pace.mint.opacity(0.22)
+    case 2: return Pace.mint.opacity(0.45)
+    case 3: return Pace.mint.opacity(0.70)
+    case 4: return Pace.mint.opacity(0.95)
+    default: return Pace.sunk
     }
 }
 
 private func ghCIDot(_ ci: CIState) -> Color {
     switch ci {
-    case .failure: return Color(hex: "#F4505E")
-    case .pending: return Color(hex: "#F5A524")
-    case .success: return Color(hex: "#22C55E")
+    case .failure: return Pace.fail
+    case .pending: return Pace.hold
+    case .success: return Pace.mint
     case .unknown: return Color.clear
     }
 }
@@ -3164,24 +3224,25 @@ private struct GitHubPRRowView: View {
                 }
                 Text("\(pr.repo.components(separatedBy: "/").last ?? pr.repo)#\(pr.number)")
                     .font(.system(size: 10.5))
-                    .foregroundColor(Color(hex: "#9398A1"))
+                    .monospacedDigit()
+                    .foregroundColor(Pace.ink3)
                     .lineLimit(1)
                 Text(pr.title)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .foregroundColor(Pace.ink2)
                     .lineLimit(1)
                     .truncationMode(.tail)
                 if pr.isDraft {
                     Text("Draft")
                         .font(.system(size: 9.5))
-                        .foregroundColor(Color(hex: "#6B7079"))
+                        .foregroundColor(Pace.ink3)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 20)
             .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.white.opacity(0.12))
+                RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                    .fill(Pace.mintSoft)
                     .opacity(selected ? 1 : 0)
             )
         }
@@ -3216,11 +3277,11 @@ private struct GitHubRepoCIRowView: View {
                     .opacity(repo.ci == .unknown ? 0 : 1)
                 Text(repo.repo.components(separatedBy: "/").last ?? repo.repo)
                     .font(.system(size: 10.5))
-                    .foregroundColor(Color(hex: "#9398A1"))
+                    .foregroundColor(Pace.ink3)
                     .lineLimit(1)
                 Text(repo.branch)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .foregroundColor(Pace.ink2)
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: 4)
@@ -3234,8 +3295,8 @@ private struct GitHubRepoCIRowView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 20)
             .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.white.opacity(0.12))
+                RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                    .fill(Pace.mintSoft)
                     .opacity(selected ? 1 : 0)
             )
         }
@@ -3253,14 +3314,14 @@ struct GitHubStatsCardView: View {
             // Header
             HStack(spacing: 6) {
                 Circle()
-                    .fill(Color(hex: "#F4505E"))
+                    .fill(Pace.mint)
                     .frame(width: 7, height: 7)
                 Text("GitHub")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Text("Overview")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink3)
             }
             .padding(.top, 6)
             .padding(.leading, 108)
@@ -3268,9 +3329,9 @@ struct GitHubStatsCardView: View {
 
             // Stats rows
             VStack(alignment: .leading, spacing: 5) {
-                StatRow(icon: "star.fill", color: "#F5A524",
+                StatRow(icon: "star.fill", color: Pace.hold,
                         label: "Total stars", value: formatCount(stats.totalStars))
-                StatRow(icon: "square.stack.fill", color: "#6B7079",
+                StatRow(icon: "square.stack.fill", color: Pace.ink3,
                         label: "Repositories", value: "\(stats.totalRepos)")
             }
             .padding(.top, 8)
@@ -3289,7 +3350,7 @@ struct GitHubStatsCardView: View {
 
 private struct StatRow: View {
     let icon: String
-    let color: String
+    let color: Color
     let label: String
     let value: String
 
@@ -3297,15 +3358,15 @@ private struct StatRow: View {
         HStack(spacing: 7) {
             Image(systemName: icon)
                 .font(.system(size: 10))
-                .foregroundColor(Color(hex: color))
+                .foregroundColor(color)
                 .frame(width: 14)
             Text(label)
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#6B7079"))
+                .foregroundColor(Pace.ink3)
             Spacer()
             Text(value)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "#C5C8CD"))
+                .foregroundColor(Pace.ink2)
                 .monospacedDigit()
         }
         .frame(maxWidth: .infinity)
@@ -3322,29 +3383,30 @@ struct StripeCardView: View {
             // Header
             HStack(spacing: 6) {
                 Circle()
-                    .fill(Color(hex: "#0570DE"))
+                    .fill(Pace.mint)
                     .frame(width: 7, height: 7)
                 Text("Stripe")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Text("Payments")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink3)
             }
             .padding(.top, 6)
             .padding(.leading, 108)
             .padding(.trailing, 36)
 
             // Balance
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(balanceFormatted)
                     .font(.system(size: 20, weight: .bold, design: .monospaced))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .monospacedDigit()
+                    .foregroundColor(Pace.ink)
                     .contentTransition(.numericText(countsDown: false))
                     .animation(.easeOut(duration: 1.2), value: appState.stripeDisplayBalance)
                 Text(appState.stripeCurrency.uppercased())
                     .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
                     .padding(.bottom, 1)
             }
             .padding(.leading, 108)
@@ -3379,22 +3441,24 @@ private struct StripePaymentRow: View {
     let payment: StripePayment
 
     var body: some View {
-        let accent = payment.isSuccess ? Color(hex: "#22C55E") : Color(hex: "#F4505E")
+        let accent = payment.isSuccess ? Pace.mint : Pace.fail
         HStack(spacing: 5) {
             Circle().fill(accent).frame(width: 5, height: 5)
             Text(payment.description ?? "Payment")
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#C5C8CD"))
+                .foregroundColor(Pace.ink2)
                 .lineLimit(1).truncationMode(.tail)
                 .layoutPriority(1)
             Spacer(minLength: 4)
             Text("+\(payment.amountFormatted)")
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
-                .foregroundColor(Color(hex: "#22C55E"))
+                .monospacedDigit()
+                .foregroundColor(Pace.mint)
                 .fixedSize()
             Text(payment.timeAgo)
                 .font(.system(size: 10))
-                .foregroundColor(Color(hex: "#6B7079"))
+                .monospacedDigit()
+                .foregroundColor(Pace.ink3)
                 .fixedSize()
         }
         .frame(maxWidth: .infinity)
@@ -3458,7 +3522,6 @@ struct CalcomCalendarView: View {
         return "\(f.string(from: displayMonth)) Q\(displayHalf)"
     }
 
-    // 7 consecutive days per row, day 1 always at far left — no weekday alignment
     private var allWeeks: [[Date?]] {
         let comps = cal.dateComponents([.year, .month], from: displayMonth)
         let monthStart = cal.date(from: comps)!
@@ -3476,10 +3539,9 @@ struct CalcomCalendarView: View {
         return result
     }
 
-    // Visible weeks for current half
     private var visibleWeeks: [[Date?]] {
         let all = allWeeks
-        let splitAt = 2  // always 2 weeks per Q
+        let splitAt = 2
         return displayHalf == 1 ? Array(all[0..<splitAt]) : Array(all[splitAt...])
     }
 
@@ -3510,22 +3572,25 @@ struct CalcomCalendarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
-                Circle().fill(Color(hex: "#C9956A")).frame(width: 7, height: 7)
-                Text("Cal.com").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
-                Text("Schedule").font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+                Circle().fill(Pace.mint).frame(width: 7, height: 7)
+                Text("Cal.com").font(.system(size: 12, weight: .semibold)).foregroundColor(Pace.ink)
+                Text("Schedule").font(.system(size: 11)).foregroundColor(Pace.ink3)
             }
             .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
 
             HStack(spacing: 0) {
                 Button { goBack() } label: {
                     Image(systemName: "chevron.left").font(.system(size: 8, weight: .semibold))
-                        .foregroundColor(Color(hex: "#6B7079")).frame(width: 18, height: 16)
+                        .foregroundColor(Pace.ink3).frame(width: 18, height: 16)
                 }.buttonStyle(.plain)
-                Text(navLabel).font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(Color(hex: "#C5C8CD")).frame(maxWidth: .infinity)
+                Text(navLabel)
+                    .font(.system(size: 10, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundColor(Pace.ink2)
+                    .frame(maxWidth: .infinity)
                 Button { goForward() } label: {
                     Image(systemName: "chevron.right").font(.system(size: 8, weight: .semibold))
-                        .foregroundColor(Color(hex: "#6B7079")).frame(width: 18, height: 16)
+                        .foregroundColor(Pace.ink3).frame(width: 18, height: 16)
                 }.buttonStyle(.plain)
             }
             .padding(.leading, 108).padding(.trailing, 12).padding(.top, 2)
@@ -3557,7 +3622,10 @@ private struct CalcomWeekRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Text(weekLabel).font(.system(size: 7)).foregroundColor(Color(hex: "#4B5563"))
+            Text(weekLabel)
+                .font(.system(size: 7))
+                .monospacedDigit()
+                .foregroundColor(Pace.ink3)
                 .frame(width: 26, alignment: .leading)
             ForEach(0..<7, id: \.self) { i in
                 if let day = week[i] {
@@ -3579,11 +3647,12 @@ private struct CalcomDayCell: View {
         VStack(spacing: 1) {
             Text("\(Calendar.current.component(.day, from: day))")
                 .font(.system(size: 9, weight: isToday ? .bold : .regular))
-                .foregroundColor(isToday ? .white : Color(hex: "#9398A1"))
+                .monospacedDigit()
+                .foregroundColor(isToday ? Pace.onMint : Pace.ink2)
                 .frame(width: 13, height: 13)
-                .background(isToday ? Color(hex: "#C9956A").opacity(0.55) : Color.clear)
+                .background(isToday ? Pace.mint : Color.clear)
                 .clipShape(Circle())
-            Circle().fill(hasEvents ? Color(hex: "#C9956A") : Color.clear).frame(width: 3, height: 3)
+            Circle().fill(hasEvents ? Pace.mint : Color.clear).frame(width: 3, height: 3)
         }
         .frame(height: 18)
     }
@@ -3600,34 +3669,42 @@ struct CalcomDayView: View {
             HStack(spacing: 4) {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left").font(.system(size: 9, weight: .semibold))
-                        .foregroundColor(Color(hex: "#6B7079")).frame(width: 22, height: 22).contentShape(Rectangle())
+                        .foregroundColor(Pace.ink3).frame(width: 22, height: 22).contentShape(Rectangle())
                 }.buttonStyle(.plain).padding(.leading, 108)
-                Text(dayLabel).font(.system(size: 11, weight: .semibold)).foregroundColor(Color(hex: "#C5C8CD"))
+                Text(dayLabel)
+                    .font(.system(size: 11, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundColor(Pace.ink2)
                 Spacer()
             }
             .padding(.top, 6).padding(.trailing, 12)
 
             if bookings.isEmpty {
-                Text("No calls scheduled").font(.system(size: 11)).foregroundColor(Color(hex: "#6B7079"))
+                Text("No calls scheduled").font(.system(size: 11)).foregroundColor(Pace.ink3)
                     .padding(.leading, 116).padding(.top, 8)
             } else {
                 VStack(alignment: .leading, spacing: 3) {
                     ForEach(bookings) { b in
                         Button { onSelect(b) } label: {
                             HStack(spacing: 6) {
-                                Circle().fill(Color(hex: "#C9956A")).frame(width: 4, height: 4)
+                                Circle().fill(Pace.mint).frame(width: 4, height: 4)
                                 Text(b.timeLabel)
                                     .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                    .foregroundColor(Color(hex: "#C9956A")).fixedSize()
-                                Text(b.title).font(.system(size: 11)).foregroundColor(Color(hex: "#C5C8CD"))
+                                    .monospacedDigit()
+                                    .foregroundColor(Pace.mint).fixedSize()
+                                Text(b.title).font(.system(size: 11)).foregroundColor(Pace.ink2)
                                     .lineLimit(1).truncationMode(.tail).layoutPriority(1)
                                 Spacer(minLength: 2)
                                 Image(systemName: "chevron.right").font(.system(size: 8))
-                                    .foregroundColor(Color(hex: "#4B5563"))
+                                    .foregroundColor(Pace.ink3)
                             }
                             .padding(.horizontal, 6).padding(.vertical, 3)
-                            .background(Color(hex: "#C9956A").opacity(0.06))
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .background(Pace.sunk)
+                            .clipShape(RoundedRectangle(cornerRadius: Pace.r, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                                    .stroke(Pace.line, lineWidth: 1)
+                            )
                         }.buttonStyle(.plain)
                     }
                 }
@@ -3651,18 +3728,19 @@ struct CalcomBookingDetailView: View {
             HStack(spacing: 4) {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left").font(.system(size: 9, weight: .semibold))
-                        .foregroundColor(Color(hex: "#6B7079")).frame(width: 22, height: 22).contentShape(Rectangle())
+                        .foregroundColor(Pace.ink3).frame(width: 22, height: 22).contentShape(Rectangle())
                 }.buttonStyle(.plain).padding(.leading, 108)
                 Text(booking.timeLabel)
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundColor(Color(hex: "#C9956A"))
+                    .monospacedDigit()
+                    .foregroundColor(Pace.mint)
                 Spacer()
             }
             .padding(.top, 6).padding(.trailing, 12)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(booking.title).font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8")).lineLimit(1)
+                    .foregroundColor(Pace.ink).lineLimit(1)
                 if let name = booking.attendeeName, !name.isEmpty {
                     CalcomDetailRow(icon: "person.fill", text: name, size: 11)
                 }
@@ -3688,8 +3766,8 @@ private struct CalcomDetailRow: View {
     var lines: Int = 1
     var body: some View {
         HStack(alignment: .top, spacing: 4) {
-            Image(systemName: icon).font(.system(size: 9)).foregroundColor(Color(hex: "#6B7079")).frame(width: 10)
-            Text(text).font(.system(size: size)).foregroundColor(Color(hex: "#9398A1"))
+            Image(systemName: icon).font(.system(size: 9)).foregroundColor(Pace.ink3).frame(width: 10)
+            Text(text).font(.system(size: size)).foregroundColor(Pace.ink2)
                 .lineLimit(lines).truncationMode(truncate ? .middle : .tail)
         }
     }
@@ -3703,9 +3781,9 @@ struct NotionCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
-                Circle().fill(Color(hex: "#E8E8E8")).frame(width: 7, height: 7)
-                Text("Notion").font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
-                Text("Recent").font(.system(size: 11)).foregroundColor(Color(hex: "#8E939C"))
+                Circle().fill(Pace.ink).frame(width: 7, height: 7)
+                Text("Notion").font(.system(size: 12, weight: .semibold)).foregroundColor(Pace.ink)
+                Text("Recent").font(.system(size: 11)).foregroundColor(Pace.ink3)
             }
             .padding(.top, 6).padding(.leading, 108).padding(.trailing, 36)
 
@@ -3719,14 +3797,16 @@ struct NotionCardView: View {
                                 Text(emoji).font(.system(size: 10)).frame(width: 14)
                             } else {
                                 Image(systemName: "doc.text").font(.system(size: 9))
-                                    .foregroundColor(Color(hex: "#6B7079")).frame(width: 14)
+                                    .foregroundColor(Pace.ink3).frame(width: 14)
                             }
                             Text(page.title).font(.system(size: 11))
-                                .foregroundColor(Color(hex: "#C5C8CD"))
+                                .foregroundColor(Pace.ink2)
                                 .lineLimit(1).truncationMode(.tail).layoutPriority(1)
                             Spacer(minLength: 4)
-                            Text(page.timeAgo).font(.system(size: 9))
-                                .foregroundColor(Color(hex: "#4B5563"))
+                            Text(page.timeAgo)
+                                .font(.system(size: 9))
+                                .monospacedDigit()
+                                .foregroundColor(Pace.ink3)
                         }
                         .padding(.horizontal, 6).padding(.vertical, 4)
                         .contentShape(Rectangle())
@@ -3748,7 +3828,7 @@ struct N8nDetailView: View {
     let onClose: () -> Void
 
     private var success: Bool  { task.state == .finished }
-    private var accent: Color  { success ? Color(hex: "#22C55E") : Color(hex: "#F4505E") }
+    private var accent: Color  { success ? Pace.mint : Pace.fail }
     private var statusLabel: String { success ? String(localized: "Success") : String(localized: "Failed") }
     private var detail: String? { task.steps.dropFirst().first }
 
@@ -3760,8 +3840,8 @@ struct N8nDetailView: View {
                 Button(action: onClose) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(Color(hex: "#6B7079"))
-                        .frame(width: 28, height: 28)   // large hit area
+                        .foregroundColor(Pace.ink3)
+                        .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -3770,7 +3850,7 @@ struct N8nDetailView: View {
 
                 Text(task.steps.first ?? "Workflow")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                     .lineLimit(1).truncationMode(.middle)
                     .layoutPriority(1)
 
@@ -3789,7 +3869,7 @@ struct N8nDetailView: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     Text(detail)
                         .font(.system(size: 10.5, design: .monospaced))
-                        .foregroundColor(Color(hex: "#9398A1"))
+                        .foregroundColor(Pace.ink2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .lineSpacing(2)
                         .textSelection(.enabled)
@@ -3798,14 +3878,14 @@ struct N8nDetailView: View {
             } else {
                 Text(success ? String(localized: "Completed successfully.") : String(localized: "No error details available."))
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
             }
         }
         .padding(.top, 8)
         .padding(.leading, 108)
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .contentShape(Rectangle())   // prevent taps falling through transparent areas
+        .contentShape(Rectangle())
     }
 }
 
@@ -3945,18 +4025,18 @@ struct TickerRowView: View {
         let checkmarkOpacity: Double = isActive ? max(0, phase * 2 - 1)       : 1
         let shimmerOpacity:   Double = isActive ? max(0, 1 - phase * 1.6)     : 0
         let staticOpacity:    Double = isActive ? min(1, max(0, phase * 2 - 0.4)) : 1
-        let staticColor = (!isActive && phase < 0.5) ? Color(hex: "#C9CDD4") : Color(hex: "#6B7079")
+        let staticColor = (!isActive && phase < 0.5) ? Pace.ink2 : Pace.ink3
 
         if let dp = text.parseDiffStep() {
             HStack(spacing: 6) {
                 ZStack {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                         .opacity(chevronOpacity)
                     Image(systemName: "checkmark")
                         .font(.system(size: 8, weight: .regular))
-                        .foregroundColor(Color(hex: "#454850"))
+                        .foregroundColor(Pace.ink3.opacity(0.6))
                         .opacity(checkmarkOpacity)
                 }
                 .frame(width: 12, alignment: .center)
@@ -3974,13 +4054,15 @@ struct TickerRowView: View {
                     if dp.added > 0 {
                         Text(" +\(dp.added)")
                             .font(.system(size: 10, weight: .medium).monospaced())
-                            .foregroundColor(Color(hex: "#22C55E"))
+                            .monospacedDigit()
+                            .foregroundColor(Pace.mint)
                             .fixedSize()
                     }
                     if dp.removed > 0 {
                         Text(" −\(dp.removed)")
                             .font(.system(size: 10, weight: .medium).monospaced())
-                            .foregroundColor(Color(hex: "#F4505E"))
+                            .monospacedDigit()
+                            .foregroundColor(Pace.fail)
                             .fixedSize()
                     }
                 }
@@ -3995,11 +4077,11 @@ struct TickerRowView: View {
                 ZStack {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                         .opacity(chevronOpacity)
                     Image(systemName: "checkmark")
                         .font(.system(size: 8, weight: .regular))
-                        .foregroundColor(Color(hex: "#454850"))
+                        .foregroundColor(Pace.ink3.opacity(0.6))
                         .opacity(checkmarkOpacity)
                 }
                 .frame(width: 12, alignment: .center)
@@ -4028,20 +4110,18 @@ struct TickerShimmerText: View {
     @Environment(\.islandViewActive) private var viewActive
 
     var body: some View {
-        // A 2.2 s sweep at display refresh rate. Paused when hidden.
         TimelineView(.animation(paused: paused || !viewActive)) { tl in
             let t = tl.date.timeIntervalSinceReferenceDate
             let p = CGFloat(t.truncatingRemainder(dividingBy: 2.2) / 2.2)
-            // phase sweeps -0.1 → 1.1 so white peak enters from left and exits right
             let phase = p * 1.2 - 0.1
             Text(text)
                 .font(.system(size: 13, weight: .medium))
                 .lineLimit(1)
                 .truncationMode(.tail)
                 .foregroundStyle(LinearGradient(stops: [
-                    .init(color: Color(hex: "#7c818a"), location: max(0, phase - 0.3)),
-                    .init(color: Color(hex: "#F2F3F5"), location: max(0, min(1, phase))),
-                    .init(color: Color(hex: "#7c818a"), location: min(1, phase + 0.3)),
+                    .init(color: Pace.ink3, location: max(0, phase - 0.3)),
+                    .init(color: Pace.ink,  location: max(0, min(1, phase))),
+                    .init(color: Pace.ink3, location: min(1, phase + 0.3)),
                 ], startPoint: .leading, endPoint: .trailing))
         }
     }
@@ -4120,7 +4200,6 @@ struct AgentPill: View {
 
     private var effectiveColor: String { task.color }
 
-    // The Claude pill shows "VS Code" (or "Claude Code" for a terminal session) regardless of project name
     private var displayName: String {
         task.id == "integration_claude" ? ClaudeHost.pillName(hostApp: task.hostApp) : task.name
     }
@@ -4130,11 +4209,9 @@ struct AgentPill: View {
             ZStack(alignment: .topTrailing) {
                 ZStack {
                     Capsule()
-                        .fill(isHovered
-                              ? Color(hex: effectiveColor).opacity(0.18)
-                              : Color(hex: "#0E0F11"))
+                        .fill(isHovered ? Pace.raised2 : Pace.sunk)
                     Capsule()
-                        .stroke(Color(hex: effectiveColor).opacity(isHovered ? 0.55 : 0.14), lineWidth: 1)
+                        .stroke(isHovered ? Pace.lineCtrl : Pace.line, lineWidth: 1)
                     HStack(spacing: 0) {
                         MiniBotCanvasView(task: task)
                             .frame(width: 22 / 0.6, height: 22 / 0.6)
@@ -4144,16 +4221,13 @@ struct AgentPill: View {
                     }
                     Text(displayName)
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(isHovered
-                                         ? Color(hex: effectiveColor).lighter(by: 0.3)
-                                         : Color(hex: "#6B7079"))
+                        .foregroundColor(isHovered ? Pace.ink : Pace.ink2)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 28)
-                .shadow(color: Color(hex: effectiveColor).opacity(isHovered ? 0.35 : 0), radius: 10, x: 0, y: 2)
 
                 // Alert badge (approval / finished / error)
                 if let badge = task.pillBadge {
@@ -4163,8 +4237,7 @@ struct AgentPill: View {
             }
         }
         .buttonStyle(.plain)
-        .scaleEffect(isHovered ? 1.04 : 1.0)
-        .brightness(isHovered ? 0.06 : 0)
+        .scaleEffect(isHovered ? 1.02 : 1.0)
         .onHover { newHover in
             guard !swapping else { return }
             withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { isHovered = newHover }
@@ -4187,21 +4260,18 @@ struct MusicPill: View {
 
     var body: some View {
         ZStack {
-            // Selection target — full pill area, receives taps where controls don't
             Capsule()
                 .fill(Color.clear)
                 .contentShape(Capsule())
                 .onTapGesture { onTap() }
 
-            // Visual fills
             Capsule()
-                .fill(isHovered ? Color(hex: task.color).opacity(0.18) : Color(hex: "#0E0F11"))
+                .fill(isHovered ? Pace.raised2 : Pace.sunk)
                 .allowsHitTesting(false)
             Capsule()
-                .stroke(Color(hex: task.color).opacity(isHovered ? 0.55 : 0.14), lineWidth: 1)
+                .stroke(isHovered ? Pace.lineCtrl : Pace.line, lineWidth: 1)
                 .allowsHitTesting(false)
 
-            // Mini Mochi at leading edge
             HStack(spacing: 0) {
                 MiniBotCanvasView(task: task, isDancing: isPlaying)
                     .frame(width: 22 / 0.6, height: 22 / 0.6)
@@ -4211,10 +4281,9 @@ struct MusicPill: View {
             }
             .allowsHitTesting(false)
 
-            // Title — trailing padding grows on hover to make room for buttons
             Text(task.name)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(isHovered ? Color(hex: task.color).lighter(by: 0.3) : Color(hex: "#6B7079"))
+                .foregroundColor(isHovered ? Pace.ink : Pace.ink2)
                 .lineLimit(1)
                 .truncationMode(.tail)
                 .padding(.leading, 34)
@@ -4223,7 +4292,6 @@ struct MusicPill: View {
                 .animation(.spring(response: 0.2, dampingFraction: 0.7), value: showControls)
                 .allowsHitTesting(false)
 
-            // Playback controls — appear on hover when a track is loaded
             if showControls {
                 HStack(spacing: 0) {
                     Spacer()
@@ -4242,9 +4310,7 @@ struct MusicPill: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 28)
-        .shadow(color: Color(hex: task.color).opacity(isHovered ? 0.35 : 0), radius: 10, x: 0, y: 2)
-        .scaleEffect(isHovered ? 1.04 : 1.0)
-        .brightness(isHovered ? 0.06 : 0)
+        .scaleEffect(isHovered ? 1.02 : 1.0)
         .onHover { newHover in
             guard !swapping else { return }
             withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { isHovered = newHover }
@@ -4262,18 +4328,17 @@ struct MusicControlButton: View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .fill(isHovered ? Color(hex: color).opacity(0.18) : Color(hex: "#0E0F11"))
+                    .fill(isHovered ? Pace.raised2 : Pace.card)
                 Circle()
-                    .stroke(Color(hex: color).opacity(isHovered ? 0.55 : 0.14), lineWidth: 1)
+                    .stroke(isHovered ? Pace.lineCtrl : Pace.line, lineWidth: 1)
                 Image(systemName: icon)
                     .font(.system(size: 8, weight: .semibold))
-                    .foregroundColor(isHovered ? Color(hex: color).lighter(by: 0.3) : Color(hex: "#6B7079"))
+                    .foregroundColor(isHovered ? Pace.ink : Pace.ink2)
             }
             .frame(width: 20, height: 20)
-            .shadow(color: Color(hex: color).opacity(isHovered ? 0.35 : 0), radius: 6)
         }
         .buttonStyle(.plain)
-        .scaleEffect(isHovered ? 1.1 : 1.0)
+        .scaleEffect(isHovered ? 1.08 : 1.0)
         .onHover { newHover in
             withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { isHovered = newHover }
         }
@@ -4291,14 +4356,13 @@ struct MusicCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if appState.musicAutomationDenied {
-                // Automation denied — prompt user to fix
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(Color(hex: "#F4505E"))
+                        .fill(Pace.fail)
                         .frame(width: 7, height: 7)
                     Text("Apple Music")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "#F5F6F8"))
+                        .foregroundColor(Pace.ink)
                     Spacer(minLength: 2)
                 }
                 .padding(.top, 6)
@@ -4307,13 +4371,13 @@ struct MusicCardView: View {
 
                 Text("Allow HeyApex Eye to control Music")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink3)
                     .padding(.leading, 108)
                     .padding(.trailing, 12)
 
                 Button("Open Settings…") { MusicController.shared.openAutomationSettings() }
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(hex: "#FA2D48").opacity(0.85))
+                    .foregroundColor(Pace.mint)
                     .buttonStyle(.plain)
                     .padding(.leading, 108)
                     .padding(.top, 2)
@@ -4321,12 +4385,12 @@ struct MusicCardView: View {
                 // Line 1: dot + title
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(Color(hex: "#FA2D48"))
+                        .fill(appState.musicPlaying ? Pace.live : Pace.mint)
                         .frame(width: 7, height: 7)
                     if let title = controller.trackTitle {
                         Text(title)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#F5F6F8"))
+                            .foregroundColor(Pace.ink)
                             .lineLimit(1).truncationMode(.tail)
                             .frame(maxWidth: 150, alignment: .leading)
                     }
@@ -4338,7 +4402,7 @@ struct MusicCardView: View {
                 if let artist = controller.artist {
                     Text(artist)
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                         .lineLimit(1).truncationMode(.tail)
                         .frame(maxWidth: 150, alignment: .leading)
                         .padding(.leading, 108)
@@ -4349,19 +4413,19 @@ struct MusicCardView: View {
                     Button(action: { MusicController.shared.previousTrack() }) {
                         Image(systemName: "backward.fill")
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#8E939C"))
+                            .foregroundColor(Pace.ink3)
                     }
                     .buttonStyle(.plain)
                     Button(action: { MusicController.shared.playPause() }) {
                         Image(systemName: appState.musicPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#FA2D48"))
+                            .foregroundColor(Pace.ink)
                     }
                     .buttonStyle(.plain)
                     Button(action: { MusicController.shared.nextTrack() }) {
                         Image(systemName: "forward.fill")
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#8E939C"))
+                            .foregroundColor(Pace.ink3)
                     }
                     .buttonStyle(.plain)
                 }
@@ -4381,9 +4445,17 @@ struct PillBadgeView: View {
 
     private var badgeColor: Color {
         switch badge {
-        case .approval: return Color(hex: "#F5A524")
-        case .finished: return Color(hex: "#22C55E")
-        case .error:    return Color(hex: "#F4505E")
+        case .approval: return Pace.hold
+        case .finished: return Pace.mint
+        case .error:    return Pace.fail
+        }
+    }
+
+    private var onBadgeColor: Color {
+        switch badge {
+        case .approval: return Pace.onHold
+        case .finished: return Pace.onMint
+        case .error:    return Pace.ground
         }
     }
 
@@ -4398,16 +4470,15 @@ struct PillBadgeView: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(Color(hex: "#0B0C0E"))
+                .fill(Pace.card)
                 .frame(width: 14, height: 14)
             Circle()
                 .fill(badgeColor)
                 .frame(width: 12, height: 12)
             Image(systemName: icon)
                 .font(.system(size: 6, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(onBadgeColor)
         }
-        .shadow(color: badgeColor.opacity(0.6), radius: 4, x: 0, y: 0)
     }
 }
 
@@ -4442,7 +4513,6 @@ struct WardrobeView: View {
     private let columns = Array(repeating: GridItem(.fixed(30), spacing: 5), count: 14)
 
     private var headerRight: String {
-        // Hover takes priority: show hovered outfit name
         if let h = hoveredOutfit {
             if h == .auto {
                 let seasonal = Outfit.seasonal(for: Date(), calendar: .current)
@@ -4451,7 +4521,6 @@ struct WardrobeView: View {
             }
             return h.displayName
         }
-        // Fall back to current selection
         let sel = state.mochiOutfitSelection
         if sel == .auto {
             let seasonal = Outfit.seasonal(for: Date(), calendar: .current)
@@ -4467,11 +4536,11 @@ struct WardrobeView: View {
             HStack(spacing: 6) {
                 Text("Wardrobe")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Spacer(minLength: 4)
                 Text(headerRight)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink3)
                     .lineLimit(1)
             }
             .padding(.top, 6)
@@ -4490,7 +4559,6 @@ struct WardrobeView: View {
                             onHover: { h in
                                 hoveredOutfit = h ? outfit : nil
                                 if h {
-                                    // Preview on main Mochi
                                     let preview: Outfit = outfit == .auto
                                         ? Outfit.seasonal(for: Date(), calendar: .current)
                                         : outfit
@@ -4553,12 +4621,12 @@ struct OutfitPillView: View {
         }
         .frame(width: 30, height: 30)
         .background(
-            RoundedRectangle(cornerRadius: 7)
-                .fill(isHovered ? Color.white.opacity(0.10) : Color.white.opacity(0.06))
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .fill(isSelected ? Pace.mintSoft : (isHovered ? Pace.raised2 : Pace.sunk))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 7)
-                .stroke(isSelected ? Color.white.opacity(0.40) : Color.white.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .stroke(isSelected ? Pace.mint : Pace.line, lineWidth: 1)
         )
         .onHover { onHover($0) }
         .onTapGesture { onTap() }
@@ -4568,138 +4636,84 @@ struct OutfitPillView: View {
 private func drawOutfitIcon(context: GraphicsContext, size: CGSize, outfit: Outfit, seasonal: Outfit = .none) {
     let W = size.width, H = size.height
     let cx = W / 2, cy = H / 2
-    let R: CGFloat = 6.5   // small scale for icon
+    let R: CGFloat = 6.5
 
     switch outfit {
     case .auto:
-        let iconR: CGFloat = 10.0
-        let rx = iconR * 1.14, ry = iconR * 0.88
+        let iconR: CGFloat = 8.5
+        let ry = iconR * 0.88
         let mH = MochiH(R: iconR, yaw: 0, pitch: 0)
-        let bodyPath = mochiOutfitPath(rx, ry)
-        let iconCY = cy + iconR * 0.62
+        let iconCY = cy + iconR * 0.25
 
-        // Draw the seasonal outfit behind body
         if seasonal != .none && seasonal != .auto {
             drawOutfitBehindStatic(context: context, outfit: seasonal, H: mH,
                                    cx: cx, cy: iconCY, tilt: 0, sx: 1, sy: 1,
                                    roll: 0, morph: 0, isMini: false)
         }
-        // Body
-        var ctx = context
-        ctx.translateBy(x: cx, y: iconCY)
-        ctx.fill(bodyPath, with: .linearGradient(
-            Gradient(colors: [Color(red: 0.929, green: 0.929, blue: 0.937),
-                              Color(red: 0.769, green: 0.773, blue: 0.792)]),
-            startPoint: CGPoint(x: rx*0.7, y: -ry*0.85),
-            endPoint:   CGPoint(x: -rx*0.8, y: ry*0.9)
-        ))
-        ctx.fill(bodyPath, with: .radialGradient(
-            Gradient(stops: [.init(color: .clear, location: 0.6),
-                             .init(color: Color.black.opacity(0.2), location: 1)]),
-            center: .zero, startRadius: iconR*0.15, endRadius: iconR*1.25
-        ))
-        // Eyes
-        var eyeCtx = ctx; eyeCtx.clip(to: bodyPath)
-        let ink = Color(red: 0.102, green: 0.082, blue: 0.071)
-        for f in mEyeFrames(mH) {
-            guard f.visible else { continue }
-            var ec = eyeCtx; ec.translateBy(x: f.x, y: f.y); ec.scaleBy(x: f.fx, y: f.fy)
-            let hh = max(f.h, f.w*0.3)
-            var pill = Path()
-            pill.addRoundedRect(in: CGRect(x: -f.w/2, y: -hh/2, width: f.w, height: hh),
-                                cornerSize: CGSize(width: min(f.w/2,hh/2), height: min(f.w/2,hh/2)))
-            ec.fill(pill, with: .color(ink))
-        }
-        // Front outfit
+
+        HeyApexEyeGlyph.draw(
+            context: context,
+            size: size,
+            state: .idle,
+            eyeShape: .pill,
+            gazeX: 0,
+            gazeY: 0,
+            open: 1,
+            bob: 0.08,
+            isStatic: true,
+            radiusScale: 0.27
+        )
+
         if seasonal != .none && seasonal != .auto {
             drawOutfitFrontStatic(context: context, outfit: seasonal, H: mH,
                                   cx: cx, cy: iconCY, tilt: 0, sx: 1, sy: 1,
                                   roll: 0, morph: 0, isMini: false)
         }
-        // AUTO badge at bottom
+
         var badgeCtx = context
-        let badgeCY = iconCY + ry * 0.72
+        let badgeCY = iconCY + ry * 0.86
         badgeCtx.translateBy(x: cx, y: badgeCY)
-        let bw: CGFloat = 14, bh: CGFloat = 6.5
-        var badge = Path()
-        badge.addRoundedRect(in: CGRect(x: -bw/2, y: -bh/2, width: bw, height: bh),
-                             cornerSize: CGSize(width: bh/2, height: bh/2))
-        badgeCtx.fill(badge, with: .color(Color.black.opacity(0.60)))
-        badgeCtx.draw(Text("AUTO").font(.system(size: 4.2, weight: .semibold)).foregroundColor(.white),
+        let bw: CGFloat = 15, bh: CGFloat = 6.5
+        let badge = Path(roundedRect: CGRect(x: -bw/2, y: -bh/2, width: bw, height: bh),
+                         cornerRadius: bh/2, style: .continuous)
+        badgeCtx.fill(badge, with: .color(Pace.ground))
+        badgeCtx.stroke(badge, with: .color(Pace.line), lineWidth: 0.75)
+        badgeCtx.draw(Text("Auto").font(.system(size: 4.5, weight: .semibold)).foregroundColor(Pace.ink2),
                       at: .zero)
 
     case .none:
         var ctx = context
         ctx.translateBy(x: cx, y: cy)
-        // Circle with diagonal slash (⊘)
         var circle = Path()
         circle.addEllipse(in: CGRect(x: -R * 0.82, y: -R * 0.82, width: R * 1.64, height: R * 1.64))
-        ctx.stroke(circle, with: .color(Color(hex: "#454850")), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
+        ctx.stroke(circle, with: .color(Pace.ink3), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
         var slash = Path()
         slash.move(to:    CGPoint(x: -R * 0.56, y:  R * 0.56))
         slash.addLine(to: CGPoint(x:  R * 0.56, y: -R * 0.56))
-        ctx.stroke(slash, with: .color(Color(hex: "#454850")), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
+        ctx.stroke(slash, with: .color(Pace.ink3), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
 
     default:
-        // Small Mochi wearing the outfit
-        let iconR: CGFloat = 10.0
-        let rx = iconR * 1.14, ry = iconR * 0.88
+        let iconR: CGFloat = 8.5
         let mH = MochiH(R: iconR, yaw: 0, pitch: 0)
-        let bodyPath = mochiOutfitPath(rx, ry)
-        let iconCY = cy + iconR * 0.62
+        let iconCY = cy + iconR * 0.45
 
-        // Draw outfit behind
         drawOutfitBehindStatic(context: context, outfit: outfit, H: mH,
                                cx: cx, cy: iconCY, tilt: 0, sx: 1, sy: 1,
                                roll: 0, morph: 0, isMini: false)
 
-        // Draw body
-        var ctx = context
-        ctx.translateBy(x: cx, y: iconCY)
-        let pumpkin = outfit == .pumpkin
-        let top = pumpkin ? Color(hex: "#FFA94D") : Color(red: 0.929, green: 0.929, blue: 0.937)
-        let bot = pumpkin ? Color(hex: "#E8590C") : Color(red: 0.769, green: 0.773, blue: 0.792)
-        ctx.fill(bodyPath, with: .linearGradient(
-            Gradient(colors: [top, bot]),
-            startPoint: CGPoint(x: rx * 0.7, y: -ry * 0.85),
-            endPoint:   CGPoint(x: -rx * 0.8, y: ry * 0.9)
-        ))
-        ctx.fill(bodyPath, with: .radialGradient(
-            Gradient(stops: [
-                .init(color: .clear, location: 0),
-                .init(color: .clear, location: 0.6),
-                .init(color: Color.black.opacity(0.2), location: 1)
-            ]),
-            center: .zero, startRadius: iconR * 0.15, endRadius: iconR * 1.25
-        ))
-        ctx.fill(bodyPath, with: .radialGradient(
-            Gradient(stops: [
-                .init(color: Color.white.opacity(0.55), location: 0),
-                .init(color: .clear, location: 1)
-            ]),
-            center: CGPoint(x: rx * 0.34, y: -ry * 0.46),
-            startRadius: 0, endRadius: iconR * 0.42
-        ))
+        HeyApexEyeGlyph.draw(
+            context: context,
+            size: size,
+            state: .idle,
+            eyeShape: .pill,
+            gazeX: 0,
+            gazeY: 0,
+            open: 1,
+            bob: 0.35,
+            isStatic: true,
+            radiusScale: 0.27
+        )
 
-        // Draw eyes
-        var eyeCtx = ctx
-        eyeCtx.clip(to: bodyPath)
-        let ink = Color(red: 0.102, green: 0.082, blue: 0.071)
-        for f in mEyeFrames(mH) {
-            guard f.visible else { continue }
-            var ec = eyeCtx
-            ec.translateBy(x: f.x, y: f.y)
-            ec.scaleBy(x: f.fx, y: f.fy)
-            let hh = max(f.h, f.w * 0.3)
-            var pill = Path()
-            pill.addRoundedRect(
-                in: CGRect(x: -f.w / 2, y: -hh / 2, width: f.w, height: hh),
-                cornerSize: CGSize(width: min(f.w / 2, hh / 2), height: min(f.w / 2, hh / 2))
-            )
-            ec.fill(pill, with: .color(ink))
-        }
-
-        // Draw outfit front
         drawOutfitFrontStatic(context: context, outfit: outfit, H: mH,
                               cx: cx, cy: iconCY, tilt: 0, sx: 1, sy: 1,
                               roll: 0, morph: 0, isMini: false)
@@ -4720,36 +4734,46 @@ struct CardBackground<Content: View>: View {
 
     var washColor: Color {
         switch wash {
-        case .red:    return Color(hex: "#F4505E").opacity(0.55)
-        case .green:  return Color(hex: "#34D399").opacity(0.5)
-        case .pink:   return Color(hex: "#F472B6").opacity(0.55)
-        case .amber:  return Color(hex: "#F5A524").opacity(0.42)
-        case .cyan:   return Color(hex: "#22D3EE").opacity(0.38)
-        case .indigo: return Color(hex: "#6366F1").opacity(0.5)
-        case .soft:   return Color.white.opacity(0.08)
-        case nil:     return Color.clear
+        case .red:           return Pace.fail.opacity(0.08)
+        case .green:         return Pace.mint.opacity(0.08)
+        case .amber, .pink:  return Pace.hold.opacity(0.08)
+        case .cyan:          return Pace.act.opacity(0.08)
+        case .indigo:        return Pace.think.opacity(0.08)
+        case .soft:          return Color.white.opacity(0.04)
+        case nil:            return Color.clear
+        }
+    }
+
+    var borderColor: Color {
+        switch wash {
+        case .red:           return Pace.fail.opacity(0.28)
+        case .green:         return Pace.mint.opacity(0.28)
+        case .amber, .pink:  return Pace.hold.opacity(0.28)
+        case .cyan:          return Pace.act.opacity(0.28)
+        case .indigo:        return Pace.think.opacity(0.28)
+        case .soft, nil:     return Pace.line
         }
     }
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(hex: "#141518"))
+            RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                .fill(Pace.card)
                 .overlay(
                     RadialGradient(
                         gradient: Gradient(stops: [
                             .init(color: washColor, location: 0),
-                            .init(color: .clear, location: 0.7)
+                            .init(color: .clear, location: 0.72)
                         ]),
                         center: UnitPoint(x: 0.5, y: 1.3),
                         startRadius: 0,
-                        endRadius: 280
+                        endRadius: 260
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.035), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                        .stroke(borderColor, lineWidth: 1)
                 )
 
             if let content = content {
@@ -4767,23 +4791,23 @@ extension CardBackground where Content == EmptyView {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(hex: "#141518"))
+            RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                .fill(Pace.card)
                 .overlay(
                     RadialGradient(
                         gradient: Gradient(stops: [
                             .init(color: washColor, location: 0),
-                            .init(color: .clear, location: 0.7)
+                            .init(color: .clear, location: 0.72)
                         ]),
                         center: UnitPoint(x: 0.5, y: 1.3),
                         startRadius: 0,
-                        endRadius: 280
+                        endRadius: 260
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.035), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                        .stroke(borderColor, lineWidth: 1)
                 )
         }
     }
@@ -4799,9 +4823,9 @@ struct AgentWho: View {
         HStack(spacing: 7) {
             if let task = task {
                 Circle().fill(Color(hex: task.color)).frame(width: 8, height: 8)
-                Text(task.name).font(.system(size: 12, weight: .semibold)).foregroundColor(Color(hex: "#F5F6F8"))
+                Text(task.name).font(.system(size: 12, weight: .semibold)).foregroundColor(Pace.ink)
             }
-            Text(LocalizedStringKey(label)).font(.system(size: 12)).foregroundColor(Color(hex: "#8E939C"))
+            Text(LocalizedStringKey(label)).font(.system(size: 12)).foregroundColor(Pace.ink3)
         }
     }
 }
@@ -4813,10 +4837,10 @@ struct CodeBlock: View {
         Text(text)
             .font(.system(size: 12, design: .monospaced))
             .padding(.horizontal, 10).padding(.vertical, 5)
-            .background(Color.white.opacity(0.07))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.06)))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .foregroundColor(Color(hex: "#E8E9EC"))
+            .background(Pace.sunk)
+            .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).stroke(Pace.line, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+            .foregroundColor(Pace.ink)
     }
 }
 
@@ -4836,17 +4860,17 @@ struct ContextChip: View {
     var body: some View {
         HStack(spacing: 6) {
             Circle()
-                .fill(LinearGradient(colors: [Color(hex: "#FF6B5B"), Color(hex: "#F7B32B"), Color(hex: "#2DD4A7"), Color(hex: "#38BDF8"), Color(hex: "#A78BFA")], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .frame(width: 7, height: 7)
+                .fill(Pace.mint)
+                .frame(width: 6, height: 6)
             Text(label)
                 .font(.system(size: 11.5))
-                .foregroundColor(Color(hex: "#F1F2F4"))
+                .foregroundColor(Pace.ink)
         }
         .padding(.horizontal, 10).padding(.vertical, 4)
-        .background(Color.white.opacity(0.1))
+        .background(Pace.sunk)
         .clipShape(Capsule())
-        .overlay(Capsule().stroke(Color.white.opacity(glowing ? 0.75 : 0), lineWidth: 1.5))
-        .scaleEffect(glowing ? 1.06 : 1.0)
+        .overlay(Capsule().stroke(glowing ? Pace.mint.opacity(0.55) : Pace.line, lineWidth: 1))
+        .scaleEffect(glowing ? 1.04 : 1.0)
         .onAppear {
             withAnimation(.spring(response: 0.25, dampingFraction: 0.55)) { glowing = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
@@ -4860,21 +4884,28 @@ struct MailField: View {
     let label: String
     let placeholder: String
     @Binding var text: String
+    @FocusState private var isFocused: Bool
 
     var body: some View {
+        let illuminated = isFocused || !text.isEmpty
         HStack(spacing: 8) {
             Text(label)
                 .font(.system(size: 12.5))
-                .foregroundColor(Color(hex: "#80858E"))
+                .foregroundColor(Pace.ink3)
                 .frame(width: 44, alignment: .leading)
             TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
                 .font(.system(size: 12.5))
-                .foregroundColor(Color(hex: "#F5F6F8"))
+                .foregroundColor(Pace.ink)
+                .focused($isFocused)
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
-        .background(Color.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .background(Pace.sunk)
+        .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .stroke(illuminated ? Pace.mint.opacity(0.50) : Pace.line, lineWidth: 1)
+        )
     }
 }
 
@@ -4887,9 +4918,9 @@ struct ShimmeringText: View {
             .foregroundStyle(
                 LinearGradient(
                     stops: [
-                        .init(color: Color(hex: "#7c818a"), location: 0),
-                        .init(color: .white, location: 0.4),
-                        .init(color: Color(hex: "#7c818a"), location: 0.7)
+                        .init(color: Pace.ink3, location: 0),
+                        .init(color: Pace.ink,  location: 0.4),
+                        .init(color: Pace.ink3, location: 0.7)
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
@@ -4904,7 +4935,6 @@ struct ShimmerOverlay: View {
     var body: some View {
         LinearGradient(
             stops: [
-                // Clamp all locations to [0,1] and keep them ordered
                 .init(color: .clear,                   location: max(0, phase - 0.3)),
                 .init(color: Color.white.opacity(0.6), location: max(0, min(1, phase))),
                 .init(color: .clear,                   location: min(1, phase + 0.3))
@@ -4914,7 +4944,7 @@ struct ShimmerOverlay: View {
         .blendMode(.overlay)
         .onAppear {
             withAnimation(.linear(duration: 2.2).repeatForever(autoreverses: false)) {
-                phase = 1.3  // travels left→right, exits right edge cleanly
+                phase = 1.3
             }
         }
     }
@@ -4943,16 +4973,22 @@ struct PrimaryButton: View {
                     if verbatim { Text(verbatim: title) } else { Text(LocalizedStringKey(title)) }
                 }.font(.system(size: 12.5, weight: .medium))
                 if let k = kbd {
-                    Text(k).font(.system(size: 10.5))
+                    Text(k)
+                        .font(.system(size: 10.5, design: .monospaced))
+                        .monospacedDigit()
                         .padding(.horizontal, 4)
-                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.black.opacity(0.4)))
-                        .opacity(0.55)
+                        .padding(.vertical, 1)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                                .stroke(Pace.onMint.opacity(0.32), lineWidth: 1)
+                        )
+                        .opacity(0.75)
                 }
             }
-            .padding(.horizontal, 13).padding(.vertical, 7)
-            .background(Color(hex: "#F5F6F8"))
-            .foregroundColor(Color(hex: "#0B0C0E"))
-            .clipShape(Capsule())
+            .padding(.horizontal, 12).padding(.vertical, 6)
+            .background(Pace.mint)
+            .foregroundColor(Pace.onMint)
+            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
         }
         .buttonStyle(.plain)
     }
@@ -4979,16 +5015,72 @@ struct SecondaryButton: View {
                     if verbatim { Text(verbatim: title) } else { Text(LocalizedStringKey(title)) }
                 }.font(.system(size: 12.5, weight: .medium))
                 if let k = kbd {
-                    Text(k).font(.system(size: 10.5))
+                    Text(k)
+                        .font(.system(size: 10.5, design: .monospaced))
+                        .monospacedDigit()
+                        .foregroundColor(Pace.ink3)
                         .padding(.horizontal, 4)
-                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.white.opacity(0.4)))
-                        .opacity(0.55)
+                        .padding(.vertical, 1)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                                .stroke(Pace.line, lineWidth: 1)
+                        )
                 }
             }
-            .padding(.horizontal, 13).padding(.vertical, 7)
-            .background(Color.white.opacity(0.09))
-            .foregroundColor(Color(hex: "#F1F2F4"))
-            .clipShape(Capsule())
+            .padding(.horizontal, 12).padding(.vertical, 6)
+            .background(Pace.sunk)
+            .foregroundColor(Pace.ink)
+            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                    .stroke(Pace.line, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct DangerButton: View {
+    let title: String
+    let verbatim: Bool
+    let kbd: String?
+    let action: () -> Void
+
+    init(_ title: String, kbd: String? = nil, action: @escaping () -> Void) {
+        self.title = title; self.verbatim = false; self.kbd = kbd; self.action = action
+    }
+
+    init(verbatim title: String, kbd: String? = nil, action: @escaping () -> Void) {
+        self.title = title; self.verbatim = true; self.kbd = kbd; self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 7) {
+                Group {
+                    if verbatim { Text(verbatim: title) } else { Text(LocalizedStringKey(title)) }
+                }.font(.system(size: 12.5, weight: .medium))
+                if let k = kbd {
+                    Text(k)
+                        .font(.system(size: 10.5, design: .monospaced))
+                        .monospacedDigit()
+                        .foregroundColor(Pace.fail.opacity(0.8))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                                .stroke(Pace.fail.opacity(0.32), lineWidth: 1)
+                        )
+                }
+            }
+            .padding(.horizontal, 12).padding(.vertical, 6)
+            .background(Pace.sunk)
+            .foregroundColor(Pace.fail)
+            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                    .stroke(Pace.fail.opacity(0.42), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -4998,18 +5090,24 @@ struct IconButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(width: 28, height: 28)
-            .background(Color.white.opacity(0.08))
-            .clipShape(Circle())
+            .background(Pace.sunk)
+            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                    .stroke(Pace.line, lineWidth: 1)
+            )
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
     }
 }
 
 struct SendButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .frame(width: 28, height: 28)
-            .background(Color(hex: "#F5F6F8"))
-            .clipShape(Circle())
+            .frame(width: 26, height: 26)
+            .background(isEnabled ? Pace.mint : Pace.raised)
+            .clipShape(RoundedRectangle(cornerRadius: Pace.r, style: .continuous))
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
     }
 }
@@ -5045,13 +5143,15 @@ struct SettingsIslandView: View {
                 HStack(spacing: 10) {
                     Toggle("", isOn: $state.soundEnabled)
                         .toggleStyle(.switch)
+                        .tint(Pace.mint)
                         .labelsHidden()
                         .scaleEffect(0.75)
                         .frame(width: 44)
                     Text("Sound")
                         .font(.system(size: 12.5))
-                        .foregroundColor(Color(hex: "#C5C8CD"))
+                        .foregroundColor(Pace.ink2)
                     Slider(value: $state.soundVolume, in: 0...0.2)
+                        .tint(Pace.mint)
                         .frame(width: 72)
                         .opacity(state.soundEnabled ? 1 : 0.4)
                 }
@@ -5060,22 +5160,29 @@ struct SettingsIslandView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "timer")
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                         .frame(width: 16)
                     Text(String(format: String(localized: "Auto-close · %llds"), Int64(state.autoCloseInterval)))
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#C5C8CD"))
+                        .monospacedDigit()
+                        .foregroundColor(Pace.ink2)
                     Spacer()
                     HStack(spacing: 6) {
                         ForEach([10, 15, 30], id: \.self) { s in
+                            let isChosen = state.autoCloseInterval == Double(s)
                             Button("\(s)s") {
                                 state.autoCloseInterval = Double(s)
                             }
-                            .font(.system(size: 11))
-                            .padding(.horizontal, 7).padding(.vertical, 3)
-                            .background(state.autoCloseInterval == Double(s) ? Color(hex: "#252830") : Color.clear)
-                            .foregroundColor(state.autoCloseInterval == Double(s) ? Color(hex: "#F5F6F8") : Color(hex: "#6B7079"))
-                            .clipShape(Capsule())
+                            .font(.system(size: 11, weight: isChosen ? .semibold : .regular))
+                            .monospacedDigit()
+                            .padding(.horizontal, 8).padding(.vertical, 3)
+                            .background(isChosen ? Pace.mintSoft : Pace.sunk)
+                            .foregroundColor(isChosen ? Pace.mint : Pace.ink3)
+                            .clipShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                                    .stroke(isChosen ? Pace.mint : Pace.line, lineWidth: 1)
+                            )
                             .buttonStyle(.plain)
                         }
                     }
@@ -5090,7 +5197,7 @@ struct SettingsIslandView: View {
                         NotificationCenter.default.post(name: .openFullSettings, object: nil)
                     }
                     .font(.system(size: 11.5))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink2)
                     .buttonStyle(.plain)
                 }
             }
@@ -5108,11 +5215,11 @@ struct StatusBadge: View {
     var body: some View {
         HStack(spacing: 4) {
             Circle()
-                .fill(ok ? Color(hex: "#22C55E") : Color(hex: "#F4505E"))
+                .fill(ok ? Pace.mint : Pace.fail)
                 .frame(width: 6, height: 6)
             Text(label)
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#8E939C"))
+                .foregroundColor(Pace.ink3)
         }
     }
 }

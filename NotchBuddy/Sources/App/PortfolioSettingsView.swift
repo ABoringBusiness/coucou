@@ -16,7 +16,7 @@ struct PortfolioSettingsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
-                Circle().fill(Color(hex: "#FFD700")).frame(width: 8, height: 8)
+                Circle().fill(Pace.hold).frame(width: 8, height: 8)
                 Text("Portfolio").font(.system(size: 12, weight: .semibold))
             }
 
@@ -50,7 +50,7 @@ struct PortfolioSettingsSection: View {
 
             Text(String(localized: "portfolio.hint"))
                 .font(.system(size: 10))
-                .foregroundColor(Color(hex: "#8E939C"))
+                .foregroundColor(Pace.ink3)
         }
         .sheet(isPresented: $showAddExchange) {
             AddExchangeSheet { ex in
@@ -82,14 +82,14 @@ private struct ExchangeRow: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: "checkmark.circle.fill").foregroundColor(.green).imageScale(.small)
+            Image(systemName: "checkmark.circle.fill").foregroundColor(Pace.mint).imageScale(.small)
             Text(verbatim: exchange.name).font(.system(size: 11))
             Text(String(localized: "portfolio.read-only"))
-                .font(.system(size: 10)).foregroundColor(Color(hex: "#8E939C"))
+                .font(.system(size: 10)).foregroundColor(Pace.ink3)
             Spacer()
             Button(String(localized: "portfolio.remove")) { confirmRemove = true }
                 .font(.system(size: 11))
-                .foregroundColor(.red)
+                .foregroundColor(Pace.fail)
                 .buttonStyle(.plain)
         }
         .alert(String(format: String(localized: "portfolio.remove-confirm %@"), exchange.name),
@@ -114,15 +114,15 @@ private struct WalletRow: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: "checkmark.circle.fill").foregroundColor(.green).imageScale(.small)
+            Image(systemName: "checkmark.circle.fill").foregroundColor(Pace.mint).imageScale(.small)
             Text(verbatim: wallet.label.isEmpty ? shortAddress : wallet.label)
                 .font(.system(size: 11))
             Text(verbatim: wallet.kind.name)
-                .font(.system(size: 10)).foregroundColor(Color(hex: "#8E939C"))
+                .font(.system(size: 10)).foregroundColor(Pace.ink3)
             Spacer()
             Button(String(localized: "portfolio.remove")) { confirmRemove = true }
                 .font(.system(size: 11))
-                .foregroundColor(.red)
+                .foregroundColor(Pace.fail)
                 .buttonStyle(.plain)
         }
         .alert(String(format: String(localized: "portfolio.remove-confirm %@"), wallet.label.isEmpty ? shortAddress : wallet.label),
@@ -157,7 +157,7 @@ private struct AddExchangeSheet: View {
             HStack {
                 Text(String(localized: "portfolio.exchange"))
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink2)
                     .frame(width: 80, alignment: .leading)
                 Picker("", selection: $selectedExchange) {
                     ForEach(ExchangeKind.allCases, id: \.rawValue) { ex in
@@ -173,7 +173,7 @@ private struct AddExchangeSheet: View {
             // Instructions
             instructions(for: selectedExchange)
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#6B7079"))
+                .foregroundColor(Pace.ink3)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 12)
 
@@ -187,7 +187,7 @@ private struct AddExchangeSheet: View {
             if let err = error {
                 Text(verbatim: err)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#F4505E"))
+                    .foregroundColor(Pace.fail)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 4)
             }
@@ -226,7 +226,7 @@ private struct AddExchangeSheet: View {
         HStack(alignment: .center, spacing: 8) {
             Text(label)
                 .font(.system(size: 12))
-                .foregroundColor(Color(hex: "#8E939C"))
+                .foregroundColor(Pace.ink2)
                 .frame(width: 80, alignment: .leading)
             Group {
                 if isSecret {
@@ -309,7 +309,7 @@ private struct AddWalletSheet: View {
             HStack {
                 Text(String(localized: "portfolio.network"))
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink2)
                     .frame(width: 80, alignment: .leading)
                 Picker("", selection: $selectedKind) {
                     ForEach(WalletKind.allCases, id: \.rawValue) { k in
@@ -326,7 +326,7 @@ private struct AddWalletSheet: View {
             HStack(alignment: .center, spacing: 8) {
                 Text("Address")
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink2)
                     .frame(width: 80, alignment: .leading)
                 TextField(selectedKind.placeholder, text: $address)
                     .textFieldStyle(.roundedBorder)
@@ -338,7 +338,7 @@ private struct AddWalletSheet: View {
             HStack(alignment: .center, spacing: 8) {
                 Text(String(localized: "portfolio.wallet-label"))
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink2)
                     .frame(width: 80, alignment: .leading)
                 TextField("My wallet", text: $label)
                     .textFieldStyle(.roundedBorder)
@@ -348,13 +348,13 @@ private struct AddWalletSheet: View {
 
             Text(String(localized: "portfolio.wallet-hint"))
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#6B7079"))
+                .foregroundColor(Pace.ink3)
                 .fixedSize(horizontal: false, vertical: true)
 
             if let err = error {
                 Text(verbatim: err)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#F4505E"))
+                    .foregroundColor(Pace.fail)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 4)
             }

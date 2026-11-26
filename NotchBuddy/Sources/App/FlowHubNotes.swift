@@ -23,7 +23,7 @@ struct HubNotesPage: View {
         HStack(spacing: 0) {
             HubNotesList(selected: $selected)
                 .frame(width: 280)
-                .overlay(alignment: .trailing) { Rectangle().fill(Color.white.opacity(0.06)).frame(width: 1) }
+                .overlay(alignment: .trailing) { Rectangle().fill(Pace.line2).frame(width: 1) }
             Group {
                 if !parakeet.isReady && taker.notes.isEmpty && taker.recording == nil {
                     HubNotesSetup()
@@ -59,7 +59,7 @@ private struct HubNotesList: View {
             if let error = taker.startError {
                 Text(error)
                     .font(.system(size: 12))
-                    .foregroundColor(HubTheme.accent)
+                    .foregroundColor(Pace.fail)
                     .fixedSize(horizontal: false, vertical: true)
             }
             ScrollView {
@@ -86,7 +86,7 @@ private struct HubNotesList: View {
             }
             .foregroundColor(HubTheme.secondary)
             .padding(10)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.card))
+            .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).fill(HubTheme.card))
         }
         .padding(.horizontal, 14)
         .padding(.bottom, 14)
@@ -159,13 +159,13 @@ private struct HubNoteRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(note.title)
                     .font(.system(size: 14, weight: selected ? .semibold : .regular))
-                    .foregroundColor(selected ? HubTheme.text : Color(hex: "#D5D7DB"))
+                    .foregroundColor(selected ? HubTheme.text : HubTheme.body)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 HStack(spacing: 6) {
                     Text(subtitle)
-                        .font(.system(size: 12))
-                        .foregroundColor(note.status == .recording ? HubTheme.red : HubTheme.secondary)
+                        .font(.system(size: 12).monospacedDigit())
+                        .foregroundColor(note.status == .recording ? Pace.live : HubTheme.secondary)
                     Spacer(minLength: 4)
                     HStack(spacing: 3) {
                         ForEach(note.speakers.prefix(5)) { speaker in
@@ -176,8 +176,8 @@ private struct HubNoteRow: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r)
-                .fill(Color.white.opacity(selected ? 0.07 : (hover ? 0.035 : 0))))
+            .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .fill(selected ? Pace.raised2 : (hover ? Pace.raised : Color.clear)))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -204,20 +204,20 @@ private struct HubNotesSetup: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HubLiveMochi(color: "#3B9EFF", size: 54, outfit: .roundGlasses)
+            HubLiveMochi(color: "#3E8BFF", size: 54, outfit: .roundGlasses)
                 .frame(height: 50)
             HubCard(padding: 20) {
                 Text("notes.setup-title")
                     .font(.system(size: 15, weight: .bold))
                 Text("notes.setup")
                     .font(.system(size: 13))
-                    .foregroundColor(Color(hex: "#C7CAD0"))
+                    .foregroundColor(HubTheme.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 switch parakeet.state {
                 case .unsupported:
                     Text("hub.engine.unsupported")
                         .font(.system(size: 13))
-                        .foregroundColor(HubTheme.accent)
+                        .foregroundColor(Pace.hold)
                 case .downloading(let fraction):
                     ProgressView(value: fraction)
                         .progressViewStyle(.linear)
@@ -236,7 +236,7 @@ private struct HubNotesSetup: View {
 
 private struct HubNotesEmpty: View {
     var body: some View {
-        HubEmptyState(text: String(localized: "notes.empty"), state: .idle, color: "#3B9EFF")
+        HubEmptyState(text: String(localized: "notes.empty"), state: .idle, color: "#3E8BFF")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
@@ -249,7 +249,7 @@ private struct HubLiveNote: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(alignment: .center, spacing: 12) {
-                Circle().fill(HubTheme.red).frame(width: 10, height: 10)
+                Circle().fill(Pace.live).frame(width: 10, height: 10)
                 TimelineView(.periodic(from: note.start, by: 1)) { context in
                     Text(NoteBuilder.clock(context.date.timeIntervalSince(note.start)))
                         .font(.system(size: 26, weight: .bold).monospacedDigit())
@@ -303,7 +303,7 @@ private struct HubLevel: View {
                 .frame(width: 80, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.06))
+                    Capsule().fill(Pace.line2)
                     Capsule().fill(color)
                         .frame(width: max(4, geo.size.width * CGFloat(min(1, sqrt(Double(level)) * 3))))
                         .animation(.easeOut(duration: 0.3), value: level)
@@ -325,7 +325,7 @@ private struct HubLineView: View {
         HStack(alignment: .top, spacing: 12) {
             Text(String(name.prefix(1)).uppercased())
                 .font(.system(size: 11, weight: .bold))
-                .foregroundColor(.black.opacity(0.8))
+                .foregroundColor(Pace.ground)
                 .frame(width: 24, height: 24)
                 .background(Circle().fill(color))
             VStack(alignment: .leading, spacing: 4) {
@@ -425,7 +425,7 @@ private struct HubNoteDetail: View {
                     .font(.system(size: 24, weight: .bold))
                     .onSubmit { taker.rename(note.id, title: title) }
                 Text(dateLine)
-                    .font(.system(size: 13))
+                    .font(.system(size: 13).monospacedDigit())
                     .foregroundColor(HubTheme.secondary)
             }
             Spacer(minLength: 0)
@@ -460,7 +460,8 @@ private struct HubNoteDetail: View {
             .menuIndicator(.hidden)
             .fixedSize()
             .frame(width: 34, height: 34)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(Color(hex: "#1D1E22")))
+            .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).fill(Pace.sunk))
+            .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).strokeBorder(Pace.line))
         }
     }
 
@@ -499,11 +500,11 @@ private struct HubNoteDetail: View {
                     HStack(spacing: 7) {
                         Text(String(speaker.name.prefix(1)).uppercased())
                             .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.black.opacity(0.8))
+                            .foregroundColor(Pace.ground)
                             .frame(width: 20, height: 20)
                             .background(Circle().fill(HubTheme.speaker(speaker.color)))
                         Text(speaker.name + (shares[speaker.id].map { " · " + $0.formatted(.percent.precision(.fractionLength(0))) } ?? ""))
-                            .font(.system(size: 13))
+                            .font(.system(size: 13).monospacedDigit())
                             .foregroundColor(HubTheme.speaker(speaker.color))
                         Image(systemName: "pencil")
                             .font(.system(size: 10))
@@ -560,7 +561,7 @@ private struct HubNoteDetail: View {
                                     Text(verbatim: "•").foregroundColor(HubTheme.muted)
                                     Text(point)
                                         .font(.system(size: 14))
-                                        .foregroundColor(Color(hex: "#D5D7DB"))
+                                        .foregroundColor(HubTheme.body)
                                         .textSelection(.enabled)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
@@ -665,7 +666,7 @@ private struct HubTodos: View {
                             RoundedRectangle(cornerRadius: 5)
                                 .fill(todo.done ? HubTheme.accent : Color.clear)
                             RoundedRectangle(cornerRadius: 5)
-                                .strokeBorder(todo.done ? Color.clear : Color(hex: "#5A5F68"), lineWidth: 1.5)
+                                .strokeBorder(todo.done ? Color.clear : Pace.lineCtrl, lineWidth: 1.5)
                             if todo.done {
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 9, weight: .heavy))
@@ -678,7 +679,7 @@ private struct HubTodos: View {
                             Text(todo.text)
                                 .font(.system(size: 13))
                                 .strikethrough(todo.done)
-                                .foregroundColor(todo.done ? HubTheme.muted : Color(hex: "#E1E3E6"))
+                                .foregroundColor(todo.done ? HubTheme.muted : HubTheme.text)
                                 .fixedSize(horizontal: false, vertical: true)
                             let extra = [todo.owner, todo.due].compactMap { $0 }.joined(separator: " · ")
                             if !extra.isEmpty {
@@ -695,8 +696,8 @@ private struct HubTodos: View {
             }
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
-        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.line))
+        .background(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).fill(HubTheme.card))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(HubTheme.line))
     }
 }
 

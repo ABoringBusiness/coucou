@@ -20,13 +20,14 @@ import com.coucou.android.R
 import com.coucou.android.app.AppModel
 import com.coucou.android.core.DiffState
 import com.coucou.android.core.IslandSurface
+import com.coucou.android.core.Tokens
 import com.coucou.android.core.TypeScale
 import com.coucou.android.link.DiffRow
 
 /** What the file-change sheet draws a row in: the colour of its text and of the tint behind it. */
 internal object DiffLook {
-    val ADDED = Color(0xFF34D399)
-    val REMOVED = Color(0xFFFF8D97)
+    val ADDED = Color(Tokens.DARK.online)
+    val REMOVED = Color(Tokens.DARK.danger)
 
     fun text(kind: Char): Color = when (kind) {
         '+' -> ADDED
@@ -73,7 +74,7 @@ fun DiffSheet(model: AppModel) {
             is DiffState.Failed -> Text(stringResource(R.string.file_failed), Modifier.padding(vertical = 16.dp), style = TypeScale.BODY.style(dim))
             is DiffState.Ready -> {
                 val d = state.diff
-                Text(stringResource(R.string.file_summary, d.added, d.removed), Modifier.padding(top = 2.dp, bottom = 10.dp), style = TypeScale.SECONDARY.style(dim))
+                Text(stringResource(R.string.file_summary, d.added, d.removed), Modifier.padding(top = 2.dp, bottom = 10.dp), style = TypeScale.SECONDARY.style(dim, tabular = true))
                 val note = when {
                     d.gone -> R.string.file_gone
                     d.tooLarge -> R.string.file_too_large

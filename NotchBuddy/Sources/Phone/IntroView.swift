@@ -81,7 +81,7 @@ struct IntroView: View {
             let target = landing.target
             let flying = flightStart != nil
             ZStack {
-                Color.black
+                Pace.ground
                     .opacity(fade ? 0 : 1)
                 TimelineView(.animation) { timeline in
                     Canvas { context, size in

@@ -13,7 +13,7 @@ final class NotificationViewController: UIViewController, @preconcurrency UNNoti
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(white: 0.08, alpha: 1)
+        view.backgroundColor = UIColor(red: 0x13 / 255.0, green: 0x13 / 255.0, blue: 0x16 / 255.0, alpha: 1)
         host.view.backgroundColor = .clear
         // Pinned with constraints: the extension's view has no size yet here.
         addChild(host)
@@ -61,17 +61,17 @@ struct ApprovalNotificationView: View {
                 MochiLive(state: .approval, bodyHex: color)
                     .padding(7)
                     .frame(width: 60, height: 60)
-                    .background(Color.mochiTile(hex: color), in: RoundedRectangle(cornerRadius: 16))
+                    .background(Color.mochiTile(hex: color), in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title.isEmpty || title == "Coucou" ? (pill?.name ?? "Coucou") : title)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Pace.ink)
                         .lineLimit(1)
                     HStack(spacing: 6) {
-                        Circle().fill(Color.orange).frame(width: 7, height: 7)
+                        Circle().fill(Pace.hold).frame(width: 7, height: 7)
                         Text("Waiting for your OK")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Pace.hold)
                     }
                 }
                 Spacer(minLength: 0)
@@ -79,17 +79,18 @@ struct ApprovalNotificationView: View {
             if !command.isEmpty {
                 Text(command)
                     .font(.callout.monospaced())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Pace.ink)
                     .lineLimit(4)
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.orange.opacity(0.35), lineWidth: 1))
+                    .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                        .strokeBorder(Pace.line, lineWidth: 1))
             }
         }
         .padding(18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color(white: 0.08))
+        .background(Pace.surface)
         .environment(\.colorScheme, .dark)
     }
 }

@@ -13,9 +13,11 @@ export const SHARE_H = 1920;
 const FONT = `system-ui, "Segoe UI Variable Display", "Segoe UI", "Cantarell", "Ubuntu", ${SCRIPT_FONTS}, sans-serif`;
 const MONO = `"Cascadia Mono", "Consolas", "DejaVu Sans Mono", ui-monospace, monospace`;
 
-const INK = "#F1F2F4";
-const DIM = "#8E939C";
-const INDIGO_TEXT = "#818CF8";
+const INK = "#F4F4F6";
+const DIM = "#9696A0";
+const MINT_TEXT = "#34D399";
+const SURFACE = "#131316";
+const CARD = "#1B1B1F";
 
 /** Strings drawn into the image, in the current language (src/i18n). */
 const T = {
@@ -115,9 +117,12 @@ const BADGE_H = 66;
 const BADGE_GAP = 16;
 
 function badge(x: Ctx, left: number, top: number, w: number, label: string, value: string) {
-  x.fillStyle = "rgba(255,255,255,0.05)";
-  roundRect(x, left, top, w, BADGE_H, 18);
+  x.fillStyle = CARD;
+  roundRect(x, left, top, w, BADGE_H, 16);
   x.fill();
+  x.strokeStyle = "rgba(255,255,255,0.08)";
+  x.lineWidth = 2;
+  x.stroke();
   const mid = top + BADGE_H / 2;
   x.textBaseline = "middle";
   font(x, 400, 24);
@@ -151,12 +156,12 @@ export function renderShareImage(s: WeeklySummary, hideProjects: boolean): HTMLC
   const W = SHARE_W;
   const cx = W / 2;
 
-  // Background: near-black with an indigo glow low in the frame.
-  x.fillStyle = "#0B0C0E";
+  // Background: Kodeo Obsidian surface with a subtle Pace mint glow low in the frame.
+  x.fillStyle = SURFACE;
   x.fillRect(0, 0, W, SHARE_H);
   const glow = x.createRadialGradient(cx, SHARE_H * 0.75, 0, cx, SHARE_H * 0.75, 900);
-  glow.addColorStop(0, "rgba(99,102,241,0.30)");
-  glow.addColorStop(0.65, "rgba(99,102,241,0)");
+  glow.addColorStop(0, "rgba(52,211,153,0.14)");
+  glow.addColorStop(0.65, "rgba(52,211,153,0)");
   x.fillStyle = glow;
   x.fillRect(0, 0, W, SHARE_H);
 
@@ -199,7 +204,7 @@ export function renderShareImage(s: WeeklySummary, hideProjects: boolean): HTMLC
   x.fillText(T.title, cx, y);
   y += 36 + 14;
 
-  x.fillStyle = INDIGO_TEXT;
+  x.fillStyle = MINT_TEXT;
   font(x, 400, 24);
   x.fillText(weekRangeLabel(s), cx, y);
   y += 29 + 80;
@@ -250,9 +255,9 @@ export function renderShareImage(s: WeeklySummary, hideProjects: boolean): HTMLC
     const mw = x.measureText(minus).width;
     const start = cx - (pw + 24 + mw) / 2;
     x.textAlign = "left";
-    x.fillStyle = "#4ADE80";
+    x.fillStyle = "#34D399";
     x.fillText(plus, start, y);
-    x.fillStyle = "#F87171";
+    x.fillStyle = "#FF6A4D";
     x.fillText(minus, start + pw + 24, y);
     y += 34;
   }
@@ -276,7 +281,7 @@ export function renderShareImage(s: WeeklySummary, hideProjects: boolean): HTMLC
   // Footer
   x.textBaseline = "top";
   x.textAlign = "center";
-  x.fillStyle = "rgba(142,147,156,0.6)";
+  x.fillStyle = "rgba(150,150,160,0.65)";
   font(x, 500, 20, MONO);
   x.fillText(T.footer, cx, footerTop);
 

@@ -158,19 +158,41 @@ final class HubMochiTroupe: ObservableObject {
     }
 
     func draw(_ context: inout GraphicsContext, size: CGSize) {
+        let now = CACurrentMediaTime()
         // Back to front: the small ones behind.
         for actor in walkers.sorted(by: { $0.spec.size < $1.spec.size }) {
             let w = actor.spec.size
             let cx = xPosition(actor, width: size.width)
             let lift = actor.spec.roams ? abs(sin(actor.hop)) * w * 0.07 : 0
-            // Its shadow on the floor (a scene, not a lone Mochi).
+            // Its shadow on the floor (a scene, not a lone companion).
             if size.height > w * 1.05 || walkers.count > 1 {
                 let shadow = CGRect(x: cx - w * 0.26, y: size.height - w * 0.12, width: w * 0.52, height: w * 0.09)
                 context.fill(Path(ellipseIn: shadow), with: .color(.black.opacity(0.28 - Double(lift / w))))
             }
             var c = context
             c.translateBy(x: cx - w / 2, y: size.height - w * 0.92 - lift)
-            actor.engine.draw(context: c, size: CGSize(width: w, height: w))
+            let eng = actor.engine
+            let t = CGFloat(now - eng.t0)
+            let pulsePhase = CGFloat(t.truncatingRemainder(dividingBy: 1.75) / 1.75)
+            HeyApexEyeGlyph.draw(
+                context: c,
+                size: CGSize(width: w, height: w),
+                state: eng.state,
+                eyeShape: eng.eyeOverride ?? eng.cfg.eye,
+                gazeX: eng.yaw / 0.62,
+                gazeY: eng.pitch / 0.50,
+                open: eng.open,
+                bob: eng.oy,
+                shakeX: eng.ox,
+                tilt: eng.tilt + eng.roll,
+                scaleX: eng.sx,
+                scaleY: eng.sy,
+                eyeScale: eng.es,
+                pulsePhase: pulsePhase,
+                isStatic: false,
+                radiusScale: 0.30,
+                sessionHex: actor.spec.color
+            )
         }
     }
 }
@@ -207,7 +229,7 @@ struct HubMochiScene: View {
 
 /// One Mochi that stays where it is (the logo, the empty pages).
 struct HubLiveMochi: View {
-    var color = "#F5F6F8"
+    var color = "#F4F4F6"
     /// Width of the body; the drawing around it is larger.
     var size: CGFloat = 28
     var state: BotState = .idle
@@ -234,36 +256,36 @@ struct HubHeroTheme {
         }
         switch page {
         case .dictation:
-            return .init(color: Color(hex: "#FB923C"), cast: [m("#F5F6F8", 66, 0.2), m("#FB923C", 52, 0.65), m("#F472B6", 44, 0.95, outfit: .bow)])
+            return .init(color: Pace.mint, cast: [m("#F4F4F6", 66, 0.2), m("#34D399", 52, 0.65), m("#3E8BFF", 44, 0.95, outfit: .bow)])
         case .notes:
-            return .init(color: Color(hex: "#3B9EFF"), cast: [m("#3B9EFF", 58, 0.1, outfit: .roundGlasses), m("#34D399", 50, 0.5), m("#A78BFA", 46, 0.9)])
+            return .init(color: Pace.act, cast: [m("#3E8BFF", 58, 0.1, outfit: .roundGlasses), m("#34D399", 50, 0.5), m("#A77CFF", 46, 0.9)])
         case .insights:
-            return .init(color: Color(hex: "#34D399"), cast: [m("#F7B32B", 62, 0.3, outfit: .crown), m("#34D399", 48, 0.75), m("#F5F6F8", 40, 1)])
+            return .init(color: Pace.mint, cast: [m("#55F4A6", 62, 0.3, outfit: .crown), m("#34D399", 48, 0.75), m("#F4F4F6", 40, 1)])
         case .dictionary:
-            return .init(color: Color(hex: "#A78BFA"), cast: [m("#A78BFA", 60, 0.2, outfit: .roundGlasses), m("#F5F6F8", 48, 0.8, outfit: .beanie)])
+            return .init(color: Pace.think, cast: [m("#A77CFF", 60, 0.2, outfit: .roundGlasses), m("#F4F4F6", 48, 0.8, outfit: .beanie)])
         case .snippets:
-            return .init(color: Color(hex: "#F7B32B"), cast: [m("#F7B32B", 56, 0.15, state: .working), m("#FB923C", 46, 0.6), m("#F5F6F8", 40, 0.95)])
+            return .init(color: Pace.hold, cast: [m("#FFB020", 56, 0.15, state: .working), m("#34D399", 46, 0.6), m("#F4F4F6", 40, 0.95)])
         case .styles:
-            return .init(color: Color(hex: "#F472B6"), cast: [m("#F472B6", 60, 0.25, outfit: .sunglasses), m("#F5F6F8", 48, 0.7, outfit: .bow), m("#22D3EE", 42, 1, outfit: .partyHat)])
+            return .init(color: Pace.think, cast: [m("#A77CFF", 60, 0.25, outfit: .sunglasses), m("#F4F4F6", 48, 0.7, outfit: .bow), m("#3E8BFF", 42, 1, outfit: .partyHat)])
         case .settings:
-            return .init(color: Color(hex: "#8E939C"), cast: [m("#F5F6F8", 56, 0.3), m("#8E939C", 46, 0.95, state: .sleeping, roams: false)])
+            return .init(color: Pace.ink3, cast: [m("#F4F4F6", 56, 0.3), m("#9696A0", 46, 0.95, state: .sleeping, roams: false)])
         case .general:
-            return .init(color: Color(hex: "#8E939C"), cast: [m("#F5F6F8", 60, 0.4, outfit: .scarf), m("#FB923C", 46, 0.85)])
+            return .init(color: Pace.ink3, cast: [m("#F4F4F6", 60, 0.4, outfit: .scarf), m("#34D399", 46, 0.85)])
         case .pills:
-            return .init(color: Color(hex: "#F5A524"), cast: [m("#F5A524", 44, 0.05), m("#3B9EFF", 44, 0.3), m("#34D399", 44, 0.55),
-                                                               m("#E07950", 44, 0.8), m("#A78BFA", 44, 1)])
+            return .init(color: Pace.hold, cast: [m("#FFB020", 44, 0.05), m("#3E8BFF", 44, 0.3), m("#34D399", 44, 0.55),
+                                                  m("#FF6A4D", 44, 0.8), m("#A77CFF", 44, 1)])
         case .agents:
-            return .init(color: Color(hex: "#3B9EFF"), cast: [m("#3B9EFF", 56, 0.1, state: .working, roams: false),
-                                                               m("#E07950", 50, 0.5, state: .thinking, roams: false),
-                                                               m("#34D399", 50, 0.9)])
+            return .init(color: Pace.act, cast: [m("#3E8BFF", 56, 0.1, state: .working, roams: false),
+                                                 m("#FFB020", 50, 0.5, state: .thinking, roams: false),
+                                                 m("#34D399", 50, 0.9)])
         case .chat:
-            return .init(color: Color(hex: "#E07950"), cast: [m("#E07950", 58, 0.3, state: .thinking, roams: false), m("#F5F6F8", 48, 0.85)])
+            return .init(color: Pace.mint, cast: [m("#34D399", 58, 0.3, state: .thinking, roams: false), m("#F4F4F6", 48, 0.85)])
         case .integrations:
-            return .init(color: Color(hex: "#7C5CFF"), cast: [m("#7C5CFF", 54, 0.15), m("#22D3EE", 46, 0.55), m("#F7B32B", 42, 0.95)])
+            return .init(color: Pace.think, cast: [m("#A77CFF", 54, 0.15), m("#3E8BFF", 46, 0.55), m("#FFB020", 42, 0.95)])
         case .voice:
-            return .init(color: Color(hex: "#F97316"), cast: [m("#F97316", 60, 0.3), m("#F5F6F8", 48, 0.85, outfit: .roundGlasses)])
+            return .init(color: Pace.live, cast: [m("#FF2D43", 60, 0.3), m("#F4F4F6", 48, 0.85, outfit: .roundGlasses)])
         case .shortcuts:
-            return .init(color: Color(hex: "#6366F1"), cast: [m("#6366F1", 56, 0.2, outfit: .sunglasses), m("#F5F6F8", 46, 0.8)])
+            return .init(color: Pace.act, cast: [m("#3E8BFF", 56, 0.2, outfit: .sunglasses), m("#F4F4F6", 46, 0.8)])
         }
     }
 }
@@ -296,7 +318,7 @@ struct HubHero<Trailing: View>: View {
                     if let subtitle {
                         Text(subtitle)
                             .font(.system(size: 14))
-                            .foregroundColor(Color(hex: "#B7BBC2"))
+                            .foregroundColor(HubTheme.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: 420, alignment: .leading)
                     }
@@ -309,8 +331,8 @@ struct HubHero<Trailing: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .frame(height: compact ? 116 : 170)
-        .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(theme.color.opacity(0.16)))
+        .clipShape(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(theme.color.opacity(0.16)))
         // The light follows the pointer over the band.
         .onContinuousHover { phase in
             switch phase {
@@ -430,7 +452,7 @@ struct HubHeroBackdrop: View {
                 let t = CGFloat(CACurrentMediaTime() - light.start)
 
                 // The black, deeper than the card around it.
-                context.fill(Path(rect), with: .color(Color(hex: "#020203")))
+                context.fill(Path(rect), with: .color(Pace.ground))
                 // The page's colour, low in the opposite corner and breathing in the top one.
                 context.fill(Path(rect), with: .linearGradient(
                     Gradient(colors: [color.opacity(0.10), .clear]),
@@ -479,9 +501,9 @@ struct HubGlowCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 10) { content() }
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HubHeroBackdrop(color: color, light: light, cornerRadius: HubTheme.r).allowsHitTesting(false))
-            .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(color.opacity(0.18)))
+            .background(HubHeroBackdrop(color: color, light: light, cornerRadius: Pace.rCard).allowsHitTesting(false))
+            .clipShape(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(color.opacity(0.18)))
             .onContinuousHover { phase in
                 switch phase {
                 case .active(let point): light.target = point
@@ -495,7 +517,7 @@ struct HubGlowCard<Content: View>: View {
 struct HubEmptyState: View {
     let text: String
     var state: BotState = .sleeping
-    var color = "#F5F6F8"
+    var color = "#F4F4F6"
 
     var body: some View {
         VStack(spacing: 10) {

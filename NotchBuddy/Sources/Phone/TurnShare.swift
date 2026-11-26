@@ -31,30 +31,34 @@ struct TurnShareCard: View {
                 MochiStill(state: .finished, bodyHex: color, showBadge: false)
                     .padding(8)
                     .frame(width: 64, height: 64)
-                    .background(Color.mochiTile(hex: color), in: RoundedRectangle(cornerRadius: 16))
+                    .background(Color.mochiTile(hex: color), in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(turn.project.isEmpty ? "Claude Code" : turn.project)
                         .font(.title3.weight(.bold))
+                        .foregroundStyle(Pace.ink)
                     if let ended = turn.endedAt {
                         Text("Done in \(Self.duration(ended.timeIntervalSince(turn.startedAt)))")
-                            .font(.subheadline)
-                            .foregroundStyle(.green)
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(Pace.mint)
                     }
                 }
             }
             Text(turn.headline)
                 .font(.body)
+                .foregroundStyle(Pace.ink)
                 .lineLimit(4)
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.accentColor.opacity(0.25), in: RoundedRectangle(cornerRadius: 16))
+                .background(Pace.card, in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                    .strokeBorder(Pace.line, lineWidth: 1))
             HStack(spacing: 18) {
                 stat("\(turn.actions.count)", "actions")
                 stat("\(turn.files.count)", turn.files.count == 1 ? "file" : "files")
                 if !turn.files.isEmpty {
                     HStack(spacing: 8) {
-                        Text("+\(added)").foregroundStyle(.green)
-                        Text("−\(removed)").foregroundStyle(.red)
+                        Text("+\(added)").foregroundStyle(Pace.mint)
+                        Text("−\(removed)").foregroundStyle(Pace.fail)
                     }
                     .font(.title3.monospacedDigit().weight(.semibold))
                 }
@@ -63,41 +67,41 @@ struct TurnShareCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(Array(turn.files.prefix(5).enumerated()), id: \.offset) { _, file in
                         HStack {
-                            Text(file.name).font(.callout.monospaced()).lineLimit(1)
+                            Text(file.name).font(.callout.monospaced()).foregroundStyle(Pace.ink).lineLimit(1)
                             Spacer()
                             Text("+\(file.added) −\(file.removed)")
                                 .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Pace.ink3)
                         }
                     }
                     if turn.files.count > 5 {
-                        Text("and \(turn.files.count - 5) more").font(.caption).foregroundStyle(.secondary)
+                        Text("and \(turn.files.count - 5) more").font(.caption.monospacedDigit()).foregroundStyle(Pace.ink3)
                     }
                 }
             }
             if !turn.finalMessage.isEmpty {
                 Text(turn.finalMessage)
                     .font(.callout)
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(Pace.body)
                     .lineLimit(8)
             }
             HStack(spacing: 6) {
                 Spacer()
                 MochiStill(state: .idle, showBadge: false).frame(width: 18, height: 18)
-                Text("HeyApex Eye").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                Text("HeyApex Eye").font(.footnote.weight(.semibold)).foregroundStyle(Pace.ink3)
             }
         }
         .padding(24)
         .frame(width: 390)
-        .foregroundStyle(.white)
-        .background(Color(white: 0.07))
+        .foregroundStyle(Pace.ink)
+        .background(Pace.surface)
         .environment(\.colorScheme, .dark)
     }
 
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(value).font(.title3.monospacedDigit().weight(.semibold))
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(value).font(.title3.monospacedDigit().weight(.semibold)).foregroundStyle(Pace.ink)
+            Text(label).font(.caption).foregroundStyle(Pace.ink3)
         }
     }
 

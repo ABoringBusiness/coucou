@@ -17,6 +17,7 @@ APP="$BUILD_DIR/Coucou.app"
 ZIP="$BUILD_DIR/Coucou.zip"
 COMMIT_FILE="$BUILD_DIR/commit"
 TAG="v$VERSION"
+REPO="${HEYAPEX_EYE_REPO:-ABoringBusiness/coucou}"
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -148,7 +149,7 @@ $CHANGES
 2. Move Coucou.app to your Applications folder, replacing the old one if you have it.
 3. Launch it, and click Open when macOS asks you to confirm.
 
-Linux and Windows: see the [README](https://github.com/Louis-CFM/coucou#readme)."
+Linux and Windows: see the [README](https://github.com/$REPO#readme)."
 
 echo
 echo "──────── Release notes ────────"
@@ -165,9 +166,9 @@ git tag "$TAG" "$COMMIT"
 git push origin "$TAG"
 
 gh release create "$TAG" "$ZIP" \
-  --repo Louis-CFM/coucou \
-  --title "Coucou $VERSION" \
+  --repo "$REPO" \
+  --title "HeyApex Eye $VERSION" \
   --latest \
   --notes "$NOTES"
 
-echo "✓ $TAG released: https://github.com/Louis-CFM/coucou/releases/tag/$TAG"
+echo "✓ $TAG released: https://github.com/$REPO/releases/tag/$TAG"

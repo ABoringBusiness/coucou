@@ -18,39 +18,43 @@ struct LinkTestView: View {
                                    value: LiveActivityLink.shared.activitiesEnabled ? "Allowed" : "Off in Settings")
                     if let error = link.pushError {
                         Label("Push registration failed: \(error)", systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Pace.hold)
                     }
                 }
 
-                Section("Sessions on your Mac") {
+                Section {
                     if link.sessions.isEmpty {
                         Text("No session yet. Open HeyApex Eye on your Mac (NotchBuddyCloud).")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Pace.ink3)
                     }
                     ForEach(link.sessions) { session in
                         HStack(alignment: .top, spacing: 12) {
                             MochiStill(state: session.state)
                                 .padding(4)
                                 .frame(width: 40, height: 40)
-                                .background(Color.mochiTile(hex: session.color), in: RoundedRectangle(cornerRadius: 10))
+                                .background(Color.mochiTile(hex: session.color), in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(session.name.isEmpty ? session.pillName : session.name)
+                                    .foregroundStyle(Pace.ink)
                                 Text("\(session.pillName) · \(session.state.rawValue)" +
                                      (session.steps.isEmpty ? "" : " · \(session.stepIndex + 1)/\(session.steps.count)"))
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.caption.monospacedDigit()).foregroundStyle(Pace.ink2)
                                 if session.needsApproval {
                                     Text(session.approvalCommand.isEmpty ? "Waiting for your approval" : session.approvalCommand)
-                                        .font(.caption.monospaced()).foregroundStyle(.orange).lineLimit(2)
+                                        .font(.caption.monospaced()).foregroundStyle(Pace.hold).lineLimit(2)
                                 } else if !session.question.isEmpty {
-                                    Text(session.question).font(.caption).foregroundStyle(.cyan).lineLimit(2)
+                                    Text(session.question).font(.caption).foregroundStyle(Pace.act).lineLimit(2)
                                 } else if let step = session.currentStep {
                                     Text(step).font(.caption).lineLimit(1)
                                 }
                                 Text(session.updatedAt, style: .relative)
-                                    .font(.caption2).foregroundStyle(.secondary)
+                                    .font(.caption2.monospacedDigit())
+                                    .foregroundStyle(Pace.ink3)
                             }
                         }
                     }
+                } header: {
+                    Text("Sessions on your Mac").textCase(nil)
                 }
 
                 Section {
@@ -62,19 +66,19 @@ struct LinkTestView: View {
                         }
                     } label: {
                         HStack {
-                            Text("Send pong")
+                            Text("Send pong").foregroundStyle(Pace.mint)
                             if sending { Spacer(); ProgressView() }
                         }
                     }
                     .disabled(link.pings.isEmpty || sending || link.status != .ready)
                     if let pong = link.lastPong {
-                        Text(pong).font(.footnote).foregroundStyle(.secondary)
+                        Text(pong).font(.footnote).foregroundStyle(Pace.ink3)
                     }
                 }
 
-                Section("Pings from your Mac") {
+                Section {
                     if link.pings.isEmpty {
-                        Text("No ping yet.").foregroundStyle(.secondary)
+                        Text("No ping yet.").foregroundStyle(Pace.ink3)
                     }
                     ForEach(link.pings) { ping in
                         VStack(alignment: .leading, spacing: 4) {
@@ -82,17 +86,21 @@ struct LinkTestView: View {
                             HStack {
                                 Text("\(ping.macName) · \(ping.app)")
                                 Spacer()
-                                Text(ping.sentAt, style: .time)
+                                Text(ping.sentAt, style: .time).monospacedDigit()
                             }
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Pace.ink2)
                             Text(delayText(ping))
                                 .font(.caption.monospacedDigit())
-                                .foregroundStyle(ping.delay == nil ? Color.secondary : Color.accentColor)
+                                .foregroundStyle(ping.delay == nil ? Pace.ink3 : Pace.mint)
                         }
                     }
+                } header: {
+                    Text("Pings from your Mac").textCase(nil)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Pace.ground)
             .navigationTitle("Coucou link test")
             .refreshable { await link.refresh() }
             .toolbar {
@@ -107,17 +115,17 @@ struct LinkTestView: View {
         case .noAccount(let reason):
             Label("iCloud not connected. \(reason) Sign in in Settings, using the same account as your Mac.",
                   systemImage: "icloud.slash")
-                .foregroundStyle(.orange)
+                .foregroundStyle(Pace.hold)
         case .zoneMissing:
             Label("The HeyApex Eye zone doesn't exist yet. Launch HeyApex Eye on your Mac (NotchBuddyCloud scheme), then pull to refresh.",
                   systemImage: "tray")
-                .foregroundStyle(.orange)
+                .foregroundStyle(Pace.hold)
         case .ready:
             Label("Linked to iCloud", systemImage: "checkmark.icloud")
-                .foregroundStyle(.green)
+                .foregroundStyle(Pace.mint)
         case .failed(let message):
             Label(message, systemImage: "exclamationmark.icloud")
-                .foregroundStyle(.red)
+                .foregroundStyle(Pace.fail)
         }
     }
 

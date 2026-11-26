@@ -20,7 +20,7 @@ struct HubDictionaryPage: View {
                         .disabled(newWord.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
                 if store.words.isEmpty {
-                    HubEmptyState(text: String(localized: "hub.words-empty"), state: .idle, color: "#A78BFA")
+                    HubEmptyState(text: String(localized: "hub.words-empty"), state: .idle, color: "#A77CFF")
                 } else {
                     HubWrap(spacing: 8) {
                         ForEach(store.words, id: \.self) { word in
@@ -99,8 +99,8 @@ private struct HubChip: View {
         .padding(.leading, 11)
         .padding(.trailing, 9)
         .frame(height: 30)
-        .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.field))
-        .overlay(RoundedRectangle(cornerRadius: HubTheme.r).strokeBorder(Color.white.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).fill(HubTheme.field))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).strokeBorder(Pace.line))
         .onHover { hover = $0 }
     }
 }
@@ -126,8 +126,8 @@ struct HubSnippetsPage: View {
                     .scrollContentBackground(.hidden)
                     .padding(8)
                     .frame(height: 90)
-                    .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.field))
-                    .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(Color.white.opacity(0.1)))
+                    .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).fill(HubTheme.field))
+                    .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).strokeBorder(Pace.line))
                     .overlay(alignment: .topLeading) {
                         if text.isEmpty {
                             Text("hub.snippet-text-placeholder")
@@ -149,7 +149,7 @@ struct HubSnippetsPage: View {
                 }
             }
             if store.snippets.isEmpty {
-                HubEmptyState(text: String(localized: "hub.snippets-empty"), color: "#F7B32B")
+                HubEmptyState(text: String(localized: "hub.snippets-empty"), color: "#FFB020")
             }
             ForEach(store.snippets) { snippet in
                 HubCard {
@@ -159,10 +159,10 @@ struct HubSnippetsPage: View {
                             .foregroundColor(HubTheme.secondary)
                         Text("« \(snippet.trigger) »")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(Color(hex: "#FDBA74"))
+                            .foregroundColor(Pace.mint)
                             .padding(.horizontal, 9)
                             .padding(.vertical, 3)
-                            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.accent.opacity(0.14)))
+                            .background(RoundedRectangle(cornerRadius: Pace.r, style: .continuous).fill(Pace.mintSoft))
                         Spacer()
                         HubIconButton(symbol: "pencil", help: String(localized: "hub.edit")) {
                             editing = snippet.id
@@ -177,7 +177,7 @@ struct HubSnippetsPage: View {
                     Text(snippet.text)
                         .font(.system(size: 13))
                         .lineSpacing(2)
-                        .foregroundColor(Color(hex: "#D5D7DB"))
+                        .foregroundColor(HubTheme.body)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -225,10 +225,10 @@ struct HubStylesPage: View {
                 if !FlowCleanup.hasKey {
                     HStack(spacing: 10) {
                         Image(systemName: "key")
-                            .foregroundColor(HubTheme.accent)
+                            .foregroundColor(Pace.hold)
                         Text("hub.cleanup-key")
                             .font(.system(size: 12.5))
-                            .foregroundColor(Color(hex: "#C7CAD0"))
+                            .foregroundColor(HubTheme.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer()
                         Button(String(localized: "hub.open-settings")) {
@@ -331,7 +331,7 @@ struct HubAppIcon: View {
                 Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
                     .resizable()
             } else {
-                RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.08))
+                RoundedRectangle(cornerRadius: Pace.r, style: .continuous).fill(Pace.raised)
             }
         }
         .frame(width: 22, height: 22)

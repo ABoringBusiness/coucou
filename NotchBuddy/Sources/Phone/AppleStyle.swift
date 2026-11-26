@@ -5,32 +5,33 @@ import SwiftUI
 // session, Apple Pay's drawn checkmark, and symbols that move with the state.
 
 extension View {
-    /// A card in glass (iOS 26) or the dark material Coucou used before.
+    /// A card in glass (iOS 26) or the Kodeo Obsidian Pace card surface before.
     @ViewBuilder
-    func glassCard(cornerRadius: CGFloat = 22, tint: Color? = nil) -> some View {
+    func glassCard(cornerRadius: CGFloat = Pace.rIslandCard, tint: Color? = nil) -> some View {
         if #available(iOS 26.0, *) {
             if let tint {
-                glassEffect(.regular.tint(tint.opacity(0.25)), in: RoundedRectangle(cornerRadius: cornerRadius))
+                glassEffect(.regular.tint(tint.opacity(0.14)), in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             } else {
-                glassEffect(.regular, in: RoundedRectangle(cornerRadius: cornerRadius))
+                glassEffect(.regular, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             }
         } else {
-            background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: cornerRadius))
+            background(Pace.card, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).strokeBorder(Pace.line, lineWidth: 1))
         }
     }
 
-    /// A small glass shape for pills and fields (iOS 26), a dark fill before.
+    /// A small glass shape for pills and fields (iOS 26), a recessed Pace sunk fill before.
     @ViewBuilder
     func glassPill<S: Shape>(_ shape: S, interactive: Bool = false, tint: Color? = nil) -> some View {
         if #available(iOS 26.0, *) {
             let base: Glass = interactive ? .regular.interactive() : .regular
             if let tint {
-                glassEffect(base.tint(tint.opacity(0.35)), in: shape)
+                glassEffect(base.tint(tint.opacity(0.22)), in: shape)
             } else {
                 glassEffect(base, in: shape)
             }
         } else {
-            background(tint?.opacity(0.25) ?? Color(white: 0.16), in: shape)
+            background(tint?.opacity(0.16) ?? Pace.sunk, in: shape)
         }
     }
 }
@@ -40,23 +41,23 @@ extension View {
 struct AgentBackdrop: View {
     let hex: String
 
-    /// A soft glow from the top, fading into black.
+    /// A subtle ambient glow from the top (<= 0.14 opacity), fading into obsidian.
     private var colors: [Color] {
         let base = Color(hex: Self.glowHex(for: hex))
-        return [base.opacity(0.42), base.opacity(0.26), base.opacity(0.36),
-                base.opacity(0.16), base.opacity(0.06), base.opacity(0.14),
+        return [base.opacity(0.14), base.opacity(0.09), base.opacity(0.12),
+                base.opacity(0.06), base.opacity(0.03), base.opacity(0.05),
                 Color.clear, Color.clear, Color.clear]
     }
 
     /// White and grey agents (VS Code, Cursor) would make a dull grey haze:
-    /// they glow in a deep blue instead.
+    /// they glow in Pace mint instead.
     static func glowHex(for hex: String) -> String {
         let digits = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        guard digits.count == 6, let value = Int(digits, radix: 16) else { return "#3B5BDB" }
+        guard digits.count == 6, let value = Int(digits, radix: 16) else { return "#34D399" }
         let r = Double((value >> 16) & 0xFF) / 255, g = Double((value >> 8) & 0xFF) / 255, b = Double(value & 0xFF) / 255
         let high = max(r, g, b), low = min(r, g, b)
         let saturation = high == 0 ? 0 : (high - low) / high
-        return saturation < 0.25 ? "#3B5BDB" : hex
+        return saturation < 0.25 ? "#34D399" : hex
     }
 
     /// The middle points drift a little; the edges stay put.
@@ -85,7 +86,7 @@ struct AgentBackdrop: View {
     }
 }
 
-/// Apple Pay's "Done": a green ring draws itself, then the checkmark.
+/// Apple Pay's "Done": a Pace mint ring draws itself, then the checkmark.
 struct DrawnCheckmark: View {
     var size: CGFloat = 56
     @State private var ring: CGFloat = 0
@@ -95,11 +96,11 @@ struct DrawnCheckmark: View {
         ZStack {
             Circle()
                 .trim(from: 0, to: ring)
-                .stroke(Color.green, style: StrokeStyle(lineWidth: size * 0.07, lineCap: .round))
+                .stroke(Pace.mint, style: StrokeStyle(lineWidth: size * 0.07, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             CheckShape()
                 .trim(from: 0, to: tick)
-                .stroke(Color.green, style: StrokeStyle(lineWidth: size * 0.08, lineCap: .round, lineJoin: .round))
+                .stroke(Pace.mint, style: StrokeStyle(lineWidth: size * 0.08, lineCap: .round, lineJoin: .round))
                 .padding(size * 0.28)
         }
         .frame(width: size, height: size)
@@ -128,49 +129,78 @@ struct StateSymbol: View {
     var body: some View {
         switch session.urgency {
         case 0:
-            Image(systemName: "hand.raised.fill").foregroundStyle(.orange)
+            Image(systemName: "hand.raised.fill").foregroundStyle(Pace.hold)
                 .symbolEffect(.breathe)
         case 1:
-            Image(systemName: "questionmark.bubble.fill").foregroundStyle(.cyan)
+            Image(systemName: "questionmark.bubble.fill").foregroundStyle(Pace.act)
                 .symbolEffect(.breathe)
         case 2:
-            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Pace.fail)
                 .symbolEffect(.wiggle, options: .repeat(2), value: session.updatedAt)
         case 3:
-            Image(systemName: "ellipsis").foregroundStyle(.secondary)
+            Image(systemName: "ellipsis").foregroundStyle(Pace.act)
                 .symbolEffect(.variableColor.iterative)
         case 4:
-            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            Image(systemName: "checkmark.circle.fill").foregroundStyle(Pace.mint)
                 .symbolEffect(.bounce, value: session.updatedAt)
         default:
-            Image(systemName: "moon.zzz.fill").foregroundStyle(.tertiary)
+            Image(systemName: "moon.zzz.fill").foregroundStyle(Pace.ink3)
         }
     }
 }
 
-/// Deny and Allow, the iOS way: a quiet Deny, a bright Allow with Face ID.
+/// Deny, optional Always, and Allow in Kodeo Obsidian × Pace tokens.
 struct ApprovalChoiceButtons: View {
     var disabled = false
+    private let always: (() -> Void)?
     let deny: () -> Void
     let allow: () -> Void
+
+    init(disabled: Bool = false, deny: @escaping () -> Void, allow: @escaping () -> Void) {
+        self.disabled = disabled
+        self.always = nil
+        self.deny = deny
+        self.allow = allow
+    }
+
+    init(disabled: Bool = false, deny: @escaping () -> Void, always: @escaping () -> Void, allow: @escaping () -> Void) {
+        self.disabled = disabled
+        self.always = always
+        self.deny = deny
+        self.allow = allow
+    }
 
     var body: some View {
         HStack(spacing: 10) {
             Button(action: deny) {
                 Text("Deny")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Pace.fail)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(Color.white.opacity(0.14), in: Capsule())
+                    .padding(.vertical, 12)
+                    .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                        .strokeBorder(Pace.fail.opacity(0.42), lineWidth: 1))
+            }
+            if let always {
+                Button(action: always) {
+                    Text("Always")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(Pace.ink)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                            .strokeBorder(Pace.line, lineWidth: 1))
+                }
             }
             Button(action: allow) {
                 Label("Allow", systemImage: "faceid")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(Pace.onMint)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(Color.white, in: Capsule())
+                    .padding(.vertical, 12)
+                    .background(Pace.mint, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
             }
         }
         .buttonStyle(PressableButtonStyle())
@@ -199,22 +229,25 @@ struct ApprovalPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                Circle().fill(Color.orange).frame(width: 8, height: 8)
-                    .shadow(color: .orange.opacity(0.8), radius: 4)
+                Circle().fill(Pace.hold).frame(width: 8, height: 8)
                 Text("\(session.pillName) asks to run")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Pace.hold)
                 Spacer(minLength: 0)
                 Text(session.title)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Pace.ink3)
                     .lineLimit(1)
             }
             Text(session.approvalCommand.isEmpty ? "A permission" : session.approvalCommand)
                 .font(.callout.monospaced())
-                .foregroundStyle(.white.opacity(0.92))
+                .foregroundStyle(Pace.ink)
                 .lineLimit(4)
+                .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                    .strokeBorder(Pace.line, lineWidth: 1))
                 .textSelection(.enabled)
             ApprovalChoiceButtons(disabled: disabled, deny: deny, allow: allow)
         }

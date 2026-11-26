@@ -10,7 +10,7 @@ struct CryptoCardView: View {
     @ObservedObject private var crypto = CryptoController.shared
 
     private var accent: Color {
-        Color(hex: PillCatalog.definition(for: CryptoController.pillId)?.color ?? "#F7931A")
+        Color(hex: PillCatalog.definition(for: CryptoController.pillId)?.color ?? "#FFB020")
     }
 
     /// The coin of the last alert first, then the others in their order.
@@ -32,13 +32,13 @@ struct CryptoCardView: View {
                     .frame(width: 7, height: 7)
                 Text(verbatim: "Crypto")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Text(verbatim: CryptoSettings.exchange.name)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink2)
                 Text(verbatim: "24h")
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .font(.system(size: 10).monospacedDigit())
+                    .foregroundColor(Pace.ink3)
                 Spacer(minLength: 2)
             }
             .padding(.top, 6)
@@ -57,7 +57,7 @@ struct CryptoCardView: View {
                     }
                 }
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#6B7079"))
+                .foregroundColor(Pace.ink3)
                 .padding(.top, 8)
                 .padding(.leading, 116)
                 .padding(.trailing, 12)
@@ -71,7 +71,7 @@ struct CryptoCardView: View {
                             Text(String(format: String(localized: "crypto.not-listed %@"),
                                         crypto.missing.joined(separator: ", ")))
                                 .font(.system(size: 10))
-                                .foregroundColor(Color(hex: "#4D5159"))
+                                .foregroundColor(Pace.ink3)
                                 .lineLimit(1).truncationMode(.tail)
                                 .padding(.horizontal, 8)
                         }
@@ -96,7 +96,7 @@ private struct CryptoRow: View {
 
     var body: some View {
         let up = quote.change >= 0
-        let tone = Color(hex: up ? "#22C55E" : "#F4505E")
+        let tone = up ? Pace.mint : Pace.fail
         Button {
             let exchange = CryptoSettings.exchange
             if let url = exchange.tradeURL(exchange.pair(quote.symbol, CryptoSettings.currency)) {
@@ -106,7 +106,7 @@ private struct CryptoRow: View {
             HStack(spacing: 6) {
                 Text(verbatim: quote.symbol)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color(hex: "#E8E9EC"))
+                    .foregroundColor(Pace.ink)
                     .lineLimit(1)
                     .frame(width: 30, alignment: .leading)
                 CryptoSparkline(values: quote.spark, color: tone)
@@ -114,7 +114,7 @@ private struct CryptoRow: View {
                 Spacer(minLength: 2)
                 Text(verbatim: CryptoController.format(quote.price, currency: CryptoSettings.currency))
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .foregroundColor(Pace.body)
                     .monospacedDigit()
                     .lineLimit(1)
                     .fixedSize()
@@ -128,9 +128,9 @@ private struct CryptoRow: View {
             .padding(.horizontal, 8).padding(.vertical, 3)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 5)
+                RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
                     .fill(highlighted ? tone.opacity(hovered ? 0.16 : 0.10)
-                                      : Color.white.opacity(hovered ? 0.05 : 0))
+                                      : (hovered ? Pace.raised : Color.clear))
             )
             .contentShape(Rectangle())
         }

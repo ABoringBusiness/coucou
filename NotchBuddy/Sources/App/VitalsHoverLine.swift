@@ -18,15 +18,15 @@ struct VitalsHoverLine: View {
                         .fill(dotColor)
                         .frame(width: 6, height: 6)
                     Text(verbatim: text)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(Color(hex: "#E1E3E6"))
+                        .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                        .foregroundColor(Pace.ink)
                         .lineLimit(1)
                         .fixedSize()
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
-                .background(Capsule().fill(Color.black.opacity(0.92)))
-                .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
+                .background(Capsule().fill(Pace.ground.opacity(0.94)))
+                .overlay(Capsule().stroke(Pace.line, lineWidth: 1))
                 .transition(.opacity.combined(with: .offset(y: -4)))
             }
         }
@@ -37,9 +37,9 @@ struct VitalsHoverLine: View {
 
     private var dotColor: Color {
         let m = vitals.mood
-        if m.hot > 0 { return Color(hex: "#FF6B4A") }
-        if m.busy > 0 { return Color(hex: "#3B9EFF") }
-        if m.full > 0 { return Color(hex: "#A78BFA") }
-        return Color(hex: "#F5A524")
+        if m.hot > 0 { return Pace.fail }
+        if m.busy > 0 { return Pace.act }
+        if m.full > 0 { return Pace.think }
+        return Pace.hold
     }
 }

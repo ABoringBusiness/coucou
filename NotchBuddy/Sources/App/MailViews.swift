@@ -4,8 +4,8 @@ import AppKit
 
 // MARK: - Mail card (Apple Mail pill)
 
-/// Accent of the Mail pill (the catalog colour, before any colour the user picked).
-private let mailAccent = "#2F8CFF"
+/// Accent of the Mail pill (Pace act blue).
+private let mailAccent = Pace.act
 
 /// The latest messages of every inbox in Apple Mail, newest first, unread ones highlighted.
 /// A click on a message opens it in the card (sender, subject, text) with Open in Mail,
@@ -39,21 +39,21 @@ struct MailCardView: View {
             // Header
             HStack(spacing: 6) {
                 Circle()
-                    .fill(Color(hex: mailAccent))
+                    .fill(mailAccent)
                     .frame(width: 7, height: 7)
                 Text(verbatim: "Mail")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Text("Inbox")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink3)
                 if let unread = mail.unreadCount, unread > 0 {
                     Text(String(format: String(localized: "%lld unread"), Int64(unread)))
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(Color(hex: mailAccent))
+                        .foregroundColor(mailAccent)
                         .monospacedDigit()
                         .padding(.horizontal, 6).padding(.vertical, 1)
-                        .background(Color(hex: mailAccent).opacity(0.14))
+                        .background(mailAccent.opacity(0.14))
                         .clipShape(Capsule())
                 }
                 Spacer(minLength: 2)
@@ -68,7 +68,7 @@ struct MailCardView: View {
                     if mail.loaded { Text("No messages") } else { Text("Loading…") }
                 }
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
                     .padding(.top, 8)
                     .padding(.leading, 116)
             } else {
@@ -100,35 +100,35 @@ private struct MailRow: View {
     @State private var hovered = false
 
     var body: some View {
-        let accent = Color(hex: mailAccent)
+        let accent = mailAccent
         Button(action: onOpen) {
             HStack(spacing: 5) {
                 Circle()
                     .fill(message.isRead ? Color.clear : accent)
-                    .overlay(Circle().stroke(Color(hex: "#4D5159"), lineWidth: message.isRead ? 1 : 0))
+                    .overlay(Circle().stroke(Pace.lineCtrl, lineWidth: message.isRead ? 1 : 0))
                     .frame(width: 5, height: 5)
                 Text(message.senderName)
                     .font(.system(size: 11, weight: message.isRead ? .regular : .semibold))
-                    .foregroundColor(Color(hex: message.isRead ? "#9398A1" : "#E8E9EC"))
+                    .foregroundColor(message.isRead ? Pace.ink2 : Pace.ink)
                     .lineLimit(1).truncationMode(.tail)
                     .frame(maxWidth: 82, alignment: .leading)
                     .layoutPriority(1)
                 Text(message.timeAgo)
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .font(.system(size: 10).monospacedDigit())
+                    .foregroundColor(Pace.ink3)
                     .fixedSize()
                 Text(message.subject)
                     .font(.system(size: 10))
-                    .foregroundColor(Color(hex: message.isRead ? "#4D5159" : "#8E939C"))
+                    .foregroundColor(message.isRead ? Pace.ink3 : Pace.ink2)
                     .lineLimit(1).truncationMode(.tail)
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 8).padding(.vertical, 3)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 5)
+                RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
                     .fill(message.isRead
-                          ? Color.white.opacity(hovered ? 0.05 : 0)
+                          ? (hovered ? Pace.raised : Color.clear)
                           : accent.opacity(hovered ? 0.14 : 0.08))
             )
             .contentShape(Rectangle())
@@ -147,32 +147,32 @@ struct MailDetailView: View {
     @ObservedObject private var mail = MailController.shared
 
     var body: some View {
-        let accent = Color(hex: mailAccent)
+        let accent = mailAccent
         VStack(alignment: .leading, spacing: 4) {
             // Header: back, sender, age
             HStack(spacing: 6) {
                 Button(action: onClose) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(Color(hex: "#6B7079"))
+                        .foregroundColor(Pace.ink3)
                         .frame(width: 20, height: 20)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
 
                 Circle()
-                    .fill(message.isRead ? Color(hex: "#4D5159") : accent)
+                    .fill(message.isRead ? Pace.ink3 : accent)
                     .frame(width: 6, height: 6)
                 Text(message.senderName)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                     .lineLimit(1).truncationMode(.tail)
                     .layoutPriority(1)
                     .help(message.senderAddress)
                 Spacer(minLength: 2)
                 Text(message.timeAgo)
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .font(.system(size: 10).monospacedDigit())
+                    .foregroundColor(Pace.ink3)
                     .fixedSize()
             }
             // The card's ↗ button sits in the top-right corner: keep the header clear of it
@@ -181,7 +181,7 @@ struct MailDetailView: View {
 
             Text(message.subject.isEmpty ? " " : message.subject)
                 .font(.system(size: 11, weight: .medium))
-                .foregroundColor(Color(hex: "#C5C8CD"))
+                .foregroundColor(Pace.body)
                 .lineLimit(1).truncationMode(.tail)
 
             // The start of the message, scrollable.
@@ -194,7 +194,7 @@ struct MailDetailView: View {
                     }
                 }
                 .font(.system(size: 10.5))
-                .foregroundColor(Color(hex: "#9398A1"))
+                .foregroundColor(Pace.ink2)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .textSelection(.enabled)
             }
@@ -205,10 +205,10 @@ struct MailDetailView: View {
                 Button("Open in Mail") { mail.openInMail(message) }
                     .foregroundColor(accent.opacity(0.9))
                 Button("Reply") { mail.reply(message) }
-                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .foregroundColor(Pace.body)
                 if !message.isRead {
                     Button("Mark as read") { mail.markAsRead(message) }
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                 }
             }
             .font(.system(size: 11, weight: .medium))

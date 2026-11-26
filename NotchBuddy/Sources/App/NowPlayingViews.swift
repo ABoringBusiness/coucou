@@ -10,8 +10,8 @@ struct NowPlayingArtwork: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.white.opacity(0.06))
+            RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                .fill(Pace.raised)
             if let image {
                 Image(nsImage: image)
                     .resizable()
@@ -24,8 +24,8 @@ struct NowPlayingArtwork: View {
                     .foregroundColor(accent.opacity(0.7))
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 6))
-        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.white.opacity(0.08), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: Pace.r, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Pace.r, style: .continuous).stroke(Pace.line, lineWidth: 1))
         .shadow(color: .black.opacity(0.35), radius: 4, y: 2)
         .animation(.easeInOut(duration: 0.25), value: image)
         .contentShape(Rectangle())
@@ -63,7 +63,7 @@ struct NowPlayingProgress: View {
                 .frame(minWidth: 28, alignment: .leading)
         }
         .font(.system(size: 9.5).monospacedDigit())
-        .foregroundColor(Color(hex: "#6B7079"))
+        .foregroundColor(Pace.ink3)
     }
 
     static func format(_ seconds: Double) -> String {
@@ -92,7 +92,7 @@ struct NowPlayingVolume: View {
         HStack(spacing: 5) {
             Image(systemName: icon)
                 .font(.system(size: 9))
-                .foregroundColor(Color(hex: "#6B7079"))
+                .foregroundColor(Pace.ink3)
                 .frame(width: 13, alignment: .trailing)
             NowPlayingBar(fraction: Double(volume) / 100, accent: accent, enabled: true,
                        onChange: { onChange(Int(($0 * 100).rounded())) },
@@ -121,14 +121,14 @@ struct NowPlayingBar: View {
             let active = enabled && (hovering || dragging)
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(Color.white.opacity(0.12))
+                    .fill(Pace.line)
                     .frame(height: active ? 4 : 3)
                 Capsule()
-                    .fill(active ? accent : Color(hex: "#C5C8CD"))
+                    .fill(active ? accent : Pace.ink2)
                     .frame(width: w * f, height: active ? 4 : 3)
                 if active {
                     Circle()
-                        .fill(Color(hex: "#F5F6F8"))
+                        .fill(Pace.ink)
                         .frame(width: 9, height: 9)
                         .shadow(color: .black.opacity(0.4), radius: 2)
                         .offset(x: min(w - 9, max(0, w * f - 4.5)))

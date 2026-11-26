@@ -9,7 +9,7 @@ struct PortfolioCardView: View {
     @ObservedObject private var portfolio = PortfolioController.shared
 
     private var accent: Color {
-        Color(hex: PillCatalog.definition(for: PortfolioController.pillId)?.color ?? "#FFD700")
+        Color(hex: PillCatalog.definition(for: PortfolioController.pillId)?.color ?? "#FFB020")
     }
 
     private var totalUSD: Double {
@@ -25,12 +25,12 @@ struct PortfolioCardView: View {
                     .frame(width: 7, height: 7)
                 Text("Portfolio")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .foregroundColor(Pace.ink)
                 Spacer(minLength: 2)
                 if portfolio.loaded && totalUSD > 0 {
                     Text(verbatim: PortfolioController.formatValue(totalUSD))
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(hex: "#C5C8CD"))
+                        .foregroundColor(Pace.body)
                         .monospacedDigit()
                 }
             }
@@ -41,14 +41,14 @@ struct PortfolioCardView: View {
             if !portfolio.loaded {
                 Text("Loading…")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
                     .padding(.top, 8)
                     .padding(.leading, 116)
                     .padding(.trailing, 12)
             } else if portfolio.accounts.isEmpty {
                 Text(String(localized: "portfolio.no-accounts"))
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#6B7079"))
+                    .foregroundColor(Pace.ink3)
                     .padding(.top, 8)
                     .padding(.leading, 116)
                     .padding(.trailing, 12)
@@ -89,18 +89,18 @@ private struct PortfolioAccountSection: View {
             HStack(spacing: 4) {
                 Text(verbatim: label)
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink2)
                 Spacer(minLength: 2)
                 if let err = account.fetchError {
                     Text(verbatim: err)
                         .font(.system(size: 9))
-                        .foregroundColor(Color(hex: "#F4505E"))
+                        .foregroundColor(Pace.fail)
                         .lineLimit(1)
                         .truncationMode(.tail)
                 } else if account.totalValueUSD > 0 {
                     Text(verbatim: PortfolioController.formatValue(account.totalValueUSD))
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink2)
                         .monospacedDigit()
                 }
             }
@@ -122,20 +122,20 @@ private struct PortfolioHoldingRow: View {
     @State private var hovered = false
 
     private var changeColor: Color {
-        guard let ch = holding.change24h else { return Color(hex: "#8E939C") }
-        return ch >= 0 ? Color(hex: "#4CAF50") : Color(hex: "#F4505E")
+        guard let ch = holding.change24h else { return Pace.ink3 }
+        return ch >= 0 ? Pace.mint : Pace.fail
     }
 
     var body: some View {
         HStack(spacing: 6) {
             Text(verbatim: holding.symbol)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(Color(hex: "#E8E9EC"))
+                .foregroundColor(Pace.ink)
                 .lineLimit(1)
                 .frame(width: 36, alignment: .leading)
             Text(verbatim: PortfolioController.formatAmount(holding.amount))
                 .font(.system(size: 10))
-                .foregroundColor(Color(hex: "#8E939C"))
+                .foregroundColor(Pace.ink3)
                 .monospacedDigit()
                 .lineLimit(1)
             Spacer(minLength: 2)
@@ -154,7 +154,7 @@ private struct PortfolioHoldingRow: View {
             if holding.price > 0 {
                 Text(verbatim: PortfolioController.formatValue(holding.value))
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .foregroundColor(Pace.body)
                     .monospacedDigit()
                     .lineLimit(1)
                     .fixedSize()
@@ -163,8 +163,8 @@ private struct PortfolioHoldingRow: View {
         .padding(.horizontal, 8).padding(.vertical, 2)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.white.opacity(hovered ? 0.05 : 0))
+            RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                .fill(hovered ? Pace.raised : Color.clear)
         )
         .contentShape(Rectangle())
         .onHover { hovered = $0 }
@@ -192,7 +192,7 @@ private struct SparklineView: View {
                 }
             }
             .stroke(
-                positive ? Color(hex: "#4CAF50") : Color(hex: "#F4505E"),
+                positive ? Pace.mint : Pace.fail,
                 style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round)
             )
         }

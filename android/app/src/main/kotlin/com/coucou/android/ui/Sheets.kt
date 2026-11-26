@@ -59,6 +59,7 @@ import com.coucou.android.link.AskedOption
 import com.coucou.android.link.QuestionRequest
 import com.coucou.android.core.Radii
 import com.coucou.android.core.Spacing
+import com.coucou.android.core.Tokens
 import com.coucou.android.core.TypeScale
 import com.coucou.android.link.ApprovalRequest
 import com.coucou.android.mochi.BotState
@@ -80,7 +81,7 @@ fun BottomSheetHost(onDismiss: () -> Unit, wash: Color? = null, content: @Compos
     val shape = RoundedCornerShape(topStart = Radii.SHEET.dp, topEnd = Radii.SHEET.dp)
     Box(Modifier.fillMaxSize()) {
         Box(
-            Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f))
+            Modifier.fillMaxSize().background(Color(IslandSurface.BLACK).copy(alpha = 0.64f))
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
         )
         AnimatedVisibility(
@@ -88,12 +89,12 @@ fun BottomSheetHost(onDismiss: () -> Unit, wash: Color? = null, content: @Compos
             enter = if (reducedMotion()) fadeIn(tween(MotionSpec.REDUCED_MS)) else slideInVertically(spring(dampingRatio = 0.72f, stiffness = 400f)) { it } + fadeIn(),
         ) {
             Column(
-                Modifier.fillMaxWidth().clip(shape).background(Color(IslandSurface.PANEL)).border(1.dp, Color.White.copy(alpha = 0.08f), shape)
-                    .then(if (wash != null) Modifier.drawBehind { drawWash(wash, 0.45f) } else Modifier)
+                Modifier.fillMaxWidth().clip(shape).background(Color(IslandSurface.PANEL)).border(1.dp, Color(IslandSurface.LINE), shape)
+                    .then(if (wash != null) Modifier.drawBehind { drawWash(wash, Tokens.DARK.washAlpha.toFloat()) } else Modifier)
                     .pointerInput(Unit) { detectTapGestures { } }
                     .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 20.dp),
                 content = {
-                    Box(Modifier.align(Alignment.CenterHorizontally).size(width = 36.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Color.White.copy(alpha = 0.2f)))
+                    Box(Modifier.align(Alignment.CenterHorizontally).size(width = 36.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Color(IslandSurface.TEXT_DIM).copy(alpha = 0.32f)))
                     Box(Modifier.size(14.dp))
                     content()
                 },
@@ -142,13 +143,13 @@ fun ApprovalSheet(model: AppModel, r: ApprovalRequest, onAllow: (ApprovalRequest
             Modifier.heightIn(min = Spacing.MIN_TOUCH.dp).clickable(role = Role.Button) { showCommand = !showCommand }.padding(vertical = 12.dp),
             style = TypeScale.SECONDARY.style(dim).copy(textDecoration = TextDecoration.Underline),
         )
+        val cmdShape = RoundedCornerShape(12.dp)
         if (showCommand) {
             Column(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.07f)).padding(12.dp),
+                Modifier.fillMaxWidth().clip(cmdShape).background(Color(IslandSurface.HERO)).border(1.dp, Color(IslandSurface.LINE), cmdShape).padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(r.tool, style = TypeScale.LABEL.style(dim), maxLines = 1)
-                // The whole command that was sent, scrollable: never cut by a line limit.
                 Column(Modifier.heightIn(max = ApprovalSheetPlan.COMMAND_BOX_MAX_DP.dp).verticalScroll(rememberScrollState())) {
                     Text(r.command, style = TypeScale.MONO.style(white).copy(fontFamily = FontFamily.Monospace))
                 }
@@ -209,7 +210,7 @@ fun QuestionSheet(model: AppModel, pillId: String, onDismiss: () -> Unit, onSend
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(stringResource(R.string.question_title, model.agentName(pillId)), style = TypeScale.SECONDARY.style(dim), maxLines = 2)
                 QuestionFlow.position(request.questions, st)?.let { (n, total) ->
-                    Text(stringResource(R.string.question_position, n, total), style = TypeScale.LABEL.style(dim))
+                    Text(stringResource(R.string.question_position, n, total), style = TypeScale.LABEL.style(dim, tabular = true))
                 }
             }
         }
@@ -250,19 +251,20 @@ fun QuestionSheet(model: AppModel, pillId: String, onDismiss: () -> Unit, onSend
 private fun OptionRow(option: AskedOption, selected: Boolean, multi: Boolean, onClick: () -> Unit) {
     val white = Color(IslandSurface.TEXT)
     val dim = Color(IslandSurface.TEXT_DIM)
+    val accent = Color(IslandSurface.PRIMARY)
     val shape = RoundedCornerShape(16.dp)
     Row(
         Modifier.fillMaxWidth().heightIn(min = Spacing.MIN_TOUCH.dp).clip(shape)
-            .background(Color.White.copy(alpha = if (selected) 0.16f else 0.07f))
-            .border(1.dp, if (selected) white.copy(alpha = 0.7f) else Color.Transparent, shape)
+            .background(if (selected) Color(IslandSurface.BUTTON) else Color(IslandSurface.HERO))
+            .border(1.dp, if (selected) accent else Color(IslandSurface.LINE), shape)
             .selectable(selected = selected, role = if (multi) Role.Checkbox else Role.RadioButton, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             Modifier.size(22.dp).clip(if (multi) RoundedCornerShape(6.dp) else CircleShape)
-                .background(if (selected) white else Color.Transparent)
-                .border(1.5.dp, if (selected) white else dim, if (multi) RoundedCornerShape(6.dp) else CircleShape),
+                .background(if (selected) accent else Color.Transparent)
+                .border(1.5.dp, if (selected) accent else dim, if (multi) RoundedCornerShape(6.dp) else CircleShape),
             contentAlignment = Alignment.Center,
         ) { if (selected) CoucouIcon(IconKind.CHECK, tint = Color(IslandSurface.ON_PRIMARY), size = 16.dp) }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {

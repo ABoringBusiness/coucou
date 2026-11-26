@@ -63,7 +63,7 @@ fun CoucouSwitch(checked: Boolean, onChange: (Boolean) -> Unit, modifier: Modifi
                 .background(if (checked) t.online.c() else t.panel2.c())
                 .border(1.dp, if (checked) Color.Transparent else t.line.c(), CircleShape),
         ) {
-            Box(Modifier.offset(x = 3.dp + knobX, y = 3.dp).size(KNOB).clip(CircleShape).background(Color.White))
+            Box(Modifier.offset(x = 3.dp + knobX, y = 3.dp).size(KNOB).clip(CircleShape).background(t.text.c()))
         }
     }
 }
@@ -99,12 +99,12 @@ fun CoucouSlider(
         ) {
             Box(Modifier.align(Alignment.CenterStart).fillMaxWidth().height(4.dp).clip(CircleShape).background(t.panel2.c()))
             Box(
-                Modifier.align(Alignment.CenterStart).height(4.dp).clip(CircleShape).background(t.text.c())
+                Modifier.align(Alignment.CenterStart).height(4.dp).clip(CircleShape).background(t.primaryButton.c())
                     .width(with(density) { (knobPx / 2f + fraction * usable).toDp() }),
             )
             Box(
                 Modifier.align(Alignment.CenterStart).offset { IntOffset((fraction * usable).roundToInt(), 0) }
-                    .size(KNOB).clip(CircleShape).background(Color.White).border(1.dp, Color.Black.copy(alpha = 0.25f), CircleShape),
+                    .size(KNOB).clip(CircleShape).background(t.text.c()).border(1.dp, t.bg.c().copy(alpha = 0.35f), CircleShape),
             )
         }
     }

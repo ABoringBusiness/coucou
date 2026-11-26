@@ -77,10 +77,10 @@ struct HubSettingsPage: View {
                 if !FlowCleanup.hasKey {
                     HStack(spacing: 10) {
                         Image(systemName: "key")
-                            .foregroundColor(HubTheme.accent)
+                            .foregroundColor(Pace.hold)
                         Text("hub.cleanup-key")
                             .font(.system(size: 12.5))
-                            .foregroundColor(Color(hex: "#C7CAD0"))
+                            .foregroundColor(HubTheme.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer()
                         Button(String(localized: "hub.open-settings")) {
@@ -104,7 +104,7 @@ struct HubSettingsPage: View {
                 } else {
                     Text("flow.accessibility")
                         .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#C7CAD0"))
+                        .foregroundColor(HubTheme.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Button(String(localized: "flow.accessibility-open")) { flow.openAccessibilitySettings() }
                         .buttonStyle(HubButtonStyle(primary: true))
@@ -185,10 +185,12 @@ struct HubKeyCap: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 12.5, weight: .semibold))
+            .font(.system(size: 12.5, weight: .semibold, design: .monospaced))
+            .foregroundColor(HubTheme.text)
             .padding(.horizontal, 10)
             .frame(height: 26)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(Color.white.opacity(0.08)))
+            .background(RoundedRectangle(cornerRadius: Pace.r, style: .continuous).fill(Pace.sunk))
+            .overlay(RoundedRectangle(cornerRadius: Pace.r, style: .continuous).strokeBorder(Pace.line))
     }
 }
 
@@ -282,7 +284,7 @@ private struct HubEngineRow<Trailing: View>: View {
             Button(action: choose) {
                 HStack(spacing: 12) {
                     ZStack {
-                        Circle().strokeBorder(selected ? HubTheme.accent : Color(hex: "#5A5F68"),
+                        Circle().strokeBorder(selected ? HubTheme.accent : Pace.lineCtrl,
                                               lineWidth: selected ? 5 : 1.5)
                     }
                     .frame(width: 17, height: 17)

@@ -103,13 +103,13 @@ extension SharedSession {
 
     var toneColor: Color {
         switch tone {
-        case .waiting: .orange
-        case .question: .cyan
-        case .error: .red
-        case .done: .green
-        case .warning: .orange
-        case .info: Color(red: 0.4, green: 0.7, blue: 1)
-        case .working, .idle: .white.opacity(0.7)
+        case .waiting: Pace.hold
+        case .question: Pace.act
+        case .error: Pace.fail
+        case .done: Pace.mint
+        case .warning: Pace.hold
+        case .info: Pace.act
+        case .working, .idle: Pace.ink2
         }
     }
 }
@@ -152,18 +152,18 @@ struct SoloView: View {
                     Text("·")
                     Text(session.updatedAt, style: .relative)
                 }
-                .font(.caption2)
+                .font(.caption2.monospacedDigit())
                 .lineLimit(1)
-                .opacity(0.8)
+                .opacity(0.85)
             } else {
                 Text("All quiet").font(.headline)
-                Text("No agent session").font(.caption).opacity(0.7)
+                Text("No agent session").font(.caption).foregroundStyle(Pace.ink3)
             }
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(Pace.ink)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .containerBackground(for: .widget) {
-            LinearGradient(colors: [Color(hex: session?.color ?? "#3B4A6B").opacity(0.55), Color(white: 0.08)],
+            LinearGradient(colors: [Color(hex: session?.color ?? "#34D399").opacity(0.2), Pace.surface],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
         }
     }
@@ -180,7 +180,7 @@ struct TeamView: View {
             GridRow { tile(0); tile(1) }
             GridRow { tile(2); tile(3) }
         }
-        .containerBackground(for: .widget) { Color(white: 0.08) }
+        .containerBackground(for: .widget) { Pace.surface }
     }
 
     /// The picked Mochi in their spots, then the most urgent ones from the
@@ -243,7 +243,7 @@ struct TeamTile: View {
             .padding(.top, 2)
             Text(session.agent)
                 .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(Pace.ink2)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .padding(.horizontal, 4)
@@ -251,20 +251,27 @@ struct TeamTile: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background { TileBackground(color: Color(white: 0.14)).clipShape(RoundedRectangle(cornerRadius: 16)) }
+        .background {
+            TileBackground(color: Pace.card)
+                .clipShape(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
+        }
         .overlay(alignment: .topTrailing) {
             if session.tone != .idle {
                 Circle()
                     .fill(session.toneColor)
                     .frame(width: 8, height: 8)
-                    .overlay(Circle().strokeBorder(Color.black.opacity(0.35), lineWidth: 1))
+                    .overlay(Circle().strokeBorder(Pace.ground.opacity(0.5), lineWidth: 1))
                     .padding(6)
             }
         }
         .overlay {
             // Waiting on you: the whole tile is outlined, like the notch.
             if session.isWaitingForYou {
-                RoundedRectangle(cornerRadius: 16).strokeBorder(session.toneColor, lineWidth: 2)
+                RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                    .strokeBorder(session.toneColor, lineWidth: 1.5)
+            } else {
+                RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                    .strokeBorder(Pace.line, lineWidth: 1)
             }
         }
     }
@@ -281,7 +288,10 @@ struct EmptyTeamTile: View {
             .padding(14)
             .opacity(0.18)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { TileBackground(color: Color.white.opacity(0.05)).clipShape(RoundedRectangle(cornerRadius: 16)) }
+            .background {
+                TileBackground(color: Pace.sunk.opacity(0.45))
+                    .clipShape(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
+            }
     }
 }
 
@@ -293,7 +303,7 @@ struct ListView: View {
             if sessions.isEmpty {
                 HStack(spacing: 10) {
                     WidgetMochi(state: .sleeping).frame(width: 34, height: 34)
-                    Text("All quiet: no agent session").font(.subheadline).opacity(0.7)
+                    Text("All quiet: no agent session").font(.subheadline).foregroundStyle(Pace.ink3)
                 }
                 .frame(maxHeight: .infinity)
             }
@@ -302,17 +312,18 @@ struct ListView: View {
                     WidgetMochi(state: session.botState)
                         .padding(2)
                         .frame(width: 24, height: 24)
-                        .background { TileBackground(color: Color.mochiTile(hex: session.color)).clipShape(RoundedRectangle(cornerRadius: 7)) }
+                        .background { TileBackground(color: Color.mochiTile(hex: session.color)).clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous)) }
                     Text(session.title)
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
                     Text(session.agent)
                         .font(.caption)
-                        .opacity(0.6)
+                        .foregroundStyle(Pace.ink3)
                         .lineLimit(1)
                     Spacer(minLength: 4)
                     Text(session.statusText)
                         .font(.caption.weight(session.isWaitingForYou ? .semibold : .regular))
+                        .monospacedDigit()
                         .foregroundStyle(session.toneColor)
                         .lineLimit(1)
                         .contentTransition(.interpolate)
@@ -320,8 +331,8 @@ struct ListView: View {
             }
             Spacer(minLength: 0)
         }
-        .foregroundStyle(.white)
-        .containerBackground(for: .widget) { Color(white: 0.08) }
+        .foregroundStyle(Pace.ink)
+        .containerBackground(for: .widget) { Pace.surface }
     }
 }
 
@@ -355,11 +366,11 @@ struct LockScreenView: View {
                 WidgetMochi(state: sessions.leadState, showBadge: false).frame(width: 32, height: 32)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(sessions.summary ?? "All quiet")
-                        .font(.headline)
+                        .font(.headline.monospacedDigit())
                         .lineLimit(1)
                     if let lead = sessions.first {
                         Text("\(lead.title) · \(lead.statusText)")
-                            .font(.caption)
+                            .font(.caption.monospacedDigit())
                             .lineLimit(progress == nil ? 2 : 1)
                     }
                     if let progress {
@@ -372,6 +383,7 @@ struct LockScreenView: View {
             .containerBackground(for: .widget) { Color.clear }
         default:
             Text(sessions.summary.map { "Coucou · \($0)" } ?? "Coucou · all quiet")
+                .monospacedDigit()
                 .containerBackground(for: .widget) { Color.clear }
         }
     }
@@ -389,16 +401,16 @@ extension SharedSession {
     }
 
     static let samples: [SharedSession] = [
-        SharedSession(id: "integration_claude", title: "coucou", agent: "VS Code", color: "#4A86E8",
+        SharedSession(id: "integration_claude", title: "coucou", agent: "VS Code", color: "#34D399",
                       state: "approval", statusText: "waiting for your OK", tone: .waiting, urgency: 0,
                       stepIndex: 2, stepCount: 7, currentStep: "npm run test", updatedAt: .now),
-        SharedSession(id: "agent_codex", title: "site-perso", agent: "Codex", color: "#D9663A",
+        SharedSession(id: "agent_codex", title: "site-perso", agent: "Codex", color: "#3E8BFF",
                       state: "working", statusText: "working · 3/7", tone: .working, urgency: 3,
                       stepIndex: 2, stepCount: 7, currentStep: "Edit index.html", updatedAt: .now),
-        SharedSession(id: "agent_gemini", title: "api-factures", agent: "Gemini CLI", color: "#4CA63A",
+        SharedSession(id: "agent_gemini", title: "api-factures", agent: "Gemini CLI", color: "#55F4A6",
                       state: "finished", statusText: "✓ done", tone: .done, urgency: 4,
                       stepIndex: 4, stepCount: 4, currentStep: "", updatedAt: .now),
-        SharedSession(id: "agent_cursor", title: "notes", agent: "Cursor", color: "#4FA37E",
+        SharedSession(id: "agent_cursor", title: "notes", agent: "Cursor", color: "#9696A0",
                       state: "sleeping", statusText: "asleep", tone: .idle, urgency: 5,
                       stepIndex: 0, stepCount: 0, currentStep: "", updatedAt: .now),
     ]

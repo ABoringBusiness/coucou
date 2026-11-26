@@ -10,15 +10,17 @@
     "Microsoft YaHei", "Noto Sans", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Arabic",
     "Noto Sans CJK SC", "Noto Sans SC", "Droid Sans Fallback", sans-serif;
   --mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
-  --ink: #f5f6f8;
-  --dim: #9398a1;
-  --dim-2: #6b7079;
-  --bg: #0b0c0e;
-  --card: #141518;
-  --hairline: rgba(255, 255, 255, 0.07);
-  --green: #22c55e;
-  --red: #f4505e;
-  --amber: #f5a524;
+  --ink: #f4f4f6;
+  --dim: #9696a0;
+  --dim-2: #6e7774;
+  --bg: #131316;
+  --card: #1b1b1f;
+  --sunk: #25252a;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --green: #34d399;
+  --on-green: #04150c;
+  --red: #ff6a4d;
+  --amber: #ffb020;
 }
 
 * {
@@ -51,6 +53,7 @@ h1 {
 
 h1 .version {
   font: 400 12px var(--font);
+  font-variant-numeric: tabular-nums;
   color: var(--dim-2);
   margin-left: 8px;
 }
@@ -58,7 +61,7 @@ h1 .version {
 section {
   background: var(--card);
   border: 1px solid var(--hairline);
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
@@ -105,16 +108,16 @@ section > h2 {
 button {
   font: 500 12.5px var(--font);
   padding: 7px 14px;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--sunk);
   color: var(--ink);
   cursor: pointer;
-  transition: background 0.14s, transform 0.08s;
+  transition: background 0.14s, border-color 0.14s, transform 0.08s;
 }
 
 button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.11);
 }
 
 button:active:not(:disabled) {
@@ -122,17 +125,24 @@ button:active:not(:disabled) {
 }
 
 button.primary {
-  background: var(--ink);
-  color: #0b0c0e;
+  background: var(--green);
+  border-color: transparent;
+  color: var(--on-green);
+  font-weight: 600;
 }
 
 button.primary:hover:not(:disabled) {
-  background: #fff;
+  background: #55f4a6;
 }
 
 button.danger {
-  background: rgba(244, 80, 94, 0.16);
-  color: #ff8d97;
+  background: var(--sunk);
+  border-color: rgba(255, 106, 77, 0.42);
+  color: var(--red);
+}
+
+button.danger:hover:not(:disabled) {
+  background: rgba(255, 106, 77, 0.12);
 }
 
 button:disabled {
@@ -153,20 +163,22 @@ code,
   width: 36px;
   height: 20px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--hairline);
+  background: var(--sunk);
   flex: 0 0 36px;
   padding: 0;
 }
 
 .switch.on {
   background: var(--green);
+  border-color: transparent;
 }
 
 .switch::after {
   content: "";
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 1px;
+  left: 1px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -175,6 +187,7 @@ code,
 }
 
 .switch.on::after {
+  background: var(--on-green);
   transform: translateX(16px);
 }
 
@@ -183,7 +196,7 @@ input[type="range"] {
   appearance: none;
   height: 4px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--sunk);
   width: 140px;
 }
 
@@ -192,7 +205,11 @@ input[type="range"]::-webkit-slider-thumb {
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--green);
+}
+
+input[type="number"] {
+  font-variant-numeric: tabular-nums;
 }
 
 input[type="number"],
@@ -200,11 +217,12 @@ input[type="text"],
 input[type="password"],
 select {
   font: 400 12.5px var(--font);
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--sunk);
   border: 1px solid var(--hairline);
   border-radius: 8px;
   color: var(--ink);
   padding: 5px 8px;
+  transition: border-color 0.14s ease-out, box-shadow 0.14s ease-out;
 }
 
 input::placeholder {
@@ -214,21 +232,23 @@ input::placeholder {
 input:focus,
 select:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.28);
+  border-color: rgba(52, 211, 153, 0.52);
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.14);
 }
 
 /* The popup is drawn by the OS: give it an explicit pair of colours rather than
    inheriting white on white. */
 select option {
-  background-color: #1a1c20;
+  background-color: #1b1b1f;
   color: var(--ink);
 }
 
 .diff {
   font: 400 11.5px/1.5 var(--mono);
-  background: #08090b;
+  font-variant-numeric: tabular-nums;
+  background: var(--bg);
   border: 1px solid var(--hairline);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px 12px;
   max-height: 260px;
   overflow: auto;
@@ -237,11 +257,11 @@ select option {
 }
 
 .diff .add {
-  color: #86efac;
+  color: #55f4a6;
 }
 
 .diff .del {
-  color: #ff8d97;
+  color: #ff8a75;
 }
 
 .diff .ctx {
@@ -250,23 +270,23 @@ select option {
 
 .notice {
   font: 400 12px var(--font);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 8px 12px;
 }
 
 .notice.ok {
-  background: rgba(34, 197, 94, 0.12);
-  color: #86efac;
+  background: rgba(52, 211, 153, 0.12);
+  color: #55f4a6;
 }
 
 .notice.err {
-  background: rgba(244, 80, 94, 0.14);
-  color: #ff8d97;
+  background: rgba(255, 106, 77, 0.14);
+  color: #ff8a75;
 }
 
 .notice.warn {
-  background: rgba(245, 165, 36, 0.13);
-  color: #fbc06a;
+  background: rgba(255, 176, 32, 0.12);
+  color: #ffd27d;
 }
 
 /* Active pills — one group per catalog category, one row per pill. */
@@ -342,6 +362,7 @@ select option {
 .pill-row .state {
   margin-left: auto;
   font: 400 11.5px var(--font);
+  font-variant-numeric: tabular-nums;
   color: var(--dim);
 }
 
@@ -352,10 +373,10 @@ select option {
 /* Shortcuts section */
 
 .subhead {
-  font: 600 11px var(--font);
+  font: 500 11.5px var(--font);
   color: var(--dim-2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: -0.005em;
   margin-top: 4px;
 }
 
@@ -382,10 +403,11 @@ select option {
 
 .keycap {
   font: 500 11.5px var(--mono);
+  font-variant-numeric: tabular-nums;
   min-width: 118px;
   padding: 5px 10px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--sunk);
   border: 1px solid var(--hairline);
   color: var(--ink);
   text-align: center;
@@ -393,8 +415,8 @@ select option {
 }
 
 .keycap.recording {
-  border-color: rgba(255, 255, 255, 0.4);
-  color: var(--dim);
+  border-color: rgba(52, 211, 153, 0.52);
+  color: var(--green);
 }
 
 .keycap.static {
@@ -404,22 +426,23 @@ select option {
 
 .tag {
   font: 500 10.5px var(--font);
+  font-variant-numeric: tabular-nums;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--sunk);
   color: var(--dim);
   white-space: nowrap;
   flex: 0 0 auto;
 }
 
 .tag.warn {
-  background: rgba(245, 165, 36, 0.13);
-  color: #fbc06a;
+  background: rgba(255, 176, 32, 0.12);
+  color: #ffd27d;
 }
 
 .tag.err {
-  background: rgba(244, 80, 94, 0.14);
-  color: #ff8d97;
+  background: rgba(255, 106, 77, 0.14);
+  color: #ff8a75;
 }
 
 /* Arabic: the window reads right to left (main.ts sets <html dir="rtl">);

@@ -9,17 +9,17 @@ struct WeeklyRecapCardView: View {
 
     var body: some View {
         ZStack {
-            CardBackground(wash: .indigo)
+            CardBackground(wash: nil)
             VStack(alignment: .leading, spacing: 5) {
                 if let s = summary {
                     HStack(spacing: 0) {
                         Text(String(localized: "recap.title"))
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(Color(hex: "#818CF8"))
+                            .foregroundColor(Pace.mint)
                         Spacer(minLength: 6)
                         Text(weekRangeLabel(s))
-                            .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#8E939C"))
+                            .font(.system(size: 10).monospacedDigit())
+                            .foregroundColor(Pace.ink3)
                             .lineLimit(1)
                     }
                     HStack(spacing: 14) {
@@ -45,7 +45,7 @@ struct WeeklyRecapCardView: View {
                 } else {
                     Text(String(localized: "recap.no-activity"))
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "#F1F2F4"))
+                        .foregroundColor(Pace.ink)
                     SecondaryButton("OK") {
                         NotificationCenter.default.post(name: .islandCollapse, object: nil)
                     }
@@ -65,11 +65,11 @@ struct WeeklyRecapCardView: View {
     private func statChip(_ value: String, label: String) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(value)
-                .font(.system(size: 17, weight: .bold))
-                .foregroundColor(Color(hex: "#F1F2F4"))
+                .font(.system(size: 17, weight: .bold).monospacedDigit())
+                .foregroundColor(Pace.ink)
             Text(label)
                 .font(.system(size: 9))
-                .foregroundColor(Color(hex: "#8E939C"))
+                .foregroundColor(Pace.ink3)
         }
     }
 
@@ -136,8 +136,8 @@ private struct RecapSharePanelView: View {
                         .cornerRadius(12)
                         .shadow(color: .black.opacity(0.3), radius: 12, y: 4)
                 } else {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#141518"))
+                    RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous)
+                        .fill(Pace.card)
                         .overlay(ProgressView())
                 }
             }
@@ -199,65 +199,72 @@ struct RecapShareImageView: View {
     let summary: WeeklySummary
     let hideProjects: Bool
 
-    // Static BotEngine for the Mochi snapshot — idle state, no animation needed.
-    @StateObject private var mochiEngine = BotEngine()
-
     var body: some View {
         ZStack {
-            Color(hex: "#0B0C0E")
+            Pace.bg
             RadialGradient(
                 gradient: Gradient(stops: [
-                    .init(color: Color(hex: "#6366F1").opacity(0.30), location: 0),
+                    .init(color: Pace.mint.opacity(0.20), location: 0),
                     .init(color: Color.clear, location: 0.65)
                 ]),
-                center: UnitPoint(x: 0.5, y: 0.75),
+                center: UnitPoint(x: 0.5, y: 0.78),
                 startRadius: 0,
                 endRadius: 900
             )
             VStack(spacing: 0) {
                 Spacer()
 
-                // Mochi character
+                // HeyApex Eye companion emblem
                 Canvas { context, size in
-                    mochiEngine.draw(context: context, size: size)
+                    HeyApexEyeGlyph.draw(
+                        context: context,
+                        size: size,
+                        state: .idle,
+                        eyeShape: .pill,
+                        gazeX: 0,
+                        gazeY: 0.08,
+                        open: 1,
+                        bob: 0,
+                        isStatic: true,
+                        radiusScale: 0.38
+                    )
                 }
                 .frame(width: 200, height: 200)
                 .padding(.bottom, 20)
 
                 Text("HeyApex Eye")
-                    .font(.system(size: 52, weight: .black, design: .rounded))
-                    .foregroundColor(Color(hex: "#F1F2F4"))
+                    .font(.system(size: 52, weight: .bold))
+                    .foregroundColor(Pace.ink)
                 Text(String(localized: "recap.title"))
                     .font(.system(size: 30, weight: .medium))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Pace.ink2)
                     .padding(.top, 6)
                 Text(weekRangeLabel)
-                    .font(.system(size: 24))
-                    .foregroundColor(Color(hex: "#818CF8"))
+                    .font(.system(size: 24).monospacedDigit())
+                    .foregroundColor(Pace.mint)
                     .padding(.top, 14)
                     .padding(.bottom, 80)
 
                 // Primary stat — time
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
                     Text(formatDuration(summary.totalMinutes))
-                        .font(.system(size: 100, weight: .black, design: .rounded))
-                        .foregroundColor(Color(hex: "#F1F2F4"))
+                        .font(.system(size: 100, weight: .bold).monospacedDigit())
+                        .foregroundColor(Pace.ink)
                         .minimumScaleFactor(0.4)
                         .lineLimit(1)
-                    Text(String(localized: "recap.image.time-coding"))
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(Color(hex: "#8E939C"))
-                        .tracking(3)
+                    Text(sentenceCase(String(localized: "recap.image.time-coding")))
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(Pace.ink3)
                 }
 
                 // Secondary stats
                 HStack(spacing: 0) {
-                    statBlock("\(summary.sessionCount)", label: String(localized: "recap.image.sessions"))
+                    statBlock("\(summary.sessionCount)", label: sentenceCase(String(localized: "recap.image.sessions")))
                     statDivider()
-                    statBlock("\(summary.filesChanged)", label: String(localized: "recap.image.files"))
+                    statBlock("\(summary.filesChanged)", label: sentenceCase(String(localized: "recap.image.files")))
                     if summary.commandsRun > 0 {
                         statDivider()
-                        statBlock("\(summary.commandsRun)", label: String(localized: "recap.image.commands"))
+                        statBlock("\(summary.commandsRun)", label: sentenceCase(String(localized: "recap.image.commands")))
                     }
                 }
                 .padding(.top, 56)
@@ -267,11 +274,11 @@ struct RecapShareImageView: View {
                 if summary.linesAdded + summary.linesRemoved > 0 {
                     HStack(spacing: 24) {
                         Text("+\(summary.linesAdded)")
-                            .font(.system(size: 28, weight: .semibold, design: .monospaced))
-                            .foregroundColor(Color(hex: "#4ADE80"))
+                            .font(.system(size: 28, weight: .semibold, design: .monospaced).monospacedDigit())
+                            .foregroundColor(Pace.mint)
                         Text("−\(summary.linesRemoved)")
-                            .font(.system(size: 28, weight: .semibold, design: .monospaced))
-                            .foregroundColor(Color(hex: "#F87171"))
+                            .font(.system(size: 28, weight: .semibold, design: .monospaced).monospacedDigit())
+                            .foregroundColor(Pace.fail)
                     }
                     .padding(.top, 24)
                 }
@@ -279,21 +286,21 @@ struct RecapShareImageView: View {
                 // Badges
                 VStack(spacing: 16) {
                     if let agent = summary.topAgent {
-                        recapBadge(String(localized: "recap.image.top-agent"), value: agent)
+                        recapBadge(sentenceCase(String(localized: "recap.image.top-agent")), value: agent)
                     }
                     if !hideProjects, let project = summary.topProject {
-                        recapBadge(String(localized: "recap.image.top-project"), value: project)
+                        recapBadge(sentenceCase(String(localized: "recap.image.top-project")), value: project)
                     }
                     if let day = summary.busiestDay {
-                        recapBadge(String(localized: "recap.image.busiest-day"), value: day)
+                        recapBadge(sentenceCase(String(localized: "recap.image.busiest-day")), value: day)
                     }
                     if summary.longestSessionMinutes > 1 {
-                        recapBadge(String(localized: "recap.image.longest-session"), value: formatDuration(summary.longestSessionMinutes))
+                        recapBadge(sentenceCase(String(localized: "recap.image.longest-session")), value: formatDuration(summary.longestSessionMinutes))
                     }
                     if summary.permissionsAllowed + summary.permissionsDenied > 0 {
                         HStack(spacing: 16) {
-                            recapBadge(String(localized: "recap.image.approved"), value: "\(summary.permissionsAllowed)")
-                            recapBadge(String(localized: "recap.image.denied"), value: "\(summary.permissionsDenied)")
+                            recapBadge(sentenceCase(String(localized: "recap.image.approved")), value: "\(summary.permissionsAllowed)")
+                            recapBadge(sentenceCase(String(localized: "recap.image.denied")), value: "\(summary.permissionsDenied)")
                         }
                     }
                 }
@@ -304,7 +311,7 @@ struct RecapShareImageView: View {
 
                 Text("Coucou · github.com/Louis-CFM/coucou")
                     .font(.system(size: 20, weight: .medium, design: .monospaced))
-                    .foregroundColor(Color(hex: "#8E939C").opacity(0.6))
+                    .foregroundColor(Pace.ink3.opacity(0.65))
                     .padding(.bottom, 60)
             }
         }
@@ -315,14 +322,13 @@ struct RecapShareImageView: View {
     private func statBlock(_ value: String, label: String) -> some View {
         VStack(spacing: 8) {
             Text(value)
-                .font(.system(size: 64, weight: .black, design: .rounded))
-                .foregroundColor(Color(hex: "#F1F2F4"))
+                .font(.system(size: 64, weight: .bold).monospacedDigit())
+                .foregroundColor(Pace.ink)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
             Text(label)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(Color(hex: "#8E939C"))
-                .tracking(2)
+                .font(.system(size: 20, weight: .medium))
+                .foregroundColor(Pace.ink3)
         }
         .frame(maxWidth: .infinity)
     }
@@ -330,7 +336,7 @@ struct RecapShareImageView: View {
     @ViewBuilder
     private func statDivider() -> some View {
         Rectangle()
-            .fill(Color.white.opacity(0.08))
+            .fill(Pace.line)
             .frame(width: 1, height: 80)
     }
 
@@ -339,18 +345,25 @@ struct RecapShareImageView: View {
         HStack(spacing: 16) {
             Text(label)
                 .font(.system(size: 24))
-                .foregroundColor(Color(hex: "#8E939C"))
+                .foregroundColor(Pace.ink3)
             Spacer()
             Text(value)
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundColor(Color(hex: "#F1F2F4"))
+                .font(.system(size: 24, weight: .semibold).monospacedDigit())
+                .foregroundColor(Pace.ink)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }
         .padding(.horizontal, 32)
         .padding(.vertical, 18)
-        .background(Color.white.opacity(0.05))
-        .cornerRadius(18)
+        .background(RoundedRectangle(cornerRadius: Pace.rCard * 1.5, style: .continuous).fill(Pace.card))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rCard * 1.5, style: .continuous).strokeBorder(Pace.line, lineWidth: 1.5))
+    }
+
+    private func sentenceCase(_ raw: String) -> String {
+        guard let first = raw.first else { return raw }
+        let letters = raw.filter(\.isLetter)
+        guard !letters.isEmpty, letters.allSatisfy(\.isUppercase) else { return raw }
+        return String(first).uppercased() + raw.dropFirst().lowercased()
     }
 
     private var weekRangeLabel: String {

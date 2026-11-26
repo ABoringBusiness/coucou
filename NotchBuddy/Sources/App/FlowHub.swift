@@ -87,13 +87,13 @@ enum HubTheme {
     static let window = Pace.ground
     static let sidebar = Pace.ground
     /// The big card on the right, where the pages are. --pace-surface, opaque.
-    static let panel = Pace.surface
+    static let panel = Pace.bg
     static let card = Pace.card
-    static let field = Pace.field
+    static let field = Pace.sunk
     /// ONE hairline. --pace-line.
     static let line = Pace.line
     static let text = Pace.ink
-    static let body = Color(hex: "#D5DCD9")
+    static let body = Pace.body
     static let secondary = Pace.ink2
     static let muted = Pace.ink3
     /// --pace-mint: ready · done · you beat something.
@@ -115,15 +115,16 @@ enum HubTheme {
     /// It did not work.
     static let fail = Pace.fail
 
-    /// ONE radius. pace.css ships 4px and the product asked for 5; before this
-    /// the window drew eleven distinct corner radii.
+    /// Kodeo architectural radii.
     static let r = Pace.r
+    static let rCtrl = Pace.rCtrl
+    static let rCard = Pace.rCard
     static let rPill = Pace.rPill
 
     /// One color per person in a call: you first, then the others. This is the
     /// one place identity, not state, picks the colour, so the tones are the
     /// pace set rather than a second palette.
-    static let speakers: [Color] = [Pace.act, Pace.mint, Pace.think, Pace.hold, Pace.live, Color(hex: "#2DD4BF")]
+    static let speakers: [Color] = [Pace.act, Pace.mint, Pace.think, Pace.hold, Pace.live, Pace.mint2]
 
     static func speaker(_ index: Int) -> Color { speakers[max(0, index) % speakers.count] }
 }
@@ -132,25 +133,21 @@ enum HubTheme {
 ///
 /// The settings pages build 32 of them and upstream keeps adding more; styling
 /// them through the environment means a new one is on Pace the day it lands,
-/// with no diff of ours in the file that declares it. The system box drew a
-/// bordered card with a plain sentence-case title; this draws a Pace card with
-/// the mono eyebrow the rest of the product labels sections with.
+/// with no diff of ours in the file that declares it.
 struct PaceGroupBoxStyle: GroupBoxStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             configuration.label
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .tracking(1.6)
-                .textCase(.uppercase)
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(HubTheme.secondary)
             configuration.content
                 .foregroundColor(HubTheme.body)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
+        .background(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).fill(HubTheme.card))
         .overlay(
-            RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous)
+            RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous)
                 .strokeBorder(HubTheme.line)
         )
     }
@@ -201,9 +198,15 @@ final class FlowHubController {
     static let showInDockKey = "coucouShowInDock"
     static let openAtLaunchKey = "coucouOpenAtLaunch"
 
-    /// Coucou in the Dock, like a regular app (on by default in the GitHub build).
+    /// HeyApex Eye in the Dock: off by default when HeyApex Desktop is installed so only one
+    /// HeyApex icon occupies the Dock and HeyApex Eye runs cleanly as an accessory companion.
     static var showInDock: Bool {
-        get { UserDefaults.standard.object(forKey: showInDockKey) as? Bool ?? true }
+        get {
+            if let stored = UserDefaults.standard.object(forKey: showInDockKey) as? Bool {
+                return stored
+            }
+            return !HeyApexHost.isDesktopInstalled
+        }
         set {
             UserDefaults.standard.set(newValue, forKey: showInDockKey)
             NSApp.setActivationPolicy(newValue ? .regular : .accessory)
@@ -211,9 +214,9 @@ final class FlowHubController {
         }
     }
 
-    /// The window opens when Coucou is opened by hand (never at login).
+    /// Off by default so launching HeyApex Eye does not pop open a second desktop window over HeyApex.
     static var openAtLaunch: Bool {
-        get { UserDefaults.standard.object(forKey: openAtLaunchKey) as? Bool ?? true }
+        get { UserDefaults.standard.object(forKey: openAtLaunchKey) as? Bool ?? false }
         set { UserDefaults.standard.set(newValue, forKey: openAtLaunchKey) }
     }
 
@@ -238,11 +241,11 @@ final class FlowHubController {
         let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1100, height: 720),
                            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                            backing: .buffered, defer: false)
-        win.title = "Coucou"
+        win.title = "HeyApex Eye"
         win.titlebarAppearsTransparent = true
         win.titleVisibility = .hidden
         win.appearance = NSAppearance(named: .darkAqua)
-        win.backgroundColor = .black
+        win.backgroundColor = NSColor(Pace.ground)
         win.contentView = NSHostingView(rootView: FlowHubView(router: router, windowState: windowState))
         windowState.watch(win)
         win.contentMinSize = NSSize(width: 940, height: 600)
@@ -266,11 +269,11 @@ struct FlowHubView: View {
             page
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(
-                    RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous)
+                    RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous)
                         .fill(HubTheme.panel)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(Color.white.opacity(0.07)))
+                .clipShape(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(Pace.line))
                 .padding(.top, 10)
                 .padding(.bottom, 10)
                 .padding(.trailing, 10)
@@ -316,15 +319,11 @@ private struct HubSidebar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 10) {
-                // The scene draws Mochi a little below its middle (room for his
-                // hops and hats): lifted so his body lines up with the name.
-                HubLiveMochi(size: 28)
-                    .offset(y: -4)
-                Text(verbatim: "Coucou")
-                    .font(.system(size: 18, weight: .bold))
+                HubMochi(size: 26)
+                Text(verbatim: "HeyApex Eye")
+                    .font(.system(size: 17, weight: .bold))
             }
             .padding(.horizontal, 8)
-            // Halfway between the window's buttons and "FLOW".
             .padding(.top, 25)
             .padding(.bottom, 31)
 
@@ -357,32 +356,31 @@ private struct HubSidebar: View {
         Button { router.page = .settings } label: {
             HStack(spacing: 8) {
                 Circle()
-                    .fill(ready ? HubTheme.green : (flow.isEnabled ? HubTheme.accent : HubTheme.muted))
+                    .fill(ready ? HubTheme.green : (flow.isEnabled ? HubTheme.hold : HubTheme.muted))
                     .frame(width: 7, height: 7)
                 Text(ready ? String(format: String(localized: "hub.status-ready %@"), flow.key.label)
                      : (flow.isEnabled ? String(localized: "hub.status-access") : String(localized: "hub.status-off")))
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#A4A9B1"))
+                    .foregroundColor(HubTheme.secondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 Spacer(minLength: 0)
             }
             .padding(10)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.card))
-            .overlay(RoundedRectangle(cornerRadius: HubTheme.r).strokeBorder(Color.white.opacity(0.06)))
+            .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).fill(HubTheme.card))
+            .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).strokeBorder(Pace.line))
         }
         .buttonStyle(.plain)
     }
 }
 
-/// "FLOW", "NOTCH": the small capitals above a group of pages.
+/// Calm sentence-case section header above a group of pages.
 private struct HubSidebarHeader: View {
     let text: String
 
     var body: some View {
-        Text(text.uppercased(with: .current))
-            .font(.system(size: 10.5, weight: .bold))
-            .tracking(1.2)
+        Text(text)
+            .font(.system(size: 11.5, weight: .semibold))
             .foregroundColor(HubTheme.muted)
             .padding(.horizontal, 10)
             .padding(.bottom, 4)
@@ -405,11 +403,11 @@ private struct HubSidebarItem: View {
                     .font(.system(size: 14, weight: selected ? .semibold : .regular))
                 Spacer(minLength: 0)
             }
-            .foregroundColor(selected ? HubTheme.text : Color(hex: "#B7BBC2"))
+            .foregroundColor(selected ? HubTheme.text : HubTheme.secondary)
             .padding(.horizontal, 10)
             .frame(height: 32)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r)
-                .fill(Color.white.opacity(selected ? 0.08 : (hover ? 0.04 : 0))))
+            .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .fill(selected ? Pace.raised2 : (hover ? Pace.raised : Color.clear)))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -419,20 +417,13 @@ private struct HubSidebarItem: View {
 
 // MARK: - Shared pieces
 
-/// Mochi as a small logo: the white body and its two eyes.
+/// HeyApex Eye emblem rendered via the shared `MochiStill` / `HeyApexEyeGlyph` specular glyph.
 struct HubMochi: View {
     var size: CGFloat = 28
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: size * 0.33, style: .continuous)
-                .fill(LinearGradient(colors: [.white, Color(hex: "#C9CBD1")], startPoint: .top, endPoint: .bottom))
-            HStack(spacing: size * 0.2) {
-                Capsule().fill(Color(hex: "#1A1412")).frame(width: size * 0.11, height: size * 0.22)
-                Capsule().fill(Color(hex: "#1A1412")).frame(width: size * 0.11, height: size * 0.22)
-            }
-        }
-        .frame(width: size, height: size * 0.72)
+        MochiStill(state: .idle, showBadge: false)
+            .frame(width: size, height: size)
     }
 }
 
@@ -478,21 +469,20 @@ struct HubCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) { content() }
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
-            .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.line))
+            .background(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).fill(HubTheme.card))
+            .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(HubTheme.line))
     }
 }
 
-/// "AUJOURD'HUI": the small capitals above a list.
+/// Calm sentence-case label above a section or list.
 struct HubLabel: View {
     let text: String
     init(_ text: String) { self.text = text }
 
     var body: some View {
-        Text(text.uppercased(with: .current))
-            .font(.system(size: 11.5, weight: .bold))
-            .tracking(1.3)
-            .foregroundColor(HubTheme.muted)
+        Text(text)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(HubTheme.secondary)
     }
 }
 
@@ -521,10 +511,10 @@ struct HubRow<Control: View>: View {
 }
 
 struct HubDivider: View {
-    var body: some View { Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1) }
+    var body: some View { Rectangle().fill(Pace.line2).frame(height: 1) }
 }
 
-/// Orange (primary) or dark (secondary) button.
+/// Mint (primary) or sunken obsidian (secondary) button.
 struct HubButtonStyle: ButtonStyle {
     var primary = false
 
@@ -534,10 +524,10 @@ struct HubButtonStyle: ButtonStyle {
             .foregroundColor(primary ? HubTheme.onAccent : HubTheme.text)
             .padding(.horizontal, 14)
             .frame(height: 34)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous)
-                .fill(primary ? HubTheme.accent : Color(hex: "#1D1E22")))
-            .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous)
-                .strokeBorder(primary ? Color.clear : Color.white.opacity(0.1)))
+            .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .fill(primary ? HubTheme.accent : Pace.sunk))
+            .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .strokeBorder(primary ? Color.clear : Pace.line))
             .opacity(configuration.isPressed ? 0.75 : 1)
             .contentShape(Rectangle())
     }
@@ -554,9 +544,10 @@ struct HubIconButton: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(hover ? HubTheme.text : Color(hex: "#A4A9B1"))
+                .foregroundColor(hover ? HubTheme.text : HubTheme.muted)
                 .frame(width: 28, height: 28)
-                .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(Color.white.opacity(hover ? 0.1 : 0.05)))
+                .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                    .fill(hover ? Pace.raised2 : Pace.raised))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -578,8 +569,8 @@ struct HubField: View {
             .font(.system(size: 13))
             .padding(.horizontal, 12)
             .frame(height: 34)
-            .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.field))
-            .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(Color.white.opacity(0.1)))
+            .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).fill(HubTheme.field))
+            .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).strokeBorder(Pace.line))
             .onSubmit(onSubmit)
     }
 }

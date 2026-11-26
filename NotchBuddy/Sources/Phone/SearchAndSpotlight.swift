@@ -39,22 +39,26 @@ struct SearchTab: View {
                 } else if hits.isEmpty {
                     ContentUnavailableView.search(text: query)
                 } else {
-                    Section(query.isEmpty ? "Recent turns" : "Results") {
+                    Section {
                         ForEach(hits) { hit in
                             NavigationLink {
                                 ScrollView {
                                     LastTurnView(turn: hit.turn, working: false).padding(16)
                                 }
-                                .background(Color.black)
+                                .background(Pace.ground)
                                 .navigationTitle(hit.turn.project.isEmpty ? hit.agent : hit.turn.project)
                                 .navigationBarTitleDisplayMode(.inline)
                             } label: {
                                 row(hit)
                             }
                         }
+                    } header: {
+                        Text(query.isEmpty ? "Recent turns" : "Results").textCase(nil)
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Pace.ground)
             .navigationTitle("Search")
             .searchable(text: $query, prompt: "Prompts, answers, files")
         }
@@ -66,20 +70,21 @@ struct SearchTab: View {
             MochiStill(state: .idle, bodyHex: pill?.color ?? "#FFFFFF")
                 .padding(4)
                 .frame(width: 34, height: 34)
-                .background(Color.mochiTile(hex: pill?.color ?? "#3B4A6B"), in: RoundedRectangle(cornerRadius: 9))
+                .background(Color.mochiTile(hex: pill?.color ?? "#34D399"), in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(hit.turn.project.isEmpty ? hit.agent : "\(hit.turn.project) · \(hit.agent)")
                         .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Pace.ink)
                         .lineLimit(1)
                     Spacer(minLength: 4)
                     Text(hit.turn.startedAt, format: .relative(presentation: .named))
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(Pace.ink3)
                 }
                 Text(hit.snippet)
                     .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Pace.ink2)
                     .lineLimit(2)
             }
         }

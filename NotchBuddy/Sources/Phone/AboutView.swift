@@ -28,34 +28,38 @@ struct AboutView: View {
                     MochiLive(state: .idle)
                         .padding(6)
                         .frame(width: 64, height: 64)
-                        .background(Color(white: 0.16), in: RoundedRectangle(cornerRadius: 16))
+                        .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("HeyApex Eye").font(.title3.weight(.semibold))
-                        Text("Version \(version)").font(.footnote).foregroundStyle(.secondary)
+                        Text("HeyApex Eye").font(.title3.weight(.semibold)).foregroundStyle(Pace.ink)
+                        Text("Version \(version)").font(.footnote.monospacedDigit()).foregroundStyle(Pace.ink3)
                     }
                 }
                 .padding(.vertical, 4)
             }
 
-            Section("Connection") {
+            Section {
                 LabeledContent("iCloud") {
                     Label(iCloudText, systemImage: link.status == .ready ? "checkmark.icloud" : "exclamationmark.icloud")
-                        .foregroundStyle(link.status == .ready ? .green : .orange)
+                        .foregroundStyle(link.status == .ready ? Pace.mint : Pace.hold)
                 }
                 LabeledContent("Notifications") {
                     Text(link.notificationsAllowed == false ? "Off" : "On")
-                        .foregroundStyle(link.notificationsAllowed == false ? .orange : .secondary)
+                        .foregroundStyle(link.notificationsAllowed == false ? Pace.hold : Pace.ink2)
                 }
                 LabeledContent("Live Activities") {
                     Text(LiveActivityLink.shared.activitiesEnabled ? "On" : "Off")
-                        .foregroundStyle(LiveActivityLink.shared.activitiesEnabled ? Color.secondary : Color.orange)
+                        .foregroundStyle(LiveActivityLink.shared.activitiesEnabled ? Pace.ink2 : Pace.hold)
                 }
                 if link.notificationsAllowed == false || !LiveActivityLink.shared.activitiesEnabled {
                     Button("Open iPhone Settings") {
                         if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                     }
+                    .foregroundStyle(Pace.mint)
                 }
                 Button("How to connect your Mac") { showGuide = true }
+                    .foregroundStyle(Pace.mint)
+            } header: {
+                Text("Connection").textCase(nil)
             }
 
             Section {
@@ -68,7 +72,7 @@ struct AboutView: View {
                     DatePicker("To", selection: time($quietTo), displayedComponents: .hourAndMinute)
                 }
             } header: {
-                Text("Notifications")
+                Text("Notifications").textCase(nil)
             } footer: {
                 Text(quietHours
                      ? "In the quiet hours, only what waits on you (a command to allow, a question) makes a sound. The rest arrives silently."
@@ -89,9 +93,9 @@ struct AboutView: View {
                                         .frame(width: 58, height: 58)
                                         .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
                                         .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
-                                            .strokeBorder(currentIcon == choice ? Color.accentColor : .clear, lineWidth: 2.5)
+                                            .strokeBorder(currentIcon == choice ? Pace.mint : .clear, lineWidth: 2.5)
                                             .padding(-4))
-                                    Text(choice.title).font(.caption2).foregroundStyle(.secondary)
+                                    Text(choice.title).font(.caption2).foregroundStyle(Pace.ink3)
                                 }
                             }
                             .buttonStyle(.plain)
@@ -103,7 +107,7 @@ struct AboutView: View {
                 Toggle("Find my turns in Spotlight", isOn: $spotlight)
                     .onChange(of: spotlight) { _, on in if !on { SpotlightIndex.removeAll() } }
             } header: {
-                Text("Look")
+                Text("Look").textCase(nil)
             } footer: {
                 Text("The Home Screen icon follows your choice; dark and tinted icons follow the Home Screen style. Spotlight's index stays on this iPhone.")
             }
@@ -118,9 +122,12 @@ struct AboutView: View {
             Section {
                 Text("No account, no analytics, no ads. Your sessions travel through your own private iCloud, encrypted with your keys.")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Pace.ink3)
             }
         }
+        .tint(Pace.mint)
+        .scrollContentBackground(.hidden)
+        .background(Pace.ground)
         .navigationTitle("Settings")
         .sheet(isPresented: $showGuide) { OnboardingView() }
     }
@@ -180,15 +187,19 @@ struct OnboardingView: View {
             }
             .padding(24)
         }
-        .background(Color.black)
+        .background(Pace.ground)
         .safeAreaInset(edge: .bottom) {
             Button {
                 dismiss()
             } label: {
-                Text("Got it").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
+                Text("Got it")
+                    .font(.headline)
+                    .foregroundStyle(Pace.onMint)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(Pace.mint, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .buttonStyle(PressableButtonStyle())
             .padding(.horizontal, 24)
             .padding(.bottom, 12)
         }
@@ -199,12 +210,14 @@ struct OnboardingView: View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: icon)
                 .font(.title3)
-                .foregroundStyle(.tint)
+                .foregroundStyle(Pace.mint)
                 .frame(width: 44, height: 44)
-                .background(Color(white: 0.14), in: RoundedRectangle(cornerRadius: 12))
+                .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous)
+                    .strokeBorder(Pace.line, lineWidth: 1))
             VStack(alignment: .leading, spacing: 3) {
-                Text("\(number). \(title)").font(.headline)
-                Text(text).font(.callout).foregroundStyle(.secondary)
+                Text("\(number). \(title)").font(.headline.monospacedDigit()).foregroundStyle(Pace.ink)
+                Text(text).font(.callout).foregroundStyle(Pace.ink2)
             }
         }
     }

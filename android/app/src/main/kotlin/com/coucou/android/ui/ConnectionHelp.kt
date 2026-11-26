@@ -43,7 +43,7 @@ fun LinkHealthPanel(model: AppModel, onHelp: () -> Unit) {
     val t = tokens()
     Panel {
         Column(Modifier.padding(Spacing.INSIDE.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(lines.first, style = TypeScale.BODY.style(t.text.c()))
+            Text(lines.first, style = TypeScale.BODY.style(t.text.c(), tabular = true))
             if (lines.second.isNotEmpty()) Text(lines.second, style = TypeScale.SECONDARY.style(t.textDim.c()))
         }
         RowDivider()
@@ -64,7 +64,7 @@ fun BatteryCard(model: AppModel) {
             Text(stringResource(R.string.battery_title), style = TypeScale.HEADLINE.style(t.text.c()))
             Text(stringResource(R.string.battery_body), style = TypeScale.SECONDARY.style(t.textDim.c()))
             model.batterySteps.forEachIndexed { i, step ->
-                Text("${i + 1}. $step", style = TypeScale.SECONDARY.style(t.text.c()))
+                Text("${i + 1}. $step", style = TypeScale.SECONDARY.style(t.text.c(), tabular = true))
             }
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 PillButton(stringResource(R.string.battery_not_now), { model.snoozeBatteryHint() }, Modifier.weight(1f))

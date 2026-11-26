@@ -36,11 +36,12 @@ extension SessionItem {
 
     var statusColor: Color {
         switch urgency {
-        case 0: .orange
-        case 1: .cyan
-        case 2: .red
-        case 4: .green
-        default: .secondary
+        case 0: Pace.hold
+        case 1: Pace.act
+        case 2: Pace.fail
+        case 3: Pace.ink2
+        case 4: Pace.mint
+        default: Pace.ink3
         }
     }
 

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.coucou.android.R
 import com.coucou.android.app.AppModel
 import com.coucou.android.core.IconKind
+import com.coucou.android.core.IslandSurface
 import com.coucou.android.core.Radii
 import com.coucou.android.core.Spacing
 import com.coucou.android.core.TypeScale
@@ -152,8 +153,8 @@ fun WardrobeScreen(model: AppModel, onBack: () -> Unit) {
                                 "auto" -> Box(contentAlignment = Alignment.BottomCenter) {
                                     OutfitIcon(seasonal, 56.dp)
                                     Text(
-                                        stringResource(R.string.wardrobe_auto_tag), Modifier.background(androidx.compose.ui.graphics.Color(0x99000000), RoundedCornerShape(50)).padding(horizontal = 6.dp, vertical = 1.dp),
-                                        style = TypeScale.LABEL.style(androidx.compose.ui.graphics.Color.White), maxLines = 1,
+                                        stringResource(R.string.wardrobe_auto_tag), Modifier.background(androidx.compose.ui.graphics.Color(IslandSurface.BLACK).copy(alpha = 0.65f), RoundedCornerShape(50)).padding(horizontal = 6.dp, vertical = 1.dp),
+                                        style = TypeScale.LABEL.style(androidx.compose.ui.graphics.Color(IslandSurface.TEXT)), maxLines = 1,
                                     )
                                 }
                                 else -> OutfitIcon(Wardrobe.outfitOf(id), 56.dp)

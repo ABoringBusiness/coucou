@@ -16,8 +16,8 @@ import com.coucou.android.core.StatusPalette
 import com.coucou.android.core.Tokens
 
 /**
- * The look of the Coucou website (docs/site.css): near-black page, slightly lighter cards with a thin
- * border, soft blue accent, rounded corners and pill-shaped buttons. Mochi itself is untouched.
+ * Kodeo Obsidian × Pace theme: deep obsidian surfaces, crisp borders, Pace emerald primary accent,
+ * rounded corners and pill-shaped buttons. Mochi itself is untouched.
  */
 private fun scheme(p: Palette, t: Tokens): ColorScheme {
     // Surfaces and text come from the tokens, the accent from Palette.
@@ -32,11 +32,17 @@ private fun scheme(p: Palette, t: Tokens): ColorScheme {
 
 private val Dark = scheme(Palette.DARK, Tokens.DARK)
 
-/** Link status colours (the dot next to "Connected"). */
+/** Link and agent status dot colours (Pace tones). */
 object StatusColors {
     val online = Color(StatusPalette.ONLINE)
     val busy = Color(StatusPalette.BUSY)
     val offline = Color(StatusPalette.OFFLINE)
+    val working = Color(StatusPalette.WORKING)
+    val thinking = Color(StatusPalette.THINKING)
+    val attention = Color(StatusPalette.ATTENTION)
+    val done = Color(StatusPalette.DONE)
+    val error = Color(StatusPalette.ERROR)
+    val idle = Color(StatusPalette.IDLE)
 }
 
 @Composable

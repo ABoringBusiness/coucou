@@ -22,7 +22,7 @@ struct VoiceListeningView: View {
 
     var body: some View {
         ZStack {
-            CardBackground(wash: .cyan)
+            CardBackground(wash: nil)
 
             HStack(spacing: 0) {
                 Spacer().frame(width: 110)
@@ -32,24 +32,24 @@ struct VoiceListeningView: View {
                         MicDotView(active: isActive)
                         Text("Listening\u{2026}", tableName: "Localizable")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "#F5F6F8"))
+                            .foregroundColor(Pace.ink)
                     }
 
                     if let question = pendingQuestionText {
                         Text(question)
                             .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "#F97316"))
+                            .foregroundColor(Pace.hold)
                             .lineLimit(2)
                     } else if voice.commandTranscript.isEmpty {
                         Text("Say your command", tableName: "Localizable")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "#8E939C"))
+                            .foregroundColor(Pace.ink3)
                     }
 
                     if !voice.commandTranscript.isEmpty {
                         Text(voice.commandTranscript)
                             .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "#C8CBD0"))
+                            .foregroundColor(Pace.body)
                             .lineLimit(2)
                             .animation(.easeOut(duration: 0.1), value: voice.commandTranscript)
                     }
@@ -72,7 +72,7 @@ private struct MicDotView: View {
 
     var body: some View {
         Circle()
-            .fill(Color(hex: "#F97316"))
+            .fill(Pace.live)
             .frame(width: 8, height: 8)
             .scaleEffect((active && pulsing) ? 1.35 : 1.0)
             .opacity((active && pulsing) ? 0.65 : 1.0)

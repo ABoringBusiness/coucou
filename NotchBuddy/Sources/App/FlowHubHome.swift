@@ -81,8 +81,8 @@ struct HubHomePage: View {
                 }
                 .padding(.horizontal, 10)
                 .frame(height: 30)
-                .background(RoundedRectangle(cornerRadius: HubTheme.r).fill(HubTheme.card))
-                .overlay(RoundedRectangle(cornerRadius: HubTheme.r).strokeBorder(HubTheme.line))
+                .background(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).fill(HubTheme.card))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous).strokeBorder(HubTheme.line))
             }
             if store.history.isEmpty {
                 HubCard {
@@ -106,8 +106,8 @@ struct HubHomePage: View {
                                 HubEntryRow(entry: entry)
                             }
                         }
-                        .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
-                        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.line))
+                        .background(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).fill(HubTheme.card))
+                        .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(HubTheme.line))
                     }
                 }
             }
@@ -137,16 +137,16 @@ private struct HubEntryRow: View {
         HStack(alignment: .top, spacing: 18) {
             VStack(alignment: .leading, spacing: 7) {
                 Text(entry.date.formatted(date: .omitted, time: .shortened))
-                    .font(.system(size: 12))
+                    .font(.system(size: 12).monospacedDigit())
                     .foregroundColor(HubTheme.muted)
                 if let app = entry.app, !app.isEmpty {
                     Text(app)
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#A4A9B1"))
+                        .foregroundColor(HubTheme.secondary)
                         .lineLimit(1)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 1)
-                        .background(RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.06)))
+                        .background(RoundedRectangle(cornerRadius: Pace.r, style: .continuous).fill(Pace.raised))
                 }
             }
             .frame(width: 70, alignment: .leading)
@@ -221,7 +221,7 @@ private struct HubNotesPromo: View {
             Text("hub.notes-promo")
                 .font(.system(size: 13))
                 .lineSpacing(2)
-                .foregroundColor(Color(hex: "#A4A9B1"))
+                .foregroundColor(HubTheme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Button { router.page = .notes } label: {
                 Text("hub.notes-promo-open")
@@ -232,9 +232,9 @@ private struct HubNotesPromo: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HubHeroBackdrop(color: HubTheme.accent, light: light, cornerRadius: HubTheme.r).allowsHitTesting(false))
-        .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.accent.opacity(0.2)))
+        .background(HubHeroBackdrop(color: HubTheme.accent, light: light, cornerRadius: Pace.rCard).allowsHitTesting(false))
+        .clipShape(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(HubTheme.accent.opacity(0.2)))
         .onContinuousHover { phase in
             switch phase {
             case .active(let point): light.target = point
@@ -261,7 +261,7 @@ struct HubSetupCard: View {
                 Text(flow.isEnabled ? String(localized: "flow.accessibility")
                      : String(format: String(localized: "hub.setup %@"), flow.key.label))
                     .font(.system(size: 13))
-                    .foregroundColor(Color(hex: "#C7CAD0"))
+                    .foregroundColor(HubTheme.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if flow.isEnabled {
                     Button(String(localized: "flow.accessibility-open")) { flow.openAccessibilitySettings() }
@@ -274,9 +274,9 @@ struct HubSetupCard: View {
             Spacer(minLength: 0)
         }
         .padding(18)
-        .background(HubHeroBackdrop(color: HubTheme.accent, light: light, cornerRadius: HubTheme.r).allowsHitTesting(false))
-        .clipShape(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.accent.opacity(0.2)))
+        .background(HubHeroBackdrop(color: HubTheme.accent, light: light, cornerRadius: Pace.rCard).allowsHitTesting(false))
+        .clipShape(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(HubTheme.accent.opacity(0.2)))
         .onContinuousHover { phase in
             switch phase {
             case .active(let point): light.target = point

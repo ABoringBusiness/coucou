@@ -6,11 +6,11 @@ import SwiftUI
 extension ServiceTone {
     var color: Color {
         switch self {
-        case .ok: .green
-        case .warning: .orange
-        case .error: .red
-        case .info: Color(red: 0.4, green: 0.7, blue: 1)
-        case .idle: .secondary
+        case .ok: Pace.mint
+        case .warning: Pace.hold
+        case .error: Pace.fail
+        case .info: Pace.act
+        case .idle: Pace.ink3
         }
     }
 
@@ -37,7 +37,7 @@ extension ServiceTone {
 
 extension ServiceSnapshot {
     var name: String { PillCatalog.definition(for: pillId)?.name ?? pillId }
-    var color: String { PillCatalog.definition(for: pillId)?.color ?? "#C0C4CC" }
+    var color: String { PillCatalog.definition(for: pillId)?.color ?? "#9696A0" }
 
     /// What the widgets get (SharedSessions).
     var shared: SharedSession {

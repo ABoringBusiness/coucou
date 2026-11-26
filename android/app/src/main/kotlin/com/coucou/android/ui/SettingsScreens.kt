@@ -69,7 +69,7 @@ fun ScreenTitle(title: String, onBack: (() -> Unit)?, trailing: @Composable (() 
     }
     Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         TextButton(onClick = onBack) { Text(stringResource(R.string.action_back), maxLines = 1) }
-        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(title, Modifier.weight(1f), style = TypeScale.TITLE.style(tokens().text.c()), maxLines = 1, overflow = TextOverflow.Ellipsis)
         trailing?.invoke()
     }
 }
@@ -79,7 +79,7 @@ fun ScreenTitle(title: String, onBack: (() -> Unit)?, trailing: @Composable (() 
 fun SectionTitle(text: String) {
     Text(
         text, Modifier.padding(start = 4.dp, top = 4.dp),
-        style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold,
+        style = TypeScale.LABEL.style(tokens().textDim.c()),
         maxLines = 1,
     )
 }
@@ -117,7 +117,7 @@ private fun TimeRow(label: String, minutes: Int, enabled: Boolean, onChange: (In
     ) {
         Text(label, Modifier.weight(1f), style = TypeScale.BODY.style(t.text.c()))
         StepButton("−", "$label, ${QuietHours.STEP} minutes earlier", enabled) { onChange(minutes - QuietHours.STEP) }
-        Text(clock(minutes), Modifier.width(56.dp), style = TypeScale.BODY.style(t.text.c()).copy(fontFamily = FontFamily.Monospace), maxLines = 1)
+        Text(clock(minutes), Modifier.width(56.dp), style = TypeScale.BODY.style(t.text.c(), tabular = true).copy(fontFamily = FontFamily.Monospace), maxLines = 1)
         StepButton("+", "$label, ${QuietHours.STEP} minutes later", enabled) { onChange(minutes + QuietHours.STEP) }
     }
 }
@@ -184,7 +184,7 @@ fun SettingsScreen(model: AppModel, onHistory: () -> Unit, onGallery: () -> Unit
                 Column(Modifier.padding(horizontal = Spacing.INSIDE.dp, vertical = 8.dp)) {
                     Row {
                         Text(stringResource(R.string.settings_volume), Modifier.weight(1f), style = TypeScale.BODY.style(t.text.c()))
-                        Text("${(s.volume / SoundVolume.MAX * 100).toInt().coerceIn(0, 100)}%", style = TypeScale.SECONDARY.style(t.textDim.c()))
+                        Text("${(s.volume / SoundVolume.MAX * 100).toInt().coerceIn(0, 100)}%", style = TypeScale.SECONDARY.style(t.textDim.c(), tabular = true))
                     }
                     CoucouSlider(
                         value = s.volume, onChange = { model.updateSettings(s.copy(volume = SoundVolume.clamp(it))) },
@@ -287,7 +287,7 @@ fun HistoryScreen(model: AppModel, onBack: () -> Unit) {
                             Text(HomeText.decision(d.allowed, d.agent, d.tool), Modifier.weight(1f), style = TypeScale.BODY.style(t.text.c()), maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(
                                 timeFormat.format(java.time.Instant.ofEpochMilli(d.atMs).atZone(zone).toLocalTime()),
-                                style = TypeScale.SECONDARY.style(t.textDim.c()), maxLines = 1,
+                                style = TypeScale.SECONDARY.style(t.textDim.c(), tabular = true), maxLines = 1,
                             )
                         }
                     }

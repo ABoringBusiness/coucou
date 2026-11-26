@@ -62,7 +62,7 @@ fun AddressSheet(model: AppModel, onDismiss: () -> Unit) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = white, unfocusedTextColor = white, cursorColor = white,
-                focusedBorderColor = white, unfocusedBorderColor = Color.White.copy(alpha = 0.25f),
+                focusedBorderColor = Color(IslandSurface.PRIMARY), unfocusedBorderColor = Color(IslandSurface.LINE),
             ),
         )
         if (bad) Text(stringResource(R.string.address_bad), Modifier.padding(top = 8.dp), style = TypeScale.SECONDARY.style(Color(Tokens.DARK.danger)))

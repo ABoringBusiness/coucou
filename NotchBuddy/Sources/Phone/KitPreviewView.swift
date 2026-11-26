@@ -21,41 +21,45 @@ struct KitPreviewView: View {
 
     var body: some View {
         List {
-            Section("Mochi — fixed poses") {
+            Section {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 72))], spacing: 12) {
                     ForEach(Array(poses.enumerated()), id: \.offset) { index, pose in
                         VStack(spacing: 4) {
                             MochiStill(state: pose.0, eye: pose.1)
                                 .padding(6)
                                 .frame(width: 64, height: 64)
-                                .background(tileColor(index), in: RoundedRectangle(cornerRadius: 14))
-                            Text(pose.2).font(.caption2).foregroundStyle(.secondary)
+                                .background(tileColor(index), in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
+                            Text(pose.2).font(.caption2).foregroundStyle(Pace.ink3)
                         }
                     }
                 }
                 .padding(.vertical, 6)
+            } header: {
+                Text("Mochi — fixed poses").textCase(nil)
             }
 
             ForEach(PillCategory.allCases, id: \.self) { category in
-                Section(category.title) {
+                Section {
                     ForEach(PillCatalog.all.filter { $0.category == category }, id: \.id) { pill in
                         HStack(spacing: 12) {
                             MochiStill()
                                 .padding(3)
                                 .frame(width: 30, height: 30)
-                                .background(Color.mochiTile(hex: pill.color), in: RoundedRectangle(cornerRadius: 8))
+                                .background(Color.mochiTile(hex: pill.color), in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
                             VStack(alignment: .leading) {
-                                Text(pill.name)
-                                Text(pill.id).font(.caption2.monospaced()).foregroundStyle(.secondary)
+                                Text(pill.name).foregroundStyle(Pace.ink)
+                                Text(pill.id).font(.caption2.monospaced()).foregroundStyle(Pace.ink3)
                             }
                             Spacer()
-                            Text(pill.subtitle).font(.caption).foregroundStyle(.secondary)
+                            Text(pill.subtitle).font(.caption).foregroundStyle(Pace.ink3)
                         }
                     }
+                } header: {
+                    Text(category.title).textCase(nil)
                 }
             }
 
-            Section("Diff — \(sampleDiff.name) +\(sampleDiff.added) −\(sampleDiff.removed)") {
+            Section {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(sampleDiff.hunks.flatMap(\.lines).enumerated()), id: \.offset) { _, line in
                         Text(prefix(line.kind) + line.text)
@@ -65,8 +69,14 @@ struct KitPreviewView: View {
                             .background(lineColor(line.kind))
                     }
                 }
+            } header: {
+                Text("Diff — \(sampleDiff.name) +\(sampleDiff.added) −\(sampleDiff.removed)")
+                    .monospacedDigit()
+                    .textCase(nil)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Pace.ground)
         .navigationTitle("CoucouKit")
     }
 
@@ -85,8 +95,8 @@ struct KitPreviewView: View {
 
     private func lineColor(_ kind: DiffLine.Kind) -> Color {
         switch kind {
-        case .added: .green.opacity(0.18)
-        case .removed: .red.opacity(0.18)
+        case .added: Pace.mint.opacity(0.18)
+        case .removed: Pace.fail.opacity(0.18)
         case .context: .clear
         }
     }

@@ -9,8 +9,8 @@ struct MochiLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: MochiActivityAttributes.self) { context in
             LockScreenActivityView(state: context.state, stale: context.isStale)
-                .activityBackgroundTint(Color(white: 0.08))
-                .activitySystemActionForegroundColor(.white)
+                .activityBackgroundTint(Pace.surface)
+                .activitySystemActionForegroundColor(Pace.ink)
         } dynamicIsland: { context in
             let state = context.state
             return DynamicIsland {
@@ -23,9 +23,11 @@ struct MochiLiveActivity: Widget {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(state.agent)
                             .font(.headline)
+                            .foregroundStyle(Pace.ink)
                             .lineLimit(1)
                         Text(state.statusText)
                             .font(.subheadline.weight(.semibold))
+                            .monospacedDigit()
                             .foregroundStyle(state.toneColor)
                             .lineLimit(1)
                             .contentTransition(.interpolate)
@@ -36,8 +38,8 @@ struct MochiLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.trailing) {
                     if state.others > 0 {
                         Text("+\(state.others)")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.secondary)
+                            .font(.subheadline.weight(.semibold).monospacedDigit())
+                            .foregroundStyle(Pace.ink3)
                             .padding(.trailing, 4)
                     }
                 }
@@ -54,7 +56,7 @@ struct MochiLiveActivity: Widget {
                             if let since = state.sinceDate, state.isActive {
                                 Text(since, style: .timer)
                                     .font(.caption.monospacedDigit())
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Pace.ink3)
                                     .frame(width: 52, alignment: .trailing)
                             }
                         }
@@ -90,27 +92,28 @@ struct LockScreenActivityView: View {
             MochiSwap(state: state)
                 .padding(6)
                 .frame(width: 52, height: 52)
-                .background(Color.mochiTile(hex: state.color), in: RoundedRectangle(cornerRadius: 14))
+                .background(Color.mochiTile(hex: state.color), in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     Text(state.agent).font(.headline)
                     if state.others > 0 {
-                        Text("+\(state.others)").font(.subheadline).foregroundStyle(.secondary)
+                        Text("+\(state.others)").font(.subheadline.monospacedDigit()).foregroundStyle(Pace.ink3)
                     }
                 }
                 HStack(spacing: 6) {
                     Text(stale ? "Your Mac went quiet" : state.statusText)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(stale ? Color.secondary : state.toneColor)
+                        .monospacedDigit()
+                        .foregroundStyle(stale ? Pace.ink3 : state.toneColor)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                         .contentTransition(.interpolate)
                     // Counts up live, without any push.
                     if let since = state.sinceDate, state.isActive, !stale {
-                        Text("·").foregroundStyle(.secondary)
+                        Text("·").foregroundStyle(Pace.ink3)
                         Text(since, style: .timer)
                             .font(.subheadline.monospacedDigit())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Pace.ink3)
                     }
                 }
                 if let fingerprint = state.approval, state.tone == "waiting", !stale {
@@ -124,7 +127,7 @@ struct LockScreenActivityView: View {
             }
             Spacer(minLength: 0)
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(Pace.ink)
         .padding(16)
         // Every change of phase (working, question, waiting, done) moves
         // smoothly instead of jumping.
@@ -180,14 +183,15 @@ struct ApprovalButtons: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
-            .tint(.red)
+            .tint(Pace.fail)
             Button(intent: AllowApprovalIntent(fingerprint: fingerprint, pillId: pillId)) {
                 Label("Allow", systemImage: "faceid")
                     .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Pace.onMint)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(.green)
+            .tint(Pace.mint)
         }
     }
 }
@@ -202,7 +206,7 @@ struct StepsBar: View {
         HStack(spacing: 3) {
             ForEach(0..<min(count, 12), id: \.self) { step in
                 Capsule()
-                    .fill(step <= index ? color : Color.white.opacity(0.18))
+                    .fill(step <= index ? color : Pace.sunk)
                     .frame(height: 4)
             }
         }
@@ -214,11 +218,11 @@ extension MochiActivityState {
 
     var toneColor: Color {
         switch tone {
-        case "waiting": .orange
-        case "question": .cyan
-        case "error": .red
-        case "done": .green
-        default: .white.opacity(0.8)
+        case "waiting": Pace.hold
+        case "question": Pace.act
+        case "error": Pace.fail
+        case "done": Pace.mint
+        default: Pace.ink2
         }
     }
 

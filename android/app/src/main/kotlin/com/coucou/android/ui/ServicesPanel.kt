@@ -43,7 +43,7 @@ private fun ServiceCardView(c: ServiceCard) {
             for (line in c.items) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.GAP.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(line.label, Modifier.weight(1f), style = TypeScale.BODY.style(t.text.c()), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    if (line.detail.isNotEmpty()) Text(line.detail, style = TypeScale.SECONDARY.style(t.textDim.c()), maxLines = 1)
+                    if (line.detail.isNotEmpty()) Text(line.detail, style = TypeScale.SECONDARY.style(t.textDim.c(), tabular = true), maxLines = 1)
                 }
             }
         }

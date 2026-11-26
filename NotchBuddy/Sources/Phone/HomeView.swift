@@ -28,6 +28,7 @@ struct HomeView: View {
                 SearchTab(link: link)
             }
         }
+        .tint(Pace.mint)
         // A widget tile was tapped: open that Mochi.
         .onOpenURL { url in
             if let id = SharedSession.sessionId(from: url) { open(id) }
@@ -121,7 +122,7 @@ struct AgentsTab: View {
                                 } label: {
                                     Label("Allow", systemImage: "faceid")
                                 }
-                                .tint(.green)
+                                .tint(Pace.mint)
                             }
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -131,6 +132,7 @@ struct AgentsTab: View {
                                 } label: {
                                     Label("Deny", systemImage: "xmark")
                                 }
+                                .tint(Pace.fail)
                             }
                         }
                         .contextMenu {
@@ -143,7 +145,7 @@ struct AgentsTab: View {
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
-            .background(Color.black)
+            .background(Pace.ground)
             // Sessions move to their new place and change status smoothly.
             .animation(.spring(duration: 0.5, bounce: 0.2),
                        value: link.sessions.map { "\($0.id)|\($0.statusText)" })
@@ -191,7 +193,7 @@ struct ServicesTab: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
             }
-            .background(Color.black)
+            .background(Pace.ground)
             .refreshable { await link.refresh() }
             .navigationTitle("Services")
             .navigationDestination(for: String.self) { id in
@@ -276,41 +278,50 @@ struct SessionPeek: View {
                 MochiStill(state: session.state, bodyHex: session.color)
                     .padding(6)
                     .frame(width: 48, height: 48)
-                    .background(Color.mochiTile(hex: session.color), in: RoundedRectangle(cornerRadius: 13))
+                    .background(Color.mochiTile(hex: session.color), in: RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(session.title).font(.headline)
-                    Text(session.statusText).font(.subheadline.weight(.semibold)).foregroundStyle(session.statusColor)
+                    Text(session.title).font(.headline).foregroundStyle(Pace.ink)
+                    Text(session.statusText)
+                        .font(.subheadline.weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(session.statusColor)
                 }
             }
             if session.needsApproval, !session.approvalCommand.isEmpty {
                 Text(session.approvalCommand)
                     .font(.callout.monospaced())
+                    .foregroundStyle(Pace.ink)
                     .lineLimit(5)
                     .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                    .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                        .strokeBorder(Pace.line, lineWidth: 1))
             }
             if let turn {
                 Text(turn.headline)
                     .font(.callout)
+                    .foregroundStyle(Pace.ink)
                     .lineLimit(3)
                     .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.accentColor.opacity(0.25), in: RoundedRectangle(cornerRadius: 12))
+                    .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous)
+                        .strokeBorder(Pace.line, lineWidth: 1))
                 HStack(spacing: 14) {
                     Label("\(turn.actions.count)", systemImage: "wrench.and.screwdriver")
                     Label("\(turn.files.count)", systemImage: "doc.text")
                 }
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(Pace.ink3)
                 if !turn.finalMessage.isEmpty {
-                    Text(turn.finalMessage).font(.callout).foregroundStyle(.secondary).lineLimit(6)
+                    Text(turn.finalMessage).font(.callout).foregroundStyle(Pace.ink2).lineLimit(6)
                 }
             }
         }
         .padding(18)
         .frame(width: 340, alignment: .leading)
-        .background(Color(white: 0.09))
+        .background(Pace.card)
         .environment(\.colorScheme, .dark)
     }
 }
@@ -349,11 +360,14 @@ struct NotchHeader: View {
             } else {
                 VStack(spacing: 12) {
                     summary
-                        .background(Color(white: 0.09), in: RoundedRectangle(cornerRadius: 28))
-                        .overlay(RoundedRectangle(cornerRadius: 28).strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
+                        .background(Pace.card, in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                            .strokeBorder(Pace.line, lineWidth: 1))
                     if let waiting {
                         panel(waiting)
-                            .background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: 26))
+                            .background(Pace.card, in: RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+                                .strokeBorder(Pace.line, lineWidth: 1))
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
@@ -400,13 +414,13 @@ struct NotchHeader: View {
                 .introLanding(.header)
             VStack(alignment: .leading, spacing: 3) {
                 Text(headline)
-                    .font(.headline)
-                    .foregroundStyle(.white)
+                    .font(.headline.monospacedDigit())
+                    .foregroundStyle(Pace.ink)
                     .contentTransition(.interpolate)
                 if let detail {
                     Text(detail)
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.6))
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(Pace.ink2)
                         .lineLimit(1)
                         .contentTransition(.interpolate)
                 }
@@ -457,12 +471,13 @@ struct SessionRow: View {
                     StateSymbol(session: session).font(.caption)
                     Text(session.statusText)
                         .font(.subheadline.weight(session.isWaitingForYou ? .semibold : .regular))
+                        .monospacedDigit()
                         .foregroundStyle(session.statusColor)
                         .contentTransition(.interpolate)
                 }
                 Text(session.updatedAt, style: .relative)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(Pace.ink3)
             }
         }
         .padding(.vertical, 4)
@@ -534,34 +549,34 @@ struct TodayCard: View {
                 stat("\(tally.files)", tally.files == 1 ? "file" : "files")
                 VStack(spacing: 2) {
                     HStack(spacing: 4) {
-                        Text("+\(tally.added)").foregroundStyle(.green)
-                        Text("−\(tally.removed)").foregroundStyle(.red)
+                        Text("+\(tally.added)").foregroundStyle(Pace.mint)
+                        Text("−\(tally.removed)").foregroundStyle(Pace.fail)
                     }
                     .font(.headline.monospacedDigit())
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
-                    Text("lines").font(.caption2).foregroundStyle(.secondary)
+                    Text("lines").font(.caption2).foregroundStyle(Pace.ink3)
                 }
                 .frame(maxWidth: .infinity)
                 stat("\(decisionsToday)", decisionsToday == 1 ? "OK given" : "OKs given")
             }
             .padding(.vertical, 12)
-            .glassCard()
+            .glassCard(cornerRadius: Pace.rIslandCard)
             .overlay(alignment: .topLeading) {
-                Text("TODAY")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.tertiary)
+                Text("Today")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Pace.ink3)
                     .padding(.horizontal, 10)
-                    .offset(y: -16)
+                    .offset(y: -18)
             }
-            .padding(.top, 10)
+            .padding(.top, 12)
         }
     }
 
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(spacing: 2) {
-            Text(value).font(.headline.monospacedDigit())
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text(value).font(.headline.monospacedDigit()).foregroundStyle(Pace.ink)
+            Text(label).font(.caption2).foregroundStyle(Pace.ink3)
         }
         .frame(maxWidth: .infinity)
     }

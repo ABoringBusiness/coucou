@@ -61,9 +61,15 @@ fun reducedMotion(): Boolean {
     return MotionSpec.isReduced(android.provider.Settings.Global.getFloat(resolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f))
 }
 
-/** A step of the type scale as a Compose style. */
-fun TypeStep.style(color: Color = Color.Unspecified) =
-    TextStyle(fontSize = sizeSp.sp, lineHeight = lineSp.sp, fontWeight = FontWeight(weight), color = color)
+/** A step of the type scale as a Compose style. Set [tabular] for counters, percentages and clocks. */
+fun TypeStep.style(color: Color = Color.Unspecified, tabular: Boolean = false) =
+    TextStyle(
+        fontSize = sizeSp.sp,
+        lineHeight = lineSp.sp,
+        fontWeight = FontWeight(weight),
+        color = color,
+        fontFeatureSettings = if (tabular) "tnum" else null,
+    )
 
 /**
  * The island panel: `panel` colour, a thin border, radius 20. With [wash], a soft glow of that colour
@@ -90,14 +96,15 @@ internal fun DrawScope.drawWash(color: Color, alpha: Float) {
     )
 }
 
-/** The hero panel at the top of Home: black, hanging from the screen's top edge. */
+/** The hero panel at the top of Home: obsidian, hanging from the screen's top edge. */
 @Composable
 fun HeroPanel(modifier: Modifier = Modifier, wash: Color? = null, content: @Composable ColumnScope.() -> Unit) {
+    val t = tokens()
     val shape = RoundedCornerShape(bottomStart = Radii.HERO_BOTTOM.dp, bottomEnd = Radii.HERO_BOTTOM.dp)
     Column(
         modifier.fillMaxWidth().clip(shape).background(IslandSurface.HERO.c())
-            .border(1.dp, Color.White.copy(alpha = 0.06f), shape)
-            .then(if (wash != null) Modifier.drawBehind { drawWash(wash, 0.5f) } else Modifier),
+            .border(1.dp, IslandSurface.LINE.c(), shape)
+            .then(if (wash != null) Modifier.drawBehind { drawWash(wash, t.washAlpha.toFloat()) } else Modifier),
         content = content,
     )
 }
@@ -105,8 +112,8 @@ fun HeroPanel(modifier: Modifier = Modifier, wash: Color? = null, content: @Comp
 enum class PillKind { PRIMARY, SECONDARY, DANGER }
 
 /**
- * The PC's buttons: one white (dark theme) pill for the main action, grey pills for the rest, and a
- * grey pill with a red label for what is destructive. 48 dp high, whatever the font size.
+ * The PC's buttons: Pace emerald pill for the main action, obsidian pills for the rest, and a
+ * pill with a coral label for what is destructive. 48 dp high, whatever the font size.
  */
 @Composable
 fun PillButton(
@@ -114,9 +121,9 @@ fun PillButton(
     enabled: Boolean = true, onDark: Boolean = false, icon: (@Composable () -> Unit)? = null,
 ) {
     val t = tokens()
-    // [onDark]: on the always-black hero panel and island, whatever the theme.
+    // [onDark]: on the always-dark hero panel, sheets and island.
     val bg = when {
-        onDark -> if (kind == PillKind.PRIMARY) IslandSurface.TEXT else IslandSurface.BUTTON
+        onDark -> if (kind == PillKind.PRIMARY) IslandSurface.PRIMARY else IslandSurface.BUTTON
         kind == PillKind.PRIMARY -> t.primaryButton
         else -> t.secondaryButton
     }

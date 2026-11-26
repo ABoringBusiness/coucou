@@ -102,12 +102,12 @@ private struct HubStatCard: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).fill(HubTheme.card))
-        .overlay(RoundedRectangle(cornerRadius: HubTheme.r, style: .continuous).strokeBorder(HubTheme.line))
+        .background(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).fill(HubTheme.card))
+        .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous).strokeBorder(HubTheme.line))
     }
 }
 
-/// Words per day, today in full orange.
+/// Words per day, today in full mint.
 private struct HubBars: View {
     let days: [(date: Date, words: Int)]
 
@@ -125,7 +125,7 @@ private struct HubBars: View {
                             .frame(height: max(day.words > 0 ? 4 : 2, (geo.size.height - 24) * CGFloat(day.words) / CGFloat(top)))
                             .help("\(day.words)")
                         Text(index % labelEvery == 0 || isToday ? Self.label(day.date, short: days.count > 10) : " ")
-                            .font(.system(size: 10.5, weight: isToday ? .bold : .regular))
+                            .font(.system(size: 10.5, weight: isToday ? .bold : .regular).monospacedDigit())
                             .foregroundColor(isToday ? HubTheme.text : HubTheme.muted)
                             .lineLimit(1)
                             .fixedSize()
@@ -167,7 +167,7 @@ private struct HubAppBars: View {
                 }
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(Color.white.opacity(0.06))
+                        Capsule().fill(Pace.line2)
                         Capsule().fill(HubTheme.accent).frame(width: max(4, geo.size.width * share))
                     }
                 }

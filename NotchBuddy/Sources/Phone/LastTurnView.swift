@@ -37,15 +37,19 @@ struct LastTurnView: View {
             if let summary = taskSummary {
                 ExpandableText(text: turn.prompt, collapsedLines: 0, title: summary, monospaced: true)
                     .padding(12)
-                    .background(Color(white: 0.16), in: RoundedRectangle(cornerRadius: 16))
+                    .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous)
+                        .strokeBorder(Pace.line, lineWidth: 1))
             } else {
                 ExpandableText(text: turn.prompt, collapsedLines: 6)
                     .padding(12)
-                    .background(Color.accentColor.opacity(0.25), in: RoundedRectangle(cornerRadius: 16))
+                    .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Pace.rCard, style: .continuous)
+                        .strokeBorder(Pace.mint.opacity(0.28), lineWidth: 1))
             }
             Text("\(taskSummary == nil ? "You" : "Background task") · \(turn.startedAt.formatted(date: .omitted, time: .shortened))")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .font(.caption2.monospacedDigit())
+                .foregroundStyle(Pace.ink3)
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
     }
@@ -63,7 +67,8 @@ struct LastTurnView: View {
                     Button(showAllActions ? "Show less" : "Show all \(turn.actions.count)") {
                         withAnimation { showAllActions.toggle() }
                     }
-                    .font(.footnote.weight(.semibold))
+                    .font(.footnote.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(Pace.mint)
                     .padding(.top, 8)
                 }
             }
@@ -81,15 +86,15 @@ struct LastTurnView: View {
                     } label: {
                         HStack(spacing: 10) {
                             Image(systemName: file.isNew ? "doc.badge.plus" : "doc.text")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Pace.ink3)
                             VStack(alignment: .leading, spacing: 1) {
-                                Text(file.name).font(.callout.weight(.semibold))
-                                Text(file.path).font(.caption2).foregroundStyle(.tertiary).lineLimit(1).truncationMode(.head)
+                                Text(file.name).font(.callout.weight(.semibold)).foregroundStyle(Pace.ink)
+                                Text(file.path).font(.caption2).foregroundStyle(Pace.ink3).lineLimit(1).truncationMode(.head)
                             }
                             Spacer(minLength: 6)
-                            Text("+\(file.added)").font(.caption.monospacedDigit()).foregroundStyle(.green)
-                            Text("−\(file.removed)").font(.caption.monospacedDigit()).foregroundStyle(.red)
-                            Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary)
+                            Text("+\(file.added)").font(.caption.monospacedDigit()).foregroundStyle(Pace.mint)
+                            Text("−\(file.removed)").font(.caption.monospacedDigit()).foregroundStyle(Pace.fail)
+                            Image(systemName: "chevron.right").font(.caption2).foregroundStyle(Pace.ink3)
                         }
                         .padding(.vertical, 8)
                         .contentShape(Rectangle())
@@ -112,7 +117,7 @@ struct LastTurnView: View {
             card(title: "Claude's answer") {
                 HStack(spacing: 8) {
                     ProgressView()
-                    Text("Still working…").font(.callout).foregroundStyle(.secondary)
+                    Text("Still working…").font(.callout).foregroundStyle(Pace.ink2)
                 }
             }
         }
@@ -120,12 +125,15 @@ struct LastTurnView: View {
 
     private func card<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .monospacedDigit()
+                .foregroundStyle(Pace.ink3)
             content()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .glassCard()
+        .glassCard(cornerRadius: Pace.rIslandCard)
     }
 }
 
@@ -157,21 +165,21 @@ private struct ActionRow: View {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Image(systemName: action.failed ? "exclamationmark.triangle.fill" : icon)
                         .font(.footnote)
-                        .foregroundStyle(action.failed ? Color.red : Color.secondary)
+                        .foregroundStyle(action.failed ? Pace.fail : Pace.ink3)
                         .frame(width: 18)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(action.tool).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                        Text(action.tool).font(.caption.weight(.semibold)).foregroundStyle(Pace.ink3)
                         Text(file?.name ?? action.summary)
                             .font(action.tool == "Bash" ? .footnote.monospaced() : .footnote)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(Pace.ink)
                             .lineLimit(open ? nil : 2)
                             .multilineTextAlignment(.leading)
                     }
                     Spacer(minLength: 4)
                     if let file {
-                        Text("+\(file.added) −\(file.removed)").font(.caption2.monospacedDigit()).foregroundStyle(.secondary)
+                        Text("+\(file.added) −\(file.removed)").font(.caption2.monospacedDigit()).foregroundStyle(Pace.ink3)
                     } else if !action.output.isEmpty {
-                        Image(systemName: open ? "chevron.up" : "chevron.down").font(.caption2).foregroundStyle(.tertiary)
+                        Image(systemName: open ? "chevron.up" : "chevron.down").font(.caption2).foregroundStyle(Pace.ink3)
                     }
                 }
                 .contentShape(Rectangle())
@@ -181,11 +189,13 @@ private struct ActionRow: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     Text(action.output)
                         .font(.caption2.monospaced())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Pace.ink2)
                         .textSelection(.enabled)
                         .padding(10)
                 }
-                .background(Color(white: 0.06), in: RoundedRectangle(cornerRadius: 10))
+                .background(Pace.sunk, in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                    .strokeBorder(Pace.line, lineWidth: 1))
                 .padding(.leading, 28)
             }
         }
@@ -216,14 +226,14 @@ struct FileDiffView: View {
             }
             .padding(.vertical, 8)
         }
-        .background(Color.black)
+        .background(Pace.ground)
         .navigationTitle(file.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 6) {
-                    Text("+\(file.added)").foregroundStyle(.green)
-                    Text("−\(file.removed)").foregroundStyle(.red)
+                    Text("+\(file.added)").foregroundStyle(Pace.mint)
+                    Text("−\(file.removed)").foregroundStyle(Pace.fail)
                 }
                 .font(.footnote.monospacedDigit().weight(.semibold))
             }
@@ -265,9 +275,9 @@ struct FileDiffView: View {
             HStack(spacing: 0) {
                 Text(line.kind == .added ? "+" : line.kind == .removed ? "−" : " ")
                     .frame(width: 18)
-                    .foregroundStyle(line.kind == .added ? Color.green : line.kind == .removed ? Color.red : Color.secondary)
+                    .foregroundStyle(line.kind == .added ? Pace.mint : line.kind == .removed ? Pace.fail : Pace.ink3)
                 Text(line.text.isEmpty ? " " : line.text)
-                    .foregroundStyle(line.kind == .context ? Color.secondary : Color.primary)
+                    .foregroundStyle(line.kind == .context ? Pace.ink3 : Pace.ink)
                     .fixedSize(horizontal: true, vertical: false)
                     .padding(.trailing, 16)
             }
@@ -275,8 +285,8 @@ struct FileDiffView: View {
             .padding(.vertical, 1)
             .padding(.leading, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(line.kind == .added ? Color.green.opacity(0.14)
-                        : line.kind == .removed ? Color.red.opacity(0.14) : Color.clear)
+            .background(line.kind == .added ? Pace.mint.opacity(0.14)
+                        : line.kind == .removed ? Pace.fail.opacity(0.14) : Color.clear)
         }
     }
 }
@@ -301,6 +311,7 @@ struct ExpandableText: View {
             if let title {
                 Label(title, systemImage: "gearshape.2")
                     .font(.callout.weight(.semibold))
+                    .foregroundStyle(Pace.ink)
             }
             if open || collapsedLines > 0 {
                 content
@@ -311,6 +322,7 @@ struct ExpandableText: View {
                     withAnimation(.easeOut(duration: 0.2)) { open.toggle() }
                 }
                 .font(.footnote.weight(.semibold))
+                .foregroundStyle(Pace.mint)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

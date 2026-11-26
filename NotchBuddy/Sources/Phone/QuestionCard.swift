@@ -18,17 +18,17 @@ struct QuestionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Question").font(.subheadline.weight(.semibold)).foregroundStyle(.cyan)
+            Text("Question").font(.subheadline.weight(.semibold)).foregroundStyle(Pace.act)
             ForEach(Array(payload.items.enumerated()), id: \.offset) { index, item in
                 VStack(alignment: .leading, spacing: 8) {
                     if !item.header.isEmpty {
-                        Text(item.header.uppercased())
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(.secondary)
+                        Text(item.header)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Pace.ink3)
                     }
-                    Text(item.question).font(.callout.weight(.semibold))
+                    Text(item.question).font(.callout.weight(.semibold)).foregroundStyle(Pace.ink)
                     if item.multiSelect {
-                        Text("Pick one or more").font(.caption).foregroundStyle(.secondary)
+                        Text("Pick one or more").font(.caption).foregroundStyle(Pace.ink3)
                     }
                     ForEach(item.options, id: \.label) { option in
                         optionRow(option, item: item, index: index)
@@ -38,27 +38,32 @@ struct QuestionCard: View {
             if sent {
                 Label("Answer sent to your Mac", systemImage: "checkmark.circle.fill")
                     .font(.callout.weight(.semibold))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Pace.mint)
             } else {
                 Button {
                     Task { await send() }
                 } label: {
-                    Label("Send answer", systemImage: "paperplane.fill").frame(maxWidth: .infinity)
+                    Label("Send answer", systemImage: "paperplane.fill")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(ready && !sending ? Pace.onMint : Pace.ink3)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(ready && !sending ? Pace.mint : Pace.sunk,
+                                    in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.cyan)
-                .controlSize(.large)
+                .buttonStyle(PressableButtonStyle())
                 .disabled(!ready || sending)
                 Text("Claude waits about 2 minutes, then asks in the terminal.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption.monospacedDigit()).foregroundStyle(Pace.ink3)
             }
             if let error {
-                Text(error).font(.caption).foregroundStyle(.red)
+                Text(error).font(.caption).foregroundStyle(Pace.fail)
             }
         }
         .padding(16)
-        .glassCard(tint: .cyan)
-        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Color.cyan.opacity(0.7), lineWidth: 1.5))
+        .glassCard(cornerRadius: Pace.rIslandCard, tint: Pace.act)
+        .overlay(RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
+            .strokeBorder(Pace.act.opacity(0.35), lineWidth: 1))
         .onAppear { reset() }
         .onChange(of: payload) { reset() }
     }
@@ -78,17 +83,20 @@ struct QuestionCard: View {
                 Image(systemName: item.multiSelect
                       ? (selected ? "checkmark.square.fill" : "square")
                       : (selected ? "largecircle.fill.circle" : "circle"))
-                    .foregroundStyle(selected ? Color.cyan : Color.secondary)
+                    .foregroundStyle(selected ? Pace.mint : Pace.ink3)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(option.label).font(.callout).foregroundStyle(.primary)
+                    Text(option.label).font(.callout).foregroundStyle(Pace.ink)
                     if !option.description.isEmpty {
-                        Text(option.description).font(.caption).foregroundStyle(.secondary)
+                        Text(option.description).font(.caption).foregroundStyle(Pace.ink2)
                     }
                 }
                 Spacer(minLength: 0)
             }
             .padding(12)
-            .background(selected ? Color.cyan.opacity(0.16) : Color(white: 0.16), in: RoundedRectangle(cornerRadius: 12))
+            .background(selected ? Pace.mintSoft : Pace.sunk,
+                        in: RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .strokeBorder(selected ? Pace.mint.opacity(0.5) : Pace.line, lineWidth: 1))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -21,7 +21,10 @@ final class DesktopBotViewState: ObservableObject {
 
 // MARK: - Desktop bot view
 
-/// Full Mochi character rendered inside the desktop floating panel.
+/// Floating HeyApex Eye companion rendered inside the desktop panel.
+/// Uses `BotEngine` physics (`lookX`/`lookY`, `open` blink, `oy` bounce, `ox` shake, `sx`/`sy` squash)
+/// and `HeyApexEyeGlyph` (`Pace` state tones) so dragging the companion out of the notch renders
+/// the exact same HeyApex Eye glyph as the notch island.
 struct DesktopBotView: View {
     @ObservedObject var appState: AppState
     /// Engine owned by DesktopMochiController; controller calls methods on it directly.
@@ -31,17 +34,14 @@ struct DesktopBotView: View {
     var body: some View {
         TimelineView(.animation(paused: viewState.paused)) { timeline in
             Canvas { ctx, size in
-                _ = timeline.date   // force redraw every tick (see BotCanvasView)
+                _ = timeline.date   // force redraw every tick
 
                 // Eye tracking based on the panel's own screen position
                 engine.lookX = tanh((appState.mousePosition.x - viewState.lookOrigin.x) / 260)
                 engine.lookY = -tanh((appState.mousePosition.y - viewState.lookOrigin.y) / 200)
                 engine.moodTarget = MachineVitals.shared.mood
-
-                // Desktop Mochi is always the "main" Mochi — always dressed
                 engine.setOutfit(appState.resolvedOutfit, animated: true)
 
-                // Dance when music plays (same rules as compact mode)
                 let dancing: Bool = {
                     #if !APPSTORE
                     let music = appState.musicPlaying && appState.activeIntegrations.contains("integration_music")
@@ -60,24 +60,47 @@ struct DesktopBotView: View {
                 var c = ctx
                 engine.applyDance(&c, size: size)
 
-                // Rigid roll when outfit is present (matches BotCanvasView)
-                if engine.outfit != .none && engine.outfitPresence > 0.05 && abs(engine.roll) > 0.001 {
-                    let center = engine.bodyCenter(size: size)
-                    var rigidCtx = c
-                    rigidCtx.translateBy(x: center.x, y: center.y)
-                    rigidCtx.rotate(by: .radians(engine.roll))
-                    rigidCtx.translateBy(x: -center.x, y: -center.y)
-                    engine.drawHandsBehind(context: rigidCtx, size: size)
-                    engine.drawOutfitBehind(context: rigidCtx, size: size)
-                    engine.draw(context: rigidCtx, size: size)
-                    engine.drawOutfitFront(context: rigidCtx, size: size)
+                let now = CACurrentMediaTime()
+                let t = CGFloat(now - engine.t0)
+                let breathe: CGFloat = engine.state == .sleeping ? sin(t * 1.4) * 0.035 : sin(t * 1.85) * 0.026
+                let bob = engine.oy + breathe
+
+                let gx: CGFloat
+                let gy: CGFloat
+                if engine.cfg.scans || engine.state == .sleeping || engine.state == .dizzy {
+                    gx = engine.yaw / 0.62
+                    gy = engine.pitch / 0.50
                 } else {
-                    engine.drawHandsBehind(context: c, size: size)
-                    engine.drawOutfitBehind(context: c, size: size)
-                    engine.draw(context: c, size: size)
-                    engine.drawOutfitFront(context: c, size: size)
+                    gx = engine.yaw / 0.62 * 0.72 + engine.lookX * 0.28
+                    gy = engine.pitch / 0.50 * 0.72 + engine.lookY * 0.28
                 }
-                engine.drawHandsAndExtras(context: c, size: size)
+
+                var resolvedShape = engine.eyeOverride ?? engine.cfg.eye
+                if engine.isDancing && engine.dancingLevel > 0.15 && (engine.state == .idle || engine.state == .finished) {
+                    resolvedShape = .happy
+                }
+                let pulsePhase = CGFloat(t.truncatingRemainder(dividingBy: 1.75) / 1.75)
+
+                HeyApexEyeGlyph.draw(
+                    context: c,
+                    size: size,
+                    state: viewState.isSleeping ? .sleeping : engine.state,
+                    eyeShape: viewState.isSleeping ? .closed : resolvedShape,
+                    gazeX: gx,
+                    gazeY: gy,
+                    open: engine.open,
+                    bob: bob,
+                    shakeX: engine.ox,
+                    tilt: engine.tilt + engine.roll,
+                    scaleX: engine.sx,
+                    scaleY: engine.sy,
+                    eyeScale: engine.es,
+                    pulsePhase: pulsePhase,
+                    isStatic: false,
+                    particleOverhang: 0,
+                    radiusScale: DesktopMochiLogic.bodyRadiusFraction,
+                    showBadge: engine.badge != nil && engine.badgeS > 0.2
+                )
             }
         }
         .scaleEffect(viewState.isHovered ? 1.07 : 1.0)

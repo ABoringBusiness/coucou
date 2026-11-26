@@ -36,7 +36,7 @@ struct InstructionComposer: View {
         .padding(.top, 14)
         .padding(.bottom, 6)
         .background(alignment: .bottom) {
-            LinearGradient(colors: [.clear, .black.opacity(0.85), .black], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [.clear, Pace.ground.opacity(0.88), Pace.ground], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
         }
@@ -82,9 +82,10 @@ struct InstructionComposer: View {
                     } label: {
                         Label("Keep", systemImage: "plus")
                             .font(.footnote.weight(.semibold))
+                            .foregroundStyle(Pace.mint)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            .glassPill(Capsule(), interactive: true, tint: .accentColor)
+                            .glassPill(Capsule(), interactive: true, tint: Pace.mint)
                     }
                     .buttonStyle(PressableButtonStyle())
                 }
@@ -96,11 +97,13 @@ struct InstructionComposer: View {
     /// and the send button next to it, like Messages.
     private var composer: some View {
         let empty = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let fieldShape = RoundedRectangle(cornerRadius: 20, style: .continuous)
         return HStack(alignment: .bottom, spacing: 8) {
             HStack(alignment: .bottom, spacing: 2) {
                 TextField("Tell Claude what to do next…", text: $text, axis: .vertical)
                     .lineLimit(1...8)
                     .focused($focused)
+                    .foregroundStyle(Pace.ink)
                     .padding(.leading, 16)
                     .padding(.vertical, 11)
                 Menu {
@@ -111,8 +114,8 @@ struct InstructionComposer: View {
                     }
                 } label: {
                     Text(Dictation.shortName(dictation.localeID))
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(.secondary)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(Pace.ink3)
                         .frame(width: 28, height: 42)
                 }
                 Button {
@@ -120,21 +123,23 @@ struct InstructionComposer: View {
                 } label: {
                     Image(systemName: dictation.isRecording ? "waveform" : "mic.fill")
                         .font(.body)
-                        .foregroundStyle(dictation.isRecording ? Color.red : Color.secondary)
+                        .foregroundStyle(dictation.isRecording ? Pace.live : Pace.ink3)
                         .symbolEffect(.variableColor.iterative, isActive: dictation.isRecording)
                         .frame(width: 38, height: 42)
                 }
                 .padding(.trailing, 4)
             }
-            .glassPill(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .glassPill(fieldShape)
+            .overlay(fieldShape.strokeBorder(focused || !empty ? Pace.mint.opacity(0.5) : Pace.line, lineWidth: 1))
             Button {
                 Task { await send() }
             } label: {
                 Image(systemName: "arrow.up")
                     .font(.body.weight(.bold))
-                    .foregroundStyle(empty ? Color.secondary : Color.black)
+                    .foregroundStyle(empty ? Pace.ink3 : Pace.onMint)
                     .frame(width: 44, height: 44)
-                    .background(empty ? Color.white.opacity(0.12) : Color.white, in: Circle())
+                    .background(empty ? Pace.sunk : Pace.mint, in: Circle())
+                    .overlay(Circle().strokeBorder(empty ? Pace.line : .clear, lineWidth: 1))
                     .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(PressableButtonStyle())
@@ -145,14 +150,14 @@ struct InstructionComposer: View {
 
     @ViewBuilder private var status: some View {
         if let error {
-            Text(error).font(.caption).foregroundStyle(.red)
+            Text(error).font(.caption).foregroundStyle(Pace.fail)
         } else if let sentAt {
             if session.updatedAt > sentAt && (session.isWorking || session.state == .thinking) {
                 Label("Your Mac started it", systemImage: "checkmark.circle.fill")
-                    .font(.caption).foregroundStyle(.green)
+                    .font(.caption).foregroundStyle(Pace.mint)
             } else {
                 Label("Sent. Your Mac picks it up within 15 s.", systemImage: "paperplane.fill")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption.monospacedDigit()).foregroundStyle(Pace.ink3)
             }
         }
     }

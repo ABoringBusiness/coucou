@@ -57,7 +57,7 @@ private fun PlanBlock(name: String, plan: PlanUsage, nowMs: Long) {
         }
         plan.fiveHour?.let { WindowBar(name, stringResource(R.string.usage_five_hours), it, nowMs, weekly = false) }
         plan.sevenDay?.let { WindowBar(name, stringResource(R.string.usage_week), it, nowMs, weekly = true) }
-        plan.resetCredits?.takeIf { it > 0 }?.let { Text(stringResource(R.string.usage_credits, it), style = TypeScale.SECONDARY.style(t.textDim.c())) }
+        plan.resetCredits?.takeIf { it > 0 }?.let { Text(stringResource(R.string.usage_credits, it), style = TypeScale.SECONDARY.style(t.textDim.c(), tabular = true)) }
     }
 }
 
@@ -80,11 +80,11 @@ private fun WindowBar(plan: String, label: String, w: PlanWindow, nowMs: Long, w
     Column(Modifier.semantics(mergeDescendants = true) { contentDescription = "$spoken. $reset" }, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(Modifier.clearAndSetSemantics { }, verticalAlignment = Alignment.CenterVertically) {
             Text(label, Modifier.weight(1f), style = TypeScale.BODY.style(t.text.c()))
-            Text(stringResource(R.string.usage_pct, pct), style = TypeScale.BODY.style(t.text.c()), maxLines = 1)
+            Text(stringResource(R.string.usage_pct, pct), style = TypeScale.BODY.style(t.text.c(), tabular = true), maxLines = 1)
         }
         Box(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(t.secondaryButton.c()).clearAndSetSemantics { }) {
             Box(Modifier.fillMaxWidth(pct / 100f).height(8.dp).clip(RoundedCornerShape(4.dp)).background(color))
         }
-        Text(reset, Modifier.clearAndSetSemantics { }, style = TypeScale.SECONDARY.style(t.textDim.c()), maxLines = 1)
+        Text(reset, Modifier.clearAndSetSemantics { }, style = TypeScale.SECONDARY.style(t.textDim.c(), tabular = true), maxLines = 1)
     }
 }

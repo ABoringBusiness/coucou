@@ -30,33 +30,42 @@ data class Tokens(
 ) {
     companion object {
         val DARK = Tokens(
-            bg = 0xFF000000, panel = 0xFF141518, panel2 = 0xFF1D1F23, line = 0xFF26282D,
-            text = 0xFFF5F6F8, textDim = 0xFF9398A1, textFaint = 0xFF6E737C,
-            primaryButton = 0xFFF5F6F8, onPrimaryButton = 0xFF0B0C0E, secondaryButton = 0xFF292A2D,
-            danger = 0xFFFF8D97, online = 0xFF34D399, washAlpha = 0.5,
+            bg = 0xFF0B0B0D, panel = 0xFF15171B, panel2 = 0xFF202329, line = 0xFF30343C,
+            text = 0xFFF4F4F6, textDim = 0xFFC8C8D0, textFaint = 0xFF9696A0,
+            primaryButton = 0xFF34D399, onPrimaryButton = 0xFF04150C, secondaryButton = 0xFF252830,
+            danger = 0xFFFF8A75, online = 0xFF34D399, washAlpha = 0.32,
         )
     }
 }
 
-/** The black surfaces: the hero panel on Home and the island over other apps. */
+/** The obsidian surfaces: the hero panel on Home, sheets, and the island over other apps. */
 object IslandSurface {
     const val BLACK = 0xFF000000L
-    const val PANEL = 0xFF141518L
-    const val HERO = 0xFF0E0F12L
-    const val TEXT = 0xFFF5F6F8L
-    const val TEXT_DIM = 0xFF9398A1L
+    const val PANEL = 0xFF15171BL
+    const val HERO = 0xFF131316L
+    const val LINE = 0xFF2E3138L
+    const val TEXT = 0xFFF4F4F6L
+    const val TEXT_DIM = 0xFFC8C8D0L
     /** Pill buttons on these always-dark surfaces. */
-    const val BUTTON = 0xFF2A2B2EL
-    const val ON_PRIMARY = 0xFF0B0C0EL
+    const val PRIMARY = 0xFF34D399L
+    const val BUTTON = 0xFF252830L
+    const val ON_PRIMARY = 0xFF04150CL
 }
 
 /**
- * The link dot colours: each is visible (3:1 or better) on black and on the dark panels.
+ * Status and link dot colours (Pace tones): each is visible (3:1 or better) on black and on the dark panels.
  */
 object StatusPalette {
-    const val ONLINE = 0xFF0F9F6EL
-    const val BUSY = 0xFFB45309L
-    const val OFFLINE = 0xFF6B7280L
+    const val WORKING = 0xFF3E8BFFL
+    const val THINKING = 0xFFA77CFFL
+    const val ATTENTION = 0xFFFFB020L
+    const val DONE = 0xFF34D399L
+    const val ERROR = 0xFFFF6A4DL
+    const val IDLE = 0xFF9696A0L
+
+    const val ONLINE = DONE
+    const val BUSY = ATTENTION
+    const val OFFLINE = IDLE
 }
 
 /** The spacing scale (dp): every gap, padding and gutter is one of these. */

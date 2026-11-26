@@ -1,6 +1,12 @@
-docs/** linguist-documentation
-design/** linguist-documentation
-
-android/gradlew text eol=lf
-android/**/*.sh text eol=lf
-android/**/*.mjs text eol=lf
+# Preserve HeyApex Eye branded assets and release/install scripts across upstream Coucou merges.
+# Requires `git config --local merge.ours.driver true` (configured automatically by scripts/sync-upstream-coucou.sh).
+NotchBuddy/Resources/Assets.xcassets/AppIcon.appiconset/** merge=ours
+NotchBuddy/Resources/Assets.xcassets/MenuBarIcon.imageset/** merge=ours
+NotchBuddy/Assets.xcassets/AppIcon.appiconset/** merge=ours
+NotchBuddy/Assets.xcassets/MenuBarIcon.imageset/** merge=ours
+NotchBuddy/PhoneAssets.xcassets/AppIcon.appiconset/** merge=ours
+NotchBuddy/Resources/sounds/*.wav merge=ours
+BRANDING.md merge=ours
+NotchBuddy/Resources/Info.plist merge=ours
+scripts/dev-install.sh merge=ours
+scripts/release.sh merge=ours

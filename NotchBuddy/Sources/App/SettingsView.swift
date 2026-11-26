@@ -185,15 +185,15 @@ struct SettingsView: View {
                         get: { Optional(selectedSection) },
                         set: { if let v = $0 { selectedSection = v; statusMessage = "" } }
                     )) {
-                        SettingsSidebarRow(title: "General",      icon: "gearshape.fill",                    color: "#8E939C").tag("general")
-                        SettingsSidebarRow(title: "Active pills", icon: "square.grid.2x2.fill",              color: "#F5A524").tag("activepills")
-                        SettingsSidebarRow(title: "Agents",       icon: "terminal.fill",                     color: "#3B9EFF").tag("agents")
-                        SettingsSidebarRow(title: "Chat",         icon: "bubble.left.and.bubble.right.fill", color: "#E07950").tag("chat")
-                        SettingsSidebarRow(title: "Integrations", icon: "puzzlepiece.extension.fill",        color: "#7C5CFF").tag("integrations")
+                        SettingsSidebarRow(title: "General",      icon: "gearshape.fill",                    color: "#9696A0").tag("general")
+                        SettingsSidebarRow(title: "Active pills", icon: "square.grid.2x2.fill",              color: "#FFB020").tag("activepills")
+                        SettingsSidebarRow(title: "Agents",       icon: "terminal.fill",                     color: "#3E8BFF").tag("agents")
+                        SettingsSidebarRow(title: "Chat",         icon: "bubble.left.and.bubble.right.fill", color: "#34D399").tag("chat")
+                        SettingsSidebarRow(title: "Integrations", icon: "puzzlepiece.extension.fill",        color: "#A77CFF").tag("integrations")
                         #if !APPSTORE
-                        SettingsSidebarRow(title: "Voice",        icon: "mic.fill",                          color: "#F97316").tag("voice")
+                        SettingsSidebarRow(title: "Voice",        icon: "mic.fill",                          color: "#FF2D43").tag("voice")
                         #endif
-                        SettingsSidebarRow(title: "Shortcuts",    icon: "keyboard.fill",                     color: "#6366F1").tag("shortcuts")
+                        SettingsSidebarRow(title: "Shortcuts",    icon: "keyboard.fill",                     color: "#3E8BFF").tag("shortcuts")
                     }
                     .listStyle(.sidebar)
                     .scrollContentBackground(.hidden)
@@ -227,7 +227,7 @@ struct SettingsView: View {
                     Divider()
                     Text(statusMessage)
                         .font(.system(size: 12))
-                        .foregroundColor(statusMessage.hasPrefix("❌") ? .red : .secondary)
+                        .foregroundColor(statusMessage.hasPrefix("❌") ? Pace.fail : Pace.ink2)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
                 }
@@ -325,7 +325,7 @@ struct SettingsView: View {
                     }
                     if customSoundCount > 0 {
                         Text(String(format: String(localized: "%lld custom"), Int64(customSoundCount)))
-                            .font(.system(size: 11))
+                            .font(.system(size: 11).monospacedDigit())
                             .foregroundColor(.secondary)
                     }
                 }
@@ -542,7 +542,7 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
 
                 Text(String(format: String(localized: "settings.slots-used %lld"), Int64(state.activeIntegrations.count)))
-                    .font(.system(size: 11))
+                    .font(.system(size: 11).monospacedDigit())
                     .foregroundColor(state.activeIntegrations.count >= 4 ? Pace.hold : .secondary)
 
                 Picker(String(localized: "settings.main-pill"), selection: $state.mainPillId) {
@@ -625,8 +625,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 140)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
 
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmInstall() }
@@ -661,8 +661,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 140)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmGeminiOp() }
                             .buttonStyle(.borderedProminent)
@@ -694,8 +694,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 140)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmAgyOp() }
                             .buttonStyle(.borderedProminent)
@@ -727,8 +727,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 140)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmCodexOp() }
                             .buttonStyle(.borderedProminent)
@@ -760,8 +760,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 140)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmCopilotOp() }
                             .buttonStyle(.borderedProminent)
@@ -793,8 +793,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 140)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmMuseOp() }
                             .buttonStyle(.borderedProminent)
@@ -826,8 +826,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 140)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmOpenCodeOp() }
                             .buttonStyle(.borderedProminent)
@@ -859,8 +859,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 140)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmAmpOp() }
                             .buttonStyle(.borderedProminent)
@@ -895,8 +895,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 180)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmHermesPluginOp() }
                             .buttonStyle(.borderedProminent)
@@ -997,8 +997,8 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(height: 100)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(6)
+                    .background(Pace.sunk)
+                    .cornerRadius(Pace.rCtrl)
                     HStack {
                         Button(String(localized: "hooks.confirm-write")) { confirmStatusLine() }
                             .buttonStyle(.borderedProminent)
@@ -1074,7 +1074,7 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
 
                 HStack(spacing: 8) {
-                    Circle().fill(Color(hex: "#4285F4")).frame(width: 8, height: 8)
+                    Circle().fill(Pace.act).frame(width: 8, height: 8)
                     Text(String(localized: "chat.google-ai")).font(.system(size: 12, weight: .semibold))
                 }
                 SecureField(String(localized: "chat.api-key.google"), text: $googleKey)
@@ -1088,7 +1088,7 @@ struct SettingsView: View {
                 Divider()
 
                 HStack(spacing: 8) {
-                    Circle().fill(Color(hex: "#10A37F")).frame(width: 8, height: 8)
+                    Circle().fill(Pace.mint).frame(width: 8, height: 8)
                     Text(String(localized: "chat.openai")).font(.system(size: 12, weight: .semibold))
                 }
                 SecureField(String(localized: "chat.api-key.openai"), text: $openAIKey)
@@ -1102,7 +1102,7 @@ struct SettingsView: View {
                 Divider()
 
                 HStack(spacing: 8) {
-                    Circle().fill(Color(hex: "#5B8FF9")).frame(width: 8, height: 8)
+                    Circle().fill(Pace.act).frame(width: 8, height: 8)
                     Text("DeepSeek").font(.system(size: 12, weight: .semibold))
                 }
                 SecureField("API key", text: $deepseekKey)
@@ -1116,7 +1116,7 @@ struct SettingsView: View {
                 Divider()
 
                 HStack(spacing: 8) {
-                    Circle().fill(Color(hex: "#FF6A00")).frame(width: 8, height: 8)
+                    Circle().fill(Pace.hold).frame(width: 8, height: 8)
                     Text("Qwen (Alibaba)").font(.system(size: 12, weight: .semibold))
                 }
                 SecureField("API key", text: $qwenKey)
@@ -1130,7 +1130,7 @@ struct SettingsView: View {
                 Divider()
 
                 HStack(spacing: 8) {
-                    Circle().fill(Color(hex: "#7C5CFC")).frame(width: 8, height: 8)
+                    Circle().fill(Pace.think).frame(width: 8, height: 8)
                     Text("Moonshot (Kimi)").font(.system(size: 12, weight: .semibold))
                 }
                 SecureField("API key", text: $moonshotKey)
@@ -1152,12 +1152,12 @@ struct SettingsView: View {
 
                 // ── Ollama ──────────────────────────────────────────────────────
                 HStack(spacing: 8) {
-                    Circle().fill(Color(hex: "#FACC15")).frame(width: 8, height: 8)
+                    Circle().fill(Pace.hold).frame(width: 8, height: 8)
                     Text("Ollama").font(.system(size: 12, weight: .semibold))
                     if !state.ollamaServerURL.isEmpty {
                         Text(String(localized: "Connected"))
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#22C55E"))
+                            .foregroundColor(Pace.mint)
                     }
                 }
                 if state.ollamaServerURL.isEmpty {
@@ -1187,12 +1187,12 @@ struct SettingsView: View {
 
                 // ── LM Studio ───────────────────────────────────────────────────
                 HStack(spacing: 8) {
-                    Circle().fill(Color(hex: "#A3E635")).frame(width: 8, height: 8)
+                    Circle().fill(Pace.mint2).frame(width: 8, height: 8)
                     Text("LM Studio").font(.system(size: 12, weight: .semibold))
                     if !state.lmstudioServerURL.isEmpty {
                         Text(String(localized: "Connected"))
                             .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#22C55E"))
+                            .foregroundColor(Pace.mint)
                     }
                 }
                 if state.lmstudioServerURL.isEmpty {
@@ -1231,7 +1231,7 @@ struct SettingsView: View {
                 // Resend
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
-                        Circle().fill(Color(hex: "#22C55E")).frame(width: 8, height: 8)
+                        Circle().fill(Pace.mint).frame(width: 8, height: 8)
                         Text("Resend").font(.system(size: 12, weight: .semibold))
                     }
                     SecureField("API key  (re_…)", text: $resendKey)
@@ -1243,7 +1243,7 @@ struct SettingsView: View {
                 // n8n
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
-                        Circle().fill(Color(hex: "#F29B38")).frame(width: 8, height: 8)
+                        Circle().fill(Pace.hold).frame(width: 8, height: 8)
                         Text("n8n").font(.system(size: 12, weight: .semibold))
                     }
                     TextField("Instance URL  (https://…)", text: $n8nUrl)
@@ -1262,7 +1262,7 @@ struct SettingsView: View {
                 // Vercel
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
-                        Circle().fill(Color(hex: "#7C5CFF")).frame(width: 8, height: 8)
+                        Circle().fill(Pace.think).frame(width: 8, height: 8)
                         Text("Vercel").font(.system(size: 12, weight: .semibold))
                     }
                     SecureField("Token", text: $vercelToken)
@@ -1279,20 +1279,20 @@ struct SettingsView: View {
                 // GitHub
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
-                        Circle().fill(Color(hex: "#F4505E")).frame(width: 8, height: 8)
+                        Circle().fill(Pace.fail).frame(width: 8, height: 8)
                         Text("GitHub").font(.system(size: 12, weight: .semibold))
                     }
                     SecureField("Personal Access Token", text: $githubToken)
                         .textFieldStyle(.roundedBorder)
                     Text(String(localized: "integrations.github.token-hint"))
                         .font(.system(size: 10))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                 }
 
                 // Stripe
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
-                        Circle().fill(Color(hex: "#0570DE")).frame(width: 8, height: 8)
+                        Circle().fill(Pace.act).frame(width: 8, height: 8)
                         Text("Stripe").font(.system(size: 12, weight: .semibold))
                     }
                     SecureField("Secret key  (sk_live_… or sk_test_…)", text: $stripeKey)
@@ -1302,7 +1302,7 @@ struct SettingsView: View {
                 // Cal.com
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
-                        Circle().fill(Color(hex: "#C9956A")).frame(width: 8, height: 8)
+                        Circle().fill(Pace.hold).frame(width: 8, height: 8)
                         Text("Cal.com").font(.system(size: 12, weight: .semibold))
                     }
                     SecureField("API key  (cal_live_…)", text: $calcomKey)
@@ -1312,7 +1312,7 @@ struct SettingsView: View {
                 // Notion
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
-                        Circle().fill(Color(hex: "#E8E8E8")).frame(width: 8, height: 8)
+                        Circle().fill(Pace.ink).frame(width: 8, height: 8)
                         Text("Notion").font(.system(size: 12, weight: .semibold))
                     }
                     SecureField("Integration token  (secret_…)", text: $notionKey)
@@ -1322,7 +1322,7 @@ struct SettingsView: View {
                 // Crypto: public prices, no key. Changes apply at once.
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
-                        Circle().fill(Color(hex: "#F7931A")).frame(width: 8, height: 8)
+                        Circle().fill(Pace.hold).frame(width: 8, height: 8)
                         Text(verbatim: "Crypto").font(.system(size: 12, weight: .semibold))
                     }
                     Picker(String(localized: "crypto.exchange"), selection: $cryptoExchange) {
@@ -1349,7 +1349,7 @@ struct SettingsView: View {
                     }
                     Text(String(localized: "crypto.hint"))
                         .font(.system(size: 10))
-                        .foregroundColor(Color(hex: "#8E939C"))
+                        .foregroundColor(Pace.ink3)
                 }
                 .onChange(of: cryptoExchange) { _, _ in CryptoController.shared.settingsChanged() }
                 .onChange(of: cryptoCurrency) { _, _ in CryptoController.shared.settingsChanged() }
@@ -1426,7 +1426,7 @@ struct SettingsView: View {
                 if let err = voiceEngine.audioError {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.red)
+                            .foregroundColor(Pace.fail)
                         Text("\(String(localized: "Microphone unavailable")): \(err)")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
@@ -1599,7 +1599,7 @@ struct SettingsView: View {
                             Button(String(localized: "Clear")) {
                                 history.clear()
                             }
-                            .foregroundColor(.red)
+                            .foregroundColor(Pace.fail)
                         }
                         .padding(.top, 4)
                     }
@@ -2373,7 +2373,7 @@ struct IntegrationFilterRow: View {
                 .padding(.leading, 4)
                 if !filter.isEmpty {
                     Text(String(format: String(localized: "Watching %lld of %lld"), Int64(filter.count), Int64(items.count)))
-                        .font(.system(size: 10))
+                        .font(.system(size: 10).monospacedDigit())
                         .foregroundColor(.secondary)
                 }
             }
@@ -2408,9 +2408,9 @@ struct ShortcutRecorderButton: View {
             Text(isRecording ? "Press keys…" : shortcutLabel)
                 .font(.system(size: 11, design: .monospaced))
                 .padding(.horizontal, 8).padding(.vertical, 3)
-                .background(isRecording ? Color.accentColor.opacity(0.12) : Color(NSColor.controlBackgroundColor))
-                .cornerRadius(5)
-                .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                .background(isRecording ? Pace.mintSoft : Pace.sunk)
+                .clipShape(RoundedRectangle(cornerRadius: Pace.r, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Pace.r, style: .continuous).stroke(isRecording ? Pace.mint : Pace.line, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
