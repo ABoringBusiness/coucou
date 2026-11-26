@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>Coucou</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>ai.heyapex.eye</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLocalizations</key>
@@ -26,7 +26,7 @@
 		<string>zh-Hans</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>Coucou</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -36,24 +36,24 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>HeyApex Eye reads active window context and pastes dictated text where you are typing.</string>
+	<string>Pour lire le titre de la fenêtre active et l'attacher comme contexte.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>HeyApex Eye jumps to your active terminal session and controls media playback when requested.</string>
+	<string>Pour sauter au terminal, envoyer des mails et piloter Musique et Spotify.</string>
 	<key>NSAudioCaptureUsageDescription</key>
-	<string>HeyApex Eye captures system audio only when you explicitly record a call.</string>
+	<string>Coucou records what your Mac plays only while you note a call, to write down what the other people say.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>HeyApex Eye looks up a contact email address only when you ask to draft an email.</string>
+	<string>Coucou looks up an email address when you ask it, by voice, to prepare an email.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>HeyApex Eye uses the microphone only when you trigger voice or dictation.</string>
+	<string>Coucou uses the microphone when you dictate, and to note your calls when you ask it to.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>HeyApex Eye converts speech to text locally when you use voice commands.</string>
+	<string>Coucou turns your voice into the text of a chat message.</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 </dict>

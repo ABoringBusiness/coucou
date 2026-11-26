@@ -510,54 +510,13 @@ private struct FlowAnnouncementView: View {
     }
 }
 
-/// The pill's mini HeyApex Eye orb: tracks gentle ambient gaze and blinks while the pill is open.
+/// The pill's avatar: draws Nova rather than Mochi (reserved by upstream's LICENSE-ASSETS.md).
 private struct FlowMochiView: View {
     let active: Bool
     var phase: FlowPillModel.Phase = .idle
-    @StateObject private var engine: BotEngine
-
-    init(active: Bool, phase: FlowPillModel.Phase = .idle) {
-        self.active = active
-        self.phase = phase
-        _engine = StateObject(wrappedValue: {
-            let e = BotEngine()
-            e.isMini = true
-            return e
-        }())
-    }
-
-    private var glyphState: BotState {
-        switch phase {
-        case .listening:            return .working
-        case .locked:               return .approval
-        case .thinking:             return .thinking
-        case .failed:               return .error
-        case .copied, .pastedAgain: return .finished
-        case .idle:                 return .idle
-        }
-    }
 
     var body: some View {
-        TimelineView(.animation(paused: !active)) { timeline in
-            let frame = timeline.date
-            Canvas { context, size in
-                _ = frame
-                MochiFrameClock.advance(engine)
-                HeyApexEyeGlyph.draw(
-                    context: context,
-                    size: size,
-                    state: glyphState,
-                    eyeShape: engine.eyeOverride ?? engine.cfg.eye,
-                    gazeX: engine.yaw / 0.62,
-                    gazeY: engine.pitch / 0.50,
-                    open: engine.open,
-                    bob: engine.oy,
-                    isStatic: false,
-                    radiusScale: 0.40
-                )
-            }
-        }
-        .onAppear { engine.setState(.idle, force: true) }
+        NovaAvatarView(energy: active ? 0.55 : 0)
     }
 }
 

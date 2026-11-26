@@ -2146,10 +2146,9 @@ struct SettingsView: View {
         URLSession.shared.dataTask(with: req) { data, response, _ in
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             guard let data, code == 200 else {
-                // The retry hops back to the main actor: this closure runs on a
-                // URLSession queue, and the method it calls is main-actor bound
-                // like every other member of a View.
-                DispatchQueue.main.async { self.fetchN8nWorkflows(urls: urls, apiKey: apiKey, idx: idx + 1) }
+                DispatchQueue.main.async {
+                    self.fetchN8nWorkflows(urls: urls, apiKey: apiKey, idx: idx + 1)
+                }
                 return
             }
             let items: [[String: Any]]

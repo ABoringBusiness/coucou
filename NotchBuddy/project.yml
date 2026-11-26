@@ -1,6 +1,6 @@
 name: NotchBuddy
 options:
-  bundleIdPrefix: fr.louisraille
+  bundleIdPrefix: ai.heyapex
   deploymentTarget:
     macOS: "15.0"
   xcodeVersion: "27.0"
@@ -136,7 +136,7 @@ targets:
       properties:
         CFBundleName: Coucou
         CFBundleDisplayName: Coucou
-        CFBundleIdentifier: fr.louisraille.NotchBuddy
+        CFBundleIdentifier: ai.heyapex.eye
         CFBundleVersion: "16"
         CFBundleShortVersionString: "0.4.0"
         CFBundlePackageType: APPL
@@ -164,8 +164,8 @@ targets:
           - zh-Hans
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.NotchBuddy
-        PRODUCT_NAME: Coucou
+        PRODUCT_BUNDLE_IDENTIFIER: ai.heyapex.eye
+        PRODUCT_NAME: HeyApex Eye
         INFOPLIST_FILE: Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MACOSX_DEPLOYMENT_TARGET: "15.0"
@@ -219,7 +219,7 @@ targets:
       properties:
         CFBundleName: Coucou
         CFBundleDisplayName: Coucou
-        CFBundleIdentifier: fr.louisraille.Coucou
+        CFBundleIdentifier: ai.heyapex.eye
         CFBundleVersion: "6"
         CFBundleShortVersionString: "1.1"
         CFBundlePackageType: APPL
@@ -243,8 +243,8 @@ targets:
           - zh-Hans
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.Coucou
-        PRODUCT_NAME: Coucou
+        PRODUCT_BUNDLE_IDENTIFIER: ai.heyapex.eye
+        PRODUCT_NAME: HeyApex Eye
         INFOPLIST_FILE: Resources/InfoAppStore.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MACOSX_DEPLOYMENT_TARGET: "15.0"
@@ -294,7 +294,7 @@ targets:
       properties:
         CFBundleName: Coucou
         CFBundleDisplayName: Coucou
-        CFBundleIdentifier: fr.louisraille.Coucou
+        CFBundleIdentifier: ai.heyapex.eye
         CFBundleVersion: "3"
         CFBundleShortVersionString: "1.0"
         CFBundlePackageType: APPL
@@ -319,16 +319,20 @@ targets:
         # updates once its budget is spent, and "waiting for your OK" came late.
         NSSupportsLiveActivitiesFrequentUpdates: YES
         # coucou://session/<id>: the widgets open a session in the app.
+        # The SCHEME stays "coucou" deliberately. It is a contract between the
+        # widget extension and the app -- three Swift call sites build these
+        # URLs -- and it is not a label a user reads. Renaming it buys nothing
+        # visible and breaks widget-to-app opening if a call site is missed.
         CFBundleURLTypes:
-          - CFBundleURLName: fr.louisraille.Coucou
+          - CFBundleURLName: ai.heyapex.eye
             CFBundleURLSchemes:
               - coucou
         # Which APNs environment the Live Activity tokens belong to (read by the Mac).
         CoucouAPNsEnvironment: $(COUCOU_APNS_ENV)
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.Coucou
-        PRODUCT_NAME: Coucou
+        PRODUCT_BUNDLE_IDENTIFIER: ai.heyapex.eye
+        PRODUCT_NAME: HeyApex Eye
         INFOPLIST_FILE: Resources/InfoPhone.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # Mochi in other colors, picked in Settings (UIApplication.setAlternateIconName).
@@ -374,7 +378,7 @@ targets:
       properties:
         CFBundleName: CoucouWidgets
         CFBundleDisplayName: Coucou
-        CFBundleIdentifier: fr.louisraille.Coucou.Widgets
+        CFBundleIdentifier: ai.heyapex.eye.Widgets
         CFBundleVersion: "3"
         CFBundleShortVersionString: "1.0"
         CFBundlePackageType: XPC!
@@ -382,9 +386,9 @@ targets:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.Coucou.Widgets
+        PRODUCT_BUNDLE_IDENTIFIER: ai.heyapex.eye.Widgets
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) WIDGET_EXTENSION"
-        PRODUCT_NAME: CoucouWidgets
+        PRODUCT_NAME: HeyApexEyeWidgets
         INFOPLIST_FILE: Resources/InfoWidgets.plist
         IPHONEOS_DEPLOYMENT_TARGET: "18.0"
         TARGETED_DEVICE_FAMILY: "1"
@@ -417,7 +421,7 @@ targets:
       properties:
         CFBundleName: CoucouNotificationContent
         CFBundleDisplayName: Coucou
-        CFBundleIdentifier: fr.louisraille.Coucou.NotificationContent
+        CFBundleIdentifier: ai.heyapex.eye.NotificationContent
         CFBundleVersion: "3"
         CFBundleShortVersionString: "1.0"
         CFBundlePackageType: XPC!
@@ -430,8 +434,8 @@ targets:
             UNNotificationExtensionDefaultContentHidden: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.Coucou.NotificationContent
-        PRODUCT_NAME: CoucouNotificationContent
+        PRODUCT_BUNDLE_IDENTIFIER: ai.heyapex.eye.NotificationContent
+        PRODUCT_NAME: HeyApexEyeNotificationContent
         INFOPLIST_FILE: Resources/InfoNotificationContent.plist
         IPHONEOS_DEPLOYMENT_TARGET: "18.0"
         TARGETED_DEVICE_FAMILY: "1"

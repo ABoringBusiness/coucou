@@ -1,216 +1,42 @@
 import SwiftUI
 import AppKit
 
-/// SwiftUI wrapper: TimelineView drives a Canvas that advances `BotEngine` physics/timers
-/// and renders the HeyApex Eye geometric specular companion glyph.
+/// SwiftUI wrapper: TimelineView drives a Canvas that calls BotEngine.draw().
+/// Uses a shared engine per-task; the main bot uses AppState's shared engine.
 struct BotCanvasView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
-    /// When set, overrides island-based eye-tracking (used by desktop companion).
+    /// When set, overrides island-based eye-tracking (used by desktop Mochi).
     /// CGPoint in the same coord space as state.mousePosition (DesktopSpace, y-down).
     var lookOriginOverride: CGPoint? = nil
-    /// Not drawn while true (e.g. the notch copy while the companion is on the desktop).
+    /// Not drawn while true (e.g. the notch copy while Mochi is on the desktop).
     var paused: Bool = false
 
-    // One engine per view instance (main companion)
-    @StateObject private var engine = BotEngine()
-
     var body: some View {
-        observedTimeline
-            .onReceive(NotificationCenter.default.publisher(for: .triggerEmote)) { notif in
-                if let emote = notif.object as? BotEmote {
-                    engine.triggerEmote(emote)
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .triggerSlap)) { _ in
-                engine.slap()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .botBlink)) { _ in
-                engine.blink()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .botSetTgEs)) { notif in
-                if let v = notif.object as? CGFloat {
-                    engine.tgEs = v
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .botGulp)) { _ in
-                engine.gulp()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .botMorphTo)) { notif in
-                if let target = notif.object as? CGFloat {
-                    let dur: CGFloat = target > 0.5 ? 550 : 650
-                    engine.anim("morph", keys: [TweenKey(target: target, duration: dur, ease: Ease.inOut)])
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .botGreet)) { _ in
-                engine.greet()
-            }
-            .onAppear {
-                engine.setState(state.effectiveState, force: true)
-                let isWardrobe = state.mode == .expanded && state.view == .wardrobe
-                let isFocusMain = state.focusId == state.mainPillId || state.focusId == nil
-                let showOutfit = isFocusMain || state.mode != .expanded || isWardrobe
-                engine.setOutfit(showOutfit ? state.resolvedOutfit : .none, animated: false)
-            }
-    }
-
-    private var observedTimeline: some View {
-        TimelineView(.animation(paused: state.mode == .hidden || paused)) { timeline in
-            let frame = timeline.date
-            Canvas { context, size in
-                renderMainFrame(context: context, size: size, frame: frame)
-            }
-        }
-        .onChange(of: state.effectiveState) { _, newState in
-            engine.setState(newState)
-        }
-        #if !APPSTORE
-        .onChange(of: state.voiceActive) { _, on in
-            if on { engine.enterVoiceCompact() } else { engine.exitVoiceCompact() }
-        }
-        #endif
-        .onChange(of: state.view) { oldView, newView in
-            if state.mode == .expanded && newView == .upload {
-                engine.anim("morph", keys: [TweenKey(target: 1, duration: 550, ease: Ease.inOut)])
-            } else if newView != .upload && newView != .uploading && engine.morph > 0.01 {
-                engine.anim("morph", keys: [TweenKey(target: 0, duration: 550, ease: Ease.inOut)])
-            }
-            #if !APPSTORE
-            if newView == .listening {
-                engine.enterListening()
-            } else if oldView == .listening {
-                engine.exitListening(hadCommand: !VoiceEngine.shared.commandTranscript.isEmpty)
-            }
-            #endif
-        }
-        .onChange(of: state.mode) { _, newMode in
-            if newMode != .expanded {
-                engine.tweens.removeValue(forKey: "morph")
-                engine.locks.remove("morph")
-                engine.morph = 0
-            }
-        }
-    }
-
-    private func renderMainFrame(context: GraphicsContext, size: CGSize, frame: Date) {
-        _ = frame
+        // Nova, not Mochi: the character and its animations are reserved by
+        // upstream's LICENSE-ASSETS.md even though they live in code.
+        //
+        // `lookXY` is kept and reused rather than replaced. It already returns
+        // the pointer as a tanh-normalised pair, which is exactly the gaze Nova
+        // takes, and following the pointer is most of what made this feel like
+        // something rather than a spinner.
+        //
+        // The engine wiring that used to live here — morph, slot, outfits, mood
+        // from MachineVitals, the greet and dance notifications — went with the
+        // character it animated. Those are expressions of Mochi, not state a
+        // dotted sphere can carry.
         let look = lookXY(state: state)
-        engine.lookX = look.x
-        engine.lookY = look.y
-        engine.particleOverhang = particleOverhang
-        engine.moodTarget = MachineVitals.shared.mood
-
-        if engine.morph > 0.3 {
-            engine.slotHTarget = state.fileDragOver ? 0.20 : 0
-        } else {
-            engine.slotHTarget = 0
-            if engine.morph < 0.05 { engine.slotH = 0; engine.slotHVel = 0 }
-        }
-
-        #if !APPSTORE
-        if state.showingPlanDetail {
-            let hex = state.planDetailIsCodex
-                ? CodexPlanGauge.color(state.codexPlanUsage)
-                : ClaudePlanGauge.color(for: state.claudePlanUsage.flatMap { ClaudePlanGauge.dominantPct($0) })
-            engine.bodyColor = cgColorFromHex(hex)
-        } else {
-            engine.bodyColor = (state.focusTask?.isIntegration == true)
-                ? cgColorFromHex(state.focusTask!.color)
-                : nil
-        }
-        #else
-        engine.bodyColor = (state.focusTask?.isIntegration == true)
-            ? cgColorFromHex(state.focusTask!.color)
-            : nil
-        #endif
-
-        let dancing: Bool = {
-            #if !APPSTORE
-            let active = AppState.shared.activeIntegrations
-            let music = AppState.shared.musicPlaying && active.contains("integration_music")
-            let spotify = SpotifyController.shared.isPlaying && active.contains(SpotifyController.pillId)
-            guard music || spotify else { return false }
-            let allowed: Set<BotState> = [.idle, .working, .thinking, .searching, .finished]
-            guard allowed.contains(state.effectiveState) else { return false }
-            if state.mode == .compact { return true }
-            guard state.mode == .expanded && state.view == .overview else { return false }
-            return (music && state.focusId == "integration_music")
-                || (spotify && state.focusId == SpotifyController.pillId)
-            #else
-            return false
-            #endif
-        }()
-        engine.setDancing(dancing)
-        let isWardrobe = state.mode == .expanded && state.view == .wardrobe
-        let isFocusMain = state.focusId == state.mainPillId || state.focusId == nil
-        let showOutfit = isFocusMain || state.mode != .expanded || isWardrobe
-        engine.setOutfit(showOutfit ? state.resolvedOutfit : .none,
-                         animated: state.view != .wardrobe)
-
-        #if !APPSTORE
-        if state.view == .listening {
-            let target = CGFloat(VoiceEngine.shared.micLevel)
-            engine.listeningLevel += (target - engine.listeningLevel) * 0.12
-            engine.listeningHasWords = !VoiceEngine.shared.commandTranscript.isEmpty
-        } else if state.voiceActive && state.mode == .compact {
-            let target = CGFloat(VoiceEngine.shared.micLevel)
-            engine.listeningLevel += (target - engine.listeningLevel) * 0.12
-        }
-        if state.voiceActive { engine.voiceSubState = state.voiceSubState }
-        else if engine.voiceSubState != .none { engine.voiceSubState = .none }
-        #endif
-
-        MochiFrameClock.advance(engine)
-        var ctx = context
-        engine.applyDance(&ctx, size: size)
-
-        let now = CACurrentMediaTime()
-        let t = CGFloat(now - engine.t0)
-        let breathe: CGFloat = engine.state == .sleeping ? sin(t * 1.4) * 0.035 : sin(t * 1.85) * 0.026
-        let bob = engine.oy + breathe
-
-        let gx: CGFloat
-        let gy: CGFloat
-        if engine.cfg.scans || engine.state == .sleeping || engine.state == .dizzy {
-            gx = engine.yaw / 0.62
-            gy = engine.pitch / 0.50
-        } else {
-            gx = engine.yaw / 0.62 * 0.72 + engine.lookX * 0.28
-            gy = engine.pitch / 0.50 * 0.72 + engine.lookY * 0.28
-        }
-
-        var resolvedShape = engine.eyeOverride ?? engine.cfg.eye
-        if engine.isDancing && engine.dancingLevel > 0.15 && (engine.state == .idle || engine.state == .finished) {
-            resolvedShape = .happy
-        }
-        let pulsePhase = CGFloat(t.truncatingRemainder(dividingBy: 1.75) / 1.75)
-
-        HeyApexEyeGlyph.draw(
-            context: ctx,
-            size: size,
-            state: engine.state,
-            eyeShape: resolvedShape,
-            gazeX: gx,
-            gazeY: gy,
-            open: engine.open,
-            bob: bob,
-            shakeX: engine.ox,
-            tilt: engine.tilt,
-            scaleX: engine.sx,
-            scaleY: engine.sy,
-            eyeScale: engine.es,
-            pulsePhase: pulsePhase,
-            isStatic: false,
-            particleOverhang: particleOverhang,
-            radiusScale: 0.30,
-            sessionCGColor: engine.bodyColor,
-            morph: engine.morph,
-            slotOpen: engine.slotH,
-            showBadge: engine.badge != nil && engine.badgeS > 0.2 && engine.morph < 0.25
+        NovaAvatarView(
+            energy: paused || state.mode == .hidden ? 0 : state.effectiveState.novaEnergy,
+            gaze: CGPoint(x: look.x, y: look.y),
+            // The main avatar is the one place large enough for the third shell
+            // to be visible rather than wasted.
+            detailed: true
         )
     }
 
-    /// Pointer gaze vector in normalized companion space (`+x` right, `+y` up).
+    /// Where Mochi looks (the pointer), both axes at once: the island geometry and the
+    /// screen are looked up once per frame instead of twice each.
     private func lookXY(state: AppState) -> (x: CGFloat, y: CGFloat) {
         if let origin = lookOriginOverride {
             return (tanh((state.mousePosition.x - origin.x) / 260),
@@ -221,6 +47,7 @@ struct BotCanvasView: View {
                                              nw: state.notchWidth, nh: state.notchHeight)
         let screen = IslandWindowController.islandScreen().frame
         let desktopTop = IslandWindowController.desktopTop
+        // The pointer read now, not from the island poll (which slows down far from it).
         let mouse = DesktopSpace.topDown(NSEvent.mouseLocation, desktopTop: desktopTop)
         func botPoint(islandH: CGFloat) -> CGPoint {
             let (botCx, botCy, _, _) = botPosition(mode: state.mode, view: state.view,
@@ -231,6 +58,7 @@ struct BotCanvasView: View {
                                         desktopTop: desktopTop)
         }
         let botX = botPoint(islandH: islandH)
+        // The chat view grows with the conversation: vertical look uses its real height.
         let actualH: CGFloat = (state.mode == .expanded && state.view == .prompt)
             ? min(300, 240 + CGFloat(state.chatHistory.count) * 40)
             : islandH
@@ -240,89 +68,37 @@ struct BotCanvasView: View {
     }
 }
 
-/// Mini HeyApex Eye canvas (for agent pills, compact 2×2 grid, and column strip)
+/// Mini bot canvas (for agent pills/column)
 struct MiniBotCanvasView: View {
     let task: AgentTask
     var isDancing: Bool = false
-    @StateObject private var engine: BotEngine
 
-    init(task: AgentTask, isDancing: Bool = false) {
-        self.task = task
-        self.isDancing = isDancing
-        _engine = StateObject(wrappedValue: {
-            let e = BotEngine()
-            e.isMini = true
-            e.bodyColor = cgColorFromHex(task.color)
-            return e
-        }())
-    }
+    // The BotEngine and the init that built it are gone with the character they
+    // drove. Leaving a @StateObject nothing reads would allocate an animation
+    // engine per pill to render nothing.
 
-    @Environment(\.islandViewActive) private var viewActive
 
     var body: some View {
-        TimelineView(.animation(paused: !viewActive)) { timeline in
-            let frame = timeline.date
-            Canvas { context, size in
-                _ = frame
-                engine.setDancing(isDancing)
-                MochiFrameClock.advance(engine)
-                var ctx = context
-                engine.applyDance(&ctx, size: size)
-
-                let t = CGFloat(CACurrentMediaTime() - engine.t0)
-                let bob = engine.oy + sin(t * 2.1) * 0.025
-                let gx = engine.yaw / 0.62
-                let gy = engine.pitch / 0.50
-                let pulsePhase = CGFloat(t.truncatingRemainder(dividingBy: 1.75) / 1.75)
-                let resolvedShape = engine.eyeOverride ?? engine.cfg.eye
-
-                HeyApexEyeGlyph.draw(
-                    context: ctx,
-                    size: size,
-                    state: engine.state,
-                    eyeShape: resolvedShape,
-                    gazeX: gx,
-                    gazeY: gy,
-                    open: engine.open,
-                    bob: bob,
-                    shakeX: engine.ox,
-                    tilt: engine.tilt,
-                    scaleX: engine.sx,
-                    scaleY: engine.sy,
-                    eyeScale: engine.es,
-                    pulsePhase: pulsePhase,
-                    isStatic: false,
-                    particleOverhang: 0,
-                    radiusScale: 0.30,
-                    sessionCGColor: engine.bodyColor,
-                    showBadge: false
-                )
-            }
-        }
-        .onChange(of: task.state) { _, newState in
-            engine.setState(newState)
-        }
-        .onChange(of: task.color) { _, newColor in
-            engine.bodyColor = cgColorFromHex(newColor)
-        }
-        .onAppear {
-            engine.setState(task.state, force: true)
-            if let emote = task.emote {
-                engine.setPermanentEmote(emote)
-            }
-            if let eye = task.miniEye {
-                engine.permanentEye = eye
-                engine.eyeOverride = eye
-                engine.eyeOverrideUntil = .greatestFiniteMagnitude
-            }
-        }
+        // Nova at pill size. `isDancing` was a Mochi gesture; here it reads as
+        // the loudest thing a mini can say, which is what a dance was for.
+        //
+        // task.color, task.emote and task.miniEye are no longer applied. They
+        // were Mochi's vocabulary — a tint, a face, an eye shape — and Nova
+        // says the same things through motion instead. Keeping them wired to
+        // nothing would be worse than dropping them: a colour picked in
+        // Settings that changes nothing on screen is a dead control.
+        NovaAvatarView(energy: isDancing ? 0.85 : task.state.novaEnergy)
     }
 }
 
 // MARK: - Frame clock
 
+/// Mochi's engine has always moved one `update(dt: 0.05)` per display frame (its look,
+/// colour, springs and particles are tuned to that). Drawing slower than the display must
+/// not slow Mochi down: each drawn frame runs the steps of the display frames it skipped.
 @MainActor
 enum MochiFrameClock {
+    /// The island screen's refresh rate, looked up at most every 2 s.
     private static var fpsCache: (value: Double, at: CFTimeInterval) = (60, -10)
     static var displayFPS: Double {
         let now = CACurrentMediaTime()
@@ -333,8 +109,17 @@ enum MochiFrameClock {
         return fpsCache.value
     }
 
+    /// minimumInterval for a target rate, 10 % short: display frames come every 16.6 ms
+    /// with jitter, and an interval of exactly 1/60 s skipped every other one (30 fps on a
+    /// 60 Hz screen). 60 on a 60 Hz screen draws every frame; on ProMotion, one in two.
     static func interval(fps: Double) -> TimeInterval { 0.9 / fps }
 
+    /// One engine step per drawn frame, exactly as before the frame clock (9 October): a
+    /// perfectly regular rhythm. The step-debt version measured the time between renders,
+    /// and its jitter made frames with 0 steps (Mochi froze) and frames with 2 or more
+    /// (Mochi jumped), several times a second: the stutter when the island opens and when
+    /// Mochi follows the pointer. Mochi draws at the display rate, so one step per frame
+    /// is one step per display frame, which is what his motion is tuned to.
     static func advance(_ engine: BotEngine) {
         engine.update(dt: 0.05)
     }
