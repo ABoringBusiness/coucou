@@ -29,9 +29,10 @@ struct BotCanvasView: View {
         NovaAvatarView(
             energy: paused || state.mode == .hidden ? 0 : state.effectiveState.novaEnergy,
             gaze: CGPoint(x: look.x, y: look.y),
-            // The main avatar is the one place large enough for the third shell
-            // to be visible rather than wasted.
-            detailed: true
+            detailed: true,
+            particleOverhang: particleOverhang,
+            bodyScale: 0.55,
+            tone: VesperTone(botState: state.effectiveState)
         )
     }
 
@@ -87,7 +88,11 @@ struct MiniBotCanvasView: View {
         // says the same things through motion instead. Keeping them wired to
         // nothing would be worse than dropping them: a colour picked in
         // Settings that changes nothing on screen is a dead control.
-        NovaAvatarView(energy: isDancing ? 0.85 : task.state.novaEnergy)
+        NovaAvatarView(
+            energy: isDancing ? 0.85 : task.state.novaEnergy,
+            bodyScale: 0.54,
+            tone: VesperTone(botState: task.state)
+        )
     }
 }
 

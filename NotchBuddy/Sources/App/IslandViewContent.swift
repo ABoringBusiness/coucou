@@ -4216,7 +4216,8 @@ struct AgentPill: View {
                         MiniBotCanvasView(task: task)
                             .frame(width: 22 / 0.6, height: 22 / 0.6)
                             .frame(width: 22, height: 22, alignment: .center)
-                            .padding(.leading, 8)
+                            .clipped()
+                            .padding(.leading, 7)
                         Spacer()
                     }
                     Text(displayName)
@@ -4224,6 +4225,8 @@ struct AgentPill: View {
                         .foregroundColor(isHovered ? Pace.ink : Pace.ink2)
                         .lineLimit(1)
                         .truncationMode(.tail)
+                        .padding(.leading, 30)
+                        .padding(.trailing, 8)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .frame(maxWidth: .infinity)
@@ -4276,7 +4279,8 @@ struct MusicPill: View {
                 MiniBotCanvasView(task: task, isDancing: isPlaying)
                     .frame(width: 22 / 0.6, height: 22 / 0.6)
                     .frame(width: 22, height: 22, alignment: .center)
-                    .padding(.leading, 8)
+                    .clipped()
+                    .padding(.leading, 7)
                 Spacer()
             }
             .allowsHitTesting(false)
@@ -4497,6 +4501,7 @@ struct ColumnAgentsView: View {
                 MiniBotCanvasView(task: task)
                     .frame(width: 16 / 0.6, height: 16 / 0.6)
                     .frame(width: 16, height: 16)
+                    .clipped()
                     .position(x: 0, y: CGFloat(50 + idx * 24))
                     .animation(.spring(response: 0.5, dampingFraction: 0.72).delay(Double(idx) * 0.035), value: idx)
             }

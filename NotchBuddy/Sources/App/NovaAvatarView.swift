@@ -1,254 +1,267 @@
 import SwiftUI
 
-/// Nova — the dotted avatar, drawn natively.
-///
-/// This replaces Mochi. Mochi's design, look, expressions and animations are
-/// reserved by upstream's LICENSE-ASSETS.md even though the character is drawn
-/// in code, so it cannot ship in a HeyApex build; Nova is ours.
-///
-/// It is a port of the Three.js `initNova3DAvatar`, not a reimplementation: the
-/// shell generation, the lobe/ripple displacement, the rotation terms and the
-/// eye behaviour are the same expressions with the same constants. What changed
-/// is the renderer.
-///
-/// **Why Canvas and not SceneKit.** The original pushes ~9,300 points through
-/// WebGL at 215×200. In the notch this draws at 30pt, where a GPU scene costs a
-/// Metal layer, a depth buffer and a second render loop to show roughly a
-/// thousand dots. Projecting the same points by hand into a `Canvas` is a few
-/// hundred lines of arithmetic per frame and composites with the rest of the
-/// SwiftUI tree for free. The shape of this view deliberately matches
-/// `FlowMochiView` so it drops into the same call sites.
+enum VesperTone {
+    case normal
+    case approval
+    case error
+
+    init(botState: BotState) {
+        switch botState {
+        case .approval, .question, .ratelimit:
+            self = .approval
+        case .error, .dizzy:
+            self = .error
+        default:
+            self = .normal
+        }
+    }
+}
+
 struct NovaAvatarView: View {
-    /// 0 at rest, approaching 1 while speaking or listening. Drives the lobe
-    /// amplitude, the eye pulse and the time step, exactly as in the original.
     var energy: Double = 0
-    /// Where the eyes look, in normalised screen space (-1...1). The host
-    /// decides whether that is the cursor, the active window, or nothing.
     var gaze: CGPoint = .zero
-    /// Rest is the common case and it does not need three shells; see `shells`.
     var detailed: Bool = false
+    var particleOverhang: CGFloat = 0
+    var bodyScale: CGFloat = 0.86
+    var tone: VesperTone = .normal
 
     var body: some View {
         TimelineView(.animation) { timeline in
             Canvas(opaque: false, rendersAsynchronously: false) { context, size in
-                draw(context: &context,
-                     size: size,
-                     time: timeline.date.timeIntervalSinceReferenceDate)
+                drawVesper(
+                    context: &context,
+                    size: size,
+                    time: timeline.date.timeIntervalSinceReferenceDate
+                )
             }
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
     }
 
-    // MARK: - Geometry
-
-    private struct Dot {
-        let x, y, z: Double
-        /// 0 = innermost shell (brightest), rising outward.
-        let band: Int
+    private struct Sample {
+        let x: Double
+        let y: Double
+        let z: Double
     }
 
-    /// Latitude/longitude point shells.
-    ///
-    /// The original uses three (38×76, 44×88, 34×68 ≈ 9,300 points). At the size
-    /// this view is actually used, the third shell lands inside the second's
-    /// dots and costs a third of the frame for nothing, so the default is two
-    /// coarser shells. `detailed` restores the original counts for the large
-    /// case.
-    private var shells: [(radius: Double, lat: Int, lon: Int)] {
-        detailed
-            ? [(1.06, 38, 76), (1.18, 44, 88), (1.30, 34, 68)]
-            : [(1.06, 14, 26), (1.21, 12, 22)]
+    private static let detailedSamples: [Sample] = makeFibonacci(count: 680)
+    private static let compactSamples: [Sample] = makeFibonacci(count: 180)
+
+    private static func makeFibonacci(count: Int) -> [Sample] {
+        var list: [Sample] = []
+        list.reserveCapacity(count)
+        let golden = Double.pi * (3.0 - sqrt(5.0))
+        let denom = Double(max(1, count - 1))
+        for i in 0..<count {
+            let y = 1.0 - (Double(i) / denom) * 2.0
+            let r = sqrt(max(0.0, 1.0 - y * y))
+            let theta = golden * Double(i)
+            let x = cos(theta) * r
+            let z = sin(theta) * r
+            list.append(Sample(x: x, y: y, z: z))
+        }
+        return list
     }
 
-    private var base: [Dot] {
-        var out: [Dot] = []
-        for (index, shell) in shells.enumerated() {
-            for i in 0...shell.lat {
-                let theta = Double(i) * .pi / Double(shell.lat)
-                let sinTheta = sin(theta), cosTheta = cos(theta)
-                for j in 0..<shell.lon {
-                    let phi = Double(j) * 2 * .pi / Double(shell.lon)
-                    let x = shell.radius * sinTheta * cos(phi)
-                    let y = shell.radius * cosTheta
-                    let z = shell.radius * sinTheta * sin(phi)
-                    // Carve the window the eyes show through. Without it the
-                    // front of the innermost shell sits in front of them.
-                    if z > 0.75, hypot(x, y * 1.1) < 0.56, index == 0 { continue }
-                    out.append(Dot(x: x, y: y, z: z, band: index))
-                }
-            }
+    private func palette() -> (top: (Double, Double, Double), mid: (Double, Double, Double), bottom: (Double, Double, Double)) {
+        switch tone {
+        case .normal:
+            return (
+                top: (0.08, 0.94, 0.52),
+                mid: (0.12, 0.82, 0.96),
+                bottom: (0.24, 0.18, 0.96)
+            )
+        case .approval:
+            return (
+                top: (1.00, 0.84, 0.28),
+                mid: (1.00, 0.62, 0.16),
+                bottom: (0.92, 0.28, 0.22)
+            )
+        case .error:
+            return (
+                top: (1.00, 0.46, 0.38),
+                mid: (0.96, 0.22, 0.30),
+                bottom: (0.58, 0.08, 0.24)
+            )
         }
-        return out
     }
 
-    // MARK: - Frame
+    private func drawVesper(context: inout GraphicsContext, size: CGSize, time: TimeInterval) {
+        let availH = max(1.0, size.height - particleOverhang)
+        let boxSide = min(size.width, availH)
+        let diameter = boxSide * bodyScale
+        guard diameter > 2 else { return }
 
-    private func draw(context: inout GraphicsContext, size: CGSize, time: TimeInterval) {
-        let side = min(size.width, size.height)
-        guard side > 1 else { return }
+        let cx = size.width * 0.5
+        let cy = particleOverhang + availH * 0.5
+        let maxR = diameter * 0.5
 
-        let t = time * (1.32 + energy * 2.4)
-        let camZ = 4.35
-        let focal = 1.0 / tan((42.0 * .pi / 180) / 2)
-        let half = side / 2
+        let speed = 0.85 + energy * 1.35
+        let t = time * speed
+        let pal = palette()
 
-        let waveAmp = 0.11 + energy * 0.18
-        let yaw = gaze.x * 0.55 + sin(t * 0.5) * 0.1
-        let pitch = -gaze.y * 0.45 + cos(t * 0.4) * 0.06
-        let roll = sin(t * 0.4) * 0.08
+        let topColor = Color(red: pal.top.0, green: pal.top.1, blue: pal.top.2)
+        let midColor = Color(red: pal.mid.0, green: pal.mid.1, blue: pal.mid.2)
+        let botColor = Color(red: pal.bottom.0, green: pal.bottom.1, blue: pal.bottom.2)
 
-        struct Projected { let px, py, r, z: Double; let band: Int; let frontness: Double }
-        var dots: [Projected] = []
-        dots.reserveCapacity(base.count)
+        let shiftX = gaze.x * maxR * 0.08
+        let shiftY = -gaze.y * maxR * 0.08
+        let ringCenter = CGPoint(x: cx + shiftX, y: cy + shiftY)
 
-        let dotRadius = side * (detailed ? 0.0062 : 0.013)
-
-        for dot in base {
-            let lobe = sin(dot.x * 2.6 + t)
-                * cos(dot.y * 2.6 - t * 0.85)
-                * sin(dot.z * 2.6 + t * 0.65)
-            let ripple = sin((dot.x * dot.x + dot.y * dot.y) * 3.2 - t * 1.8) * 0.04
-            let scale = 1 + lobe * waveAmp + ripple * (1 + energy * 1.6)
-
-            var x = dot.x * scale, y = dot.y * scale, z = dot.z * scale
-            let cr = cos(roll), sr = sin(roll)
-            (x, y) = (x * cr - y * sr, x * sr + y * cr)
-            let cy = cos(yaw), sy = sin(yaw)
-            (x, z) = (x * cy + z * sy, -x * sy + z * cy)
-            let cp = cos(pitch), sp = sin(pitch)
-            (y, z) = (y * cp - z * sp, y * sp + z * cp)
-
-            let depth = camZ - z
-            guard depth > 0.05 else { continue }
-            let frontness = max(0.2, (z + 1.3) / 2.6)
-            dots.append(Projected(px: half + x * focal / depth * half,
-                                  py: half - y * focal / depth * half,
-                                  r: dotRadius * (0.8 + frontness * 0.45),
-                                  z: z, band: dot.band, frontness: frontness))
-        }
-
-        // Painter's algorithm, because a Canvas has no depth buffer. The WebGL
-        // original relies on a dark SphereGeometry(0.92) sitting inside the
-        // shells to hide the far side; dropping it was what turned this into a
-        // white blob — every back dot drew over the front ones and additive
-        // blending saturated the lot.
-        //
-        // Order: far dots, then that core, then near dots, then the eyes. The
-        // eye sprites use depthTest:false upstream, which is "always on top".
-        let core = CORE_RADIUS * focal / (camZ) * half
-
-        func paint(_ subset: [Projected]) {
-            var paths = [Path(), Path(), Path()]
-            for d in subset {
-                paths[d.band].addEllipse(in: CGRect(x: d.px - d.r, y: d.py - d.r,
-                                                    width: d.r * 2, height: d.r * 2))
-            }
-            for (index, path) in paths.enumerated() where !path.isEmpty {
-                context.fill(path, with: .color(bandColor(index)))
-            }
-        }
-
-        paint(dots.filter { $0.z < 0 })
-
-        context.fill(
-            Path(ellipseIn: CGRect(x: half - core, y: half - core, width: core * 2, height: core * 2)),
-            with: .color(Color(red: 0.020, green: 0.027, blue: 0.035).opacity(0.94))
+        // 1. Soft ambient aurora halo behind the torus
+        let haloRect = CGRect(
+            x: ringCenter.x - maxR * 0.96,
+            y: ringCenter.y - maxR * 0.96,
+            width: maxR * 1.92,
+            height: maxR * 1.92
+        )
+        let gradStart = CGPoint(x: ringCenter.x, y: ringCenter.y - maxR * 0.88)
+        let gradEnd = CGPoint(x: ringCenter.x, y: ringCenter.y + maxR * 0.88)
+        let verticalGrad = Gradient(stops: [
+            .init(color: topColor.opacity(0.26), location: 0.0),
+            .init(color: midColor.opacity(0.22), location: 0.52),
+            .init(color: botColor.opacity(0.26), location: 1.0)
+        ])
+        var haloPath = Path()
+        haloPath.addEllipse(in: haloRect.insetBy(dx: maxR * 0.14, dy: maxR * 0.14))
+        context.stroke(
+            haloPath,
+            with: .linearGradient(verticalGrad, startPoint: gradStart, endPoint: gradEnd),
+            lineWidth: max(1.6, maxR * 0.34)
         )
 
-        paint(dots.filter { $0.z >= 0 })
+        // 2. Continuous undulating Vesper wave-ribbons around the hollow axial bore
+        let ringCount = detailed ? 7 : 4
+        let segs = detailed ? 64 : 36
+        let deform = 0.085 + energy * 0.065
 
-        drawEyes(context: &context, side: side, focal: focal, camZ: camZ, t: t)
-    }
+        for band in 0..<ringCount {
+            let frac = Double(band) / Double(max(1, ringCount - 1))
+            let baseFrac = 0.46 + frac * 0.38
+            let phase = Double(band) * 0.72
+            var wavePath = Path()
+            for s in 0...segs {
+                let ang = (Double(s) / Double(segs)) * Double.pi * 2.0
+                let w1 = sin(ang * 3.0 + t * 1.15 + phase) * 0.52
+                let w2 = cos(ang * 5.0 - t * 0.88 - phase * 0.7) * 0.32
+                let w3 = sin(ang * 7.0 + t * 1.62 + phase * 1.3) * 0.16
+                let disp = (w1 + w2 + w3) * deform
+                let r = Double(maxR) * min(0.95, baseFrac * (1.0 + disp))
+                let px = Double(ringCenter.x) + cos(ang) * r
+                let py = Double(ringCenter.y) + sin(ang) * r
+                if s == 0 {
+                    wavePath.move(to: CGPoint(x: px, y: py))
+                } else {
+                    wavePath.addLine(to: CGPoint(x: px, y: py))
+                }
+            }
+            wavePath.closeSubpath()
 
-    /// The dark inner sphere's radius in the original.
-    private let CORE_RADIUS = 0.92
-
-    /// Per-shell colour. Normal blending rather than additive: additive needs a
-    /// depth-sorted GPU to stay readable, and at 34pt it just clips to white.
-    private func bandColor(_ index: Int) -> Color {
-        switch index {
-        case 0:  return Color(red: 0.97, green: 0.99, blue: 1.00).opacity(0.97)
-        case 1:  return Color(red: 0.72, green: 0.92, blue: 0.90).opacity(0.72)
-        default: return Color(red: 0.42, green: 0.66, blue: 0.64).opacity(0.52)
+            let alpha = 0.24 + sin(frac * Double.pi) * 0.38
+            let ribbonGrad = Gradient(stops: [
+                .init(color: topColor.opacity(alpha), location: 0.0),
+                .init(color: midColor.opacity(alpha * 0.95), location: 0.5),
+                .init(color: botColor.opacity(alpha), location: 1.0)
+            ])
+            let strokeW = max(1.0, maxR * (detailed ? 0.095 : 0.14))
+            context.stroke(
+                wavePath,
+                with: .linearGradient(ribbonGrad, startPoint: gradStart, endPoint: gradEnd),
+                style: StrokeStyle(lineWidth: strokeW, lineCap: .round, lineJoin: .round)
+            )
         }
-    }
 
-    private func drawEyes(context: inout GraphicsContext, side: CGFloat,
-                          focal: Double, camZ: Double, t: TimeInterval) {
-        let half = side / 2
-        let blink = blinkFactor(at: t)
-        let pulse = 1 + energy * 0.22 * sin(t * 8)
-        let scaleY = max(0.05, 0.46 * blink * pulse)
+        // 3. Volumetric Fibonacci cloud (exact VESPER_ORB_VERT bore & displacement)
+        let samples = detailed ? Self.detailedSamples : Self.compactSamples
+        let yaw = Double(gaze.x) * 0.42 + t * 0.22
+        let pitch = Double(-gaze.y) * 0.34 + sin(t * 0.18) * 0.28
+        let cyaw = cos(yaw), syaw = sin(yaw)
+        let cpitch = cos(pitch), spitch = sin(pitch)
 
-        for sign in [-1.0, 1.0] {
-            let ex = sign * 0.27 + gaze.x * 0.32
-            let ey = 0.02 + gaze.y * 0.28
-            let depth = camZ - 0.94
-            let px = half + ex * focal / depth * half
-            let py = half - ey * focal / depth * half
-            let w = 0.32 * focal / depth * half
-            let h = scaleY * focal / depth * half
-            let rect = CGRect(x: px - w / 2, y: py - h / 2, width: w, height: h)
-            // A soft pass under a hard one: the sprite texture was a white
-            // capsule inside a glow, and two fills is the cheapest way to say
-            // the same thing.
-            context.fill(Path(ellipseIn: rect.insetBy(dx: -w * 0.5, dy: -h * 0.35)),
-                         with: .color(.white.opacity(0.16)))
-            context.fill(Path(ellipseIn: rect), with: .color(.white.opacity(0.97)))
+        let orbDeform = 0.14 + energy * 0.18
+        let boreBase = 0.36 + energy * 0.08
+        let bucketCount = 6
+        var buckets = Array(repeating: Path(), count: bucketCount)
+        let puffR = max(0.85, Double(maxR) * (detailed ? 0.068 : 0.105))
+
+        for p in samples {
+            let n1 = sin(p.x * 2.3 + t * 0.92) * cos(p.y * 2.3 - t * 0.74) * sin(p.z * 2.3 + t * 0.61)
+            let n2 = sin((p.x + p.y) * 4.2 - t * 1.4) * 0.32
+            let disp = n1 * 0.72 + n2 * 0.28
+            let sc = 1.0 + orbDeform * disp
+
+            let sx = p.x * sc
+            let sy = p.y * sc
+            let sz = p.z * sc
+
+            let rx = sx * cyaw + sz * syaw
+            let rz0 = -sx * syaw + sz * cyaw
+            let ry = sy * cpitch - rz0 * spitch
+            let rz = sy * spitch + rz0 * cpitch
+
+            let radial = hypot(rx, ry)
+            let bore = boreBase * (1.0 + disp * 0.38)
+            if radial < bore { continue }
+
+            let clampedScale = min(0.95 / max(0.001, radial), 0.78)
+            let px = Double(ringCenter.x) + rx * Double(maxR) * clampedScale
+            let py = Double(ringCenter.y) - ry * Double(maxR) * clampedScale
+
+            let vt = max(0.0, min(1.0, ry * 0.5 + 0.5))
+            let idx = min(bucketCount - 1, max(0, Int(vt * Double(bucketCount))))
+            let depthScale = 0.75 + max(0.0, (rz + 1.0) * 0.25)
+            let pr = puffR * depthScale
+            buckets[idx].addEllipse(in: CGRect(x: px - pr, y: py - pr, width: pr * 2.0, height: pr * 2.0))
         }
-    }
 
-    /// Eyes close roughly every 2–4 seconds and the blink itself is fast.
-    ///
-    /// The original counts frames down to a random next blink. Derived from the
-    /// clock instead so it does not drift with frame rate, and so this view
-    /// holds no mutable state.
-    private func blinkFactor(at t: TimeInterval) -> Double {
-        let period = 3.1
-        let phase = t.truncatingRemainder(dividingBy: period)
-        let blinkLength = 0.22
-        guard phase < blinkLength else { return 1 }
-        return abs(cos(.pi * phase / blinkLength))
+        for idx in 0..<bucketCount where !buckets[idx].isEmpty {
+            let vt = (Double(idx) + 0.5) / Double(bucketCount)
+            let c: (Double, Double, Double)
+            if vt >= 0.5 {
+                let k = (vt - 0.5) * 2.0
+                c = (
+                    pal.mid.0 + (pal.top.0 - pal.mid.0) * k,
+                    pal.mid.1 + (pal.top.1 - pal.mid.1) * k,
+                    pal.mid.2 + (pal.top.2 - pal.mid.2) * k
+                )
+            } else {
+                let k = vt * 2.0
+                c = (
+                    pal.bottom.0 + (pal.mid.0 - pal.bottom.0) * k,
+                    pal.bottom.1 + (pal.mid.1 - pal.bottom.1) * k,
+                    pal.bottom.2 + (pal.mid.2 - pal.bottom.2) * k
+                )
+            }
+            let puffAlpha = detailed ? 0.24 : 0.32
+            context.fill(buckets[idx], with: .color(Color(red: c.0, green: c.1, blue: c.2).opacity(puffAlpha)))
+        }
     }
 }
 
 #Preview {
     HStack(spacing: 18) {
         NovaAvatarView().frame(width: 30, height: 30)
-        NovaAvatarView(energy: 0.85).frame(width: 30, height: 30)
-        NovaAvatarView(energy: 0.4, detailed: true).frame(width: 120, height: 120)
+        NovaAvatarView(energy: 0.85, tone: .approval).frame(width: 30, height: 30)
+        NovaAvatarView(energy: 0.45, detailed: true).frame(width: 96, height: 96)
     }
     .padding(26)
     .background(Color.black)
 }
 
-// MARK: - What a bot state looks like
-
 extension BotState {
-    /// How much Nova should move for this state.
-    ///
-    /// One mapping for every surface, so the pill, the minis and the hub cannot
-    /// drift into disagreeing about what "working" looks like. The scale is the
-    /// avatar's `energy`: 0 is still, 1 is the speaking peak.
-    ///
-    /// Grouped by what the user should FEEL, not by how the states are named:
-    /// something waiting on them moves most, something in progress moves
-    /// steadily, something stopped barely moves at all.
     var novaEnergy: Double {
         switch self {
-        case .idle:                       return 0
-        case .sleeping:                   return 0
-        // Waiting on a person. This is the only group allowed to be loud,
-        // because it is the only group a person has to act on.
-        case .approval, .question:        return 0.78
-        // In progress. Enough motion to read as alive across a room, not
-        // enough to pull the eye off whatever the user is actually doing.
-        case .working, .thinking,
-             .searching:                  return 0.42
-        // Stopped, and not going anywhere without help.
-        case .error, .dizzy, .ratelimit:  return 0.5
-        case .finished:                   return 0.3
+        case .idle, .sleeping:
+            return 0.08
+        case .approval, .question:
+            return 0.78
+        case .working, .thinking, .searching:
+            return 0.45
+        case .error, .dizzy, .ratelimit:
+            return 0.52
+        case .finished:
+            return 0.25
         }
     }
 }

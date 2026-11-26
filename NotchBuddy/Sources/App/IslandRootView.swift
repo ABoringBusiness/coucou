@@ -697,6 +697,7 @@ struct CompactMiniGrid: View {
                 MiniBotCanvasView(task: task)
                     .frame(width: 12 / 0.6, height: 12 / 0.6)
                     .frame(width: 12, height: 12, alignment: .center)
+                    .clipped()
             }
         }
         .frame(width: 28, height: 28)
