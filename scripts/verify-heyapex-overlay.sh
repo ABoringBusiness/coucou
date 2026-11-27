@@ -62,6 +62,31 @@ grep -q 'com.aboringbusiness.heyapex' "${FLOW_PILL}" \
   || fail "HeyApexHost desktop bundle detection missing in ${FLOW_PILL}"
 pass "HeyApex Eye pbxproj identity and HeyApexHost bottom-pill collision guard verified"
 
+# 5b. Zero stock Coucou/Mochi animations or UI branding leaks
+GREET_VIEW="NotchBuddy/Sources/App/GreetingCanvasView.swift"
+UPLOAD_VIEW="NotchBuddy/Sources/App/UploadCanvasView.swift"
+DESKTOP_VIEW="NotchBuddy/Sources/App/DesktopMochi.swift"
+APP_DELEGATE="NotchBuddy/Sources/App/AppDelegate.swift"
+SETTINGS_VIEW="NotchBuddy/Sources/App/SettingsView.swift"
+
+if grep -Eq 'mochiPath|drawMochi|play\("greeting"\)' "${GREET_VIEW}"; then
+  fail "Stock Coucou greeting character/music found in ${GREET_VIEW}"
+fi
+grep -q 'NovaAvatarView' "${GREET_VIEW}" \
+  || fail "GreetingCanvasView must render bespoke Vesper NovaAvatarView ignition"
+if grep -Eq 'drawMochi|usBodyPath|drawEyeShape' "${UPLOAD_VIEW}"; then
+  fail "Stock Mochi mouth-suction animation found in ${UPLOAD_VIEW}"
+fi
+grep -q 'NovaAvatarView' "${DESKTOP_VIEW}" \
+  || fail "DesktopMochi.swift must render Vesper NovaAvatarView"
+if grep -Fq '"Open Coucou"' "${APP_DELEGATE}"; then
+  fail "Stock 'Open Coucou' menu label found in ${APP_DELEGATE}"
+fi
+if grep -Eq '"Show Mochi on"|"Restart Coucou"' "${SETTINGS_VIEW}"; then
+  fail "Stock Coucou/Mochi label found in ${SETTINGS_VIEW}"
+fi
+pass "Zero stock Coucou/Mochi animations or UI strings (Vesper ignition + portal active)"
+
 # 6. Fast Swift contract unit tests
 CONTRACT_TESTS=(
   "scripts/test-pill-colors.sh"

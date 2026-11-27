@@ -221,11 +221,16 @@ struct OverviewView: View {
         switch task.id {
         case "integration_claude":
             if ClaudeHost.activate(task.hostApp) { return }
-            let vscodeBundleId = "com.microsoft.VSCode"
-            if let app = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == vscodeBundleId }) {
-                app.activate(options: .activateIgnoringOtherApps)
+            if let vscode = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode") {
+                NSWorkspace.shared.openApplication(at: vscode, configuration: .init(), completionHandler: nil)
             } else {
-                NSWorkspace.shared.open(URL(fileURLWithPath: "/Applications/Visual Studio Code.app"))
+                #if !APPSTORE
+                if !TerminalTarget.activate(sessionBundleId: task.sessionBundleId) {
+                    NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
+                }
+                #else
+                NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
+                #endif
             }
         case "integration_resend":
             NSWorkspace.shared.open(URL(string: "https://resend.com/emails")!)
@@ -4565,219 +4570,73 @@ struct ColumnAgentsView: View {
     }
 }
 
-// MARK: - Wardrobe
+// MARK: - Companion appearance (Vesper fluid torus — zero legacy Mochi outfits)
 
 struct WardrobeView: View {
     @ObservedObject var state: AppState
-    @State private var hoveredOutfit: Outfit? = nil
-
-    private let columns = Array(repeating: GridItem(.fixed(30), spacing: 5), count: 14)
-
-    private var headerRight: String {
-        if let h = hoveredOutfit {
-            if h == .auto {
-                let seasonal = Outfit.seasonal(for: Date(), calendar: .current)
-                let name = seasonal == .none ? "None" : seasonal.displayName
-                return "Auto · follows the seasons (now: \(name))"
-            }
-            return h.displayName
-        }
-        let sel = state.mochiOutfitSelection
-        if sel == .auto {
-            let seasonal = Outfit.seasonal(for: Date(), calendar: .current)
-            let name = seasonal == .none ? "None" : seasonal.displayName
-            return "Auto · \(name)"
-        }
-        return sel.displayName
-    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header
-            HStack(spacing: 6) {
-                Text("Wardrobe")
-                    .font(.system(size: 12, weight: .semibold))
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(Pace.mint)
+                    .frame(width: 6, height: 6)
+                Text("Vesper Companion")
+                    .font(.system(size: 12.5, weight: .semibold))
                     .foregroundColor(Pace.ink)
                 Spacer(minLength: 4)
-                Text(headerRight)
-                    .font(.system(size: 11))
-                    .foregroundColor(Pace.ink3)
-                    .lineLimit(1)
-            }
-            .padding(.top, 6)
-            .padding(.horizontal, 10)
-
-            // Grid
-            let allOutfits = Outfit.allCases.filter { $0 != .auto }
-            let withAuto = [Outfit.auto] + allOutfits
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVGrid(columns: columns, spacing: 5) {
-                    ForEach(withAuto, id: \.rawValue) { outfit in
-                        OutfitPillView(
-                            outfit: outfit,
-                            isSelected: state.mochiOutfitSelection == outfit,
-                            isHovered: hoveredOutfit == outfit,
-                            onHover: { h in
-                                hoveredOutfit = h ? outfit : nil
-                                if h {
-                                    let preview: Outfit = outfit == .auto
-                                        ? Outfit.seasonal(for: Date(), calendar: .current)
-                                        : outfit
-                                    state.wardrobePreviewOutfit = preview
-                                } else if hoveredOutfit == nil {
-                                    state.wardrobePreviewOutfit = nil
-                                }
-                            },
-                            onTap: {
-                                guard state.mochiOutfitSelection != outfit else { return }
-                                state.mochiOutfitSelection = outfit
-                                SoundEngine.shared.play("pop")
-                                NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.proud)
-                            },
-                            seasonalOutfit: outfit == .auto ? state.resolvedOutfit : .none
-                        )
+                Button("Done") {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        state.view = .overview
                     }
                 }
-                .padding(.vertical, 6)
-                .padding(.horizontal, 8)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(Pace.mint)
+                .buttonStyle(.plain)
             }
-            .frame(maxHeight: .infinity)
-            .mask(
-                LinearGradient(
-                    stops: [
-                        .init(color: .white, location: 0),
-                        .init(color: .white, location: 0.85),
-                        .init(color: .clear, location: 1)
-                    ],
-                    startPoint: .top, endPoint: .bottom
-                )
-            )
+            .padding(.top, 8)
+
+            Text("State-driven volumetric torus synced with HeyApex Pace tokens — mint when ready, blue when acting, amber on approval, coral on error.")
+                .font(.system(size: 11))
+                .foregroundColor(Pace.ink3)
+                .lineLimit(2)
+
+            HStack(spacing: 8) {
+                ForEach([
+                    ("Ready", Pace.mint),
+                    ("Acting", Pace.act),
+                    ("Needs you", Pace.hold),
+                    ("Error", Pace.fail)
+                ], id: \.0) { item in
+                    HStack(spacing: 5) {
+                        Circle().fill(item.1).frame(width: 5, height: 5)
+                        Text(item.0)
+                            .font(.system(size: 10.5, weight: .medium))
+                            .foregroundColor(Pace.ink2)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Pace.raised)
+                    .clipShape(RoundedRectangle(cornerRadius: Pace.r, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                            .stroke(Pace.line, lineWidth: 1)
+                    )
+                }
+            }
         }
         .padding(.leading, 108)
-        .padding(.trailing, 12)
+        .padding(.trailing, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .onDisappear {
+        .onAppear {
+            state.mochiOutfitSelection = .none
             state.wardrobePreviewOutfit = nil
-            hoveredOutfit = nil
         }
         .onExitCommand {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 state.view = .overview
             }
         }
-    }
-}
-
-struct OutfitPillView: View {
-    let outfit: Outfit
-    let isSelected: Bool
-    let isHovered: Bool
-    let onHover: (Bool) -> Void
-    let onTap: () -> Void
-    var seasonalOutfit: Outfit = .none
-
-    var body: some View {
-        Canvas { context, size in
-            drawOutfitIcon(context: context, size: size, outfit: outfit, seasonal: seasonalOutfit)
-        }
-        .frame(width: 30, height: 30)
-        .background(
-            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
-                .fill(isSelected ? Pace.mintSoft : (isHovered ? Pace.raised2 : Pace.sunk))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
-                .stroke(isSelected ? Pace.mint : Pace.line, lineWidth: 1)
-        )
-        .onHover { onHover($0) }
-        .onTapGesture { onTap() }
-    }
-}
-
-private func drawOutfitIcon(context: GraphicsContext, size: CGSize, outfit: Outfit, seasonal: Outfit = .none) {
-    let W = size.width, H = size.height
-    let cx = W / 2, cy = H / 2
-    let R: CGFloat = 6.5
-
-    switch outfit {
-    case .auto:
-        let iconR: CGFloat = 8.5
-        let ry = iconR * 0.88
-        let mH = MochiH(R: iconR, yaw: 0, pitch: 0)
-        let iconCY = cy + iconR * 0.25
-
-        if seasonal != .none && seasonal != .auto {
-            drawOutfitBehindStatic(context: context, outfit: seasonal, H: mH,
-                                   cx: cx, cy: iconCY, tilt: 0, sx: 1, sy: 1,
-                                   roll: 0, morph: 0, isMini: false)
-        }
-
-        HeyApexEyeGlyph.draw(
-            context: context,
-            size: size,
-            state: .idle,
-            eyeShape: .pill,
-            gazeX: 0,
-            gazeY: 0,
-            open: 1,
-            bob: 0.08,
-            isStatic: true,
-            radiusScale: 0.27
-        )
-
-        if seasonal != .none && seasonal != .auto {
-            drawOutfitFrontStatic(context: context, outfit: seasonal, H: mH,
-                                  cx: cx, cy: iconCY, tilt: 0, sx: 1, sy: 1,
-                                  roll: 0, morph: 0, isMini: false)
-        }
-
-        var badgeCtx = context
-        let badgeCY = iconCY + ry * 0.86
-        badgeCtx.translateBy(x: cx, y: badgeCY)
-        let bw: CGFloat = 15, bh: CGFloat = 6.5
-        let badge = Path(roundedRect: CGRect(x: -bw/2, y: -bh/2, width: bw, height: bh),
-                         cornerRadius: bh/2, style: .continuous)
-        badgeCtx.fill(badge, with: .color(Pace.ground))
-        badgeCtx.stroke(badge, with: .color(Pace.line), lineWidth: 0.75)
-        badgeCtx.draw(Text("Auto").font(.system(size: 4.5, weight: .semibold)).foregroundColor(Pace.ink2),
-                      at: .zero)
-
-    case .none:
-        var ctx = context
-        ctx.translateBy(x: cx, y: cy)
-        var circle = Path()
-        circle.addEllipse(in: CGRect(x: -R * 0.82, y: -R * 0.82, width: R * 1.64, height: R * 1.64))
-        ctx.stroke(circle, with: .color(Pace.ink3), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
-        var slash = Path()
-        slash.move(to:    CGPoint(x: -R * 0.56, y:  R * 0.56))
-        slash.addLine(to: CGPoint(x:  R * 0.56, y: -R * 0.56))
-        ctx.stroke(slash, with: .color(Pace.ink3), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
-
-    default:
-        let iconR: CGFloat = 8.5
-        let mH = MochiH(R: iconR, yaw: 0, pitch: 0)
-        let iconCY = cy + iconR * 0.45
-
-        drawOutfitBehindStatic(context: context, outfit: outfit, H: mH,
-                               cx: cx, cy: iconCY, tilt: 0, sx: 1, sy: 1,
-                               roll: 0, morph: 0, isMini: false)
-
-        HeyApexEyeGlyph.draw(
-            context: context,
-            size: size,
-            state: .idle,
-            eyeShape: .pill,
-            gazeX: 0,
-            gazeY: 0,
-            open: 1,
-            bob: 0.35,
-            isStatic: true,
-            radiusScale: 0.27
-        )
-
-        drawOutfitFrontStatic(context: context, outfit: outfit, H: mH,
-                              cx: cx, cy: iconCY, tilt: 0, sx: 1, sy: 1,
-                              roll: 0, morph: 0, isMini: false)
     }
 }
 // MARK: - Card background

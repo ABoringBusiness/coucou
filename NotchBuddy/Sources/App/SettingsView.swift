@@ -330,7 +330,7 @@ struct SettingsView: View {
                     }
                 }
                 .disabled(!state.soundEnabled)
-                Text("Drop a file named like one of Mochi's sounds (finish.wav, approval.mp3, greet.m4a…) in the sounds folder to replace it, then Reload.")
+                Text("Drop a custom sound file (finish.wav, approval.mp3, peek.m4a…) into the sounds folder to override HeyApex Eye cues, then Reload.")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -362,7 +362,7 @@ struct SettingsView: View {
 
         GroupBox("Display") {
             VStack(alignment: .leading, spacing: 10) {
-                Picker("Show Mochi on", selection: $state.islandDisplay) {
+                Picker("Show HeyApex Eye on", selection: $state.islandDisplay) {
                     Text("Screen with the notch").tag(IslandDisplayChoice.notch)
                     Text("Main screen (menu bar)").tag(IslandDisplayChoice.menuBar)
                     Text("Follow the mouse").tag(IslandDisplayChoice.followMouse)
@@ -376,7 +376,7 @@ struct SettingsView: View {
                     }
                 }
                 .frame(maxWidth: 360)
-                Text("On a screen without a notch, Mochi sits in a small bar at the top. Follow the mouse moves it to your cursor's screen while it is closed.")
+                Text("On a screen without a notch, HeyApex Eye sits in a slim top bar. Follow the mouse moves it to your cursor's screen while closed.")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -476,7 +476,7 @@ struct SettingsView: View {
                     UserDefaults.standard.synchronize()
                 }
                 HStack(spacing: 8) {
-                    Button(String(localized: "Restart Coucou")) {
+                    Button("Restart HeyApex Eye") {
                         let appPath = Bundle.main.bundleURL.path
                         let pid = ProcessInfo.processInfo.processIdentifier
                         let task = Process()
@@ -1385,8 +1385,8 @@ struct SettingsView: View {
 
     private func speakVoiceSample() {
         let en = voiceLanguage != "fr"
-        VoiceSpeaker.shared.speak(en ? "Hi, I'm Coucou. Say OK Coucou whenever you need me."
-                                     : "Salut, c'est Coucou. Dis OK Coucou quand tu as besoin de moi.",
+        VoiceSpeaker.shared.speak(en ? "Hi, I'm HeyApex. Say Hey Apex whenever you need me."
+                                     : "Salut, c'est HeyApex. Dis Hey Apex quand tu as besoin de moi.",
                                   locale: Locale(identifier: en ? "en-US" : "fr-FR"))
     }
 
@@ -1394,9 +1394,7 @@ struct SettingsView: View {
         // Flow dictation: hold a key anywhere, speak, the words are pasted where you type.
         FlowSettingsBox()
 
-        // Claude is Coucou's brain: no model, language or feature switches any more,
-        // only the wake word, the Anthropic key it needs, and Coucou's voice.
-        GroupBox(String(localized: "«\u{202F}OK Coucou\u{202F}» — voice wake word")) {
+        GroupBox("«\u{202F}Hey Apex\u{202F}» — voice wake word") {
             VStack(alignment: .leading, spacing: 10) {
                 Toggle(String(localized: "Enable voice command"), isOn: $voiceEngine.isEnabled)
                     .disabled(!voicePermissionsGranted && !voiceEngine.isEnabled)

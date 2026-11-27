@@ -24,9 +24,11 @@ struct NovaAvatarView: View {
     var particleOverhang: CGFloat = 0
     var bodyScale: CGFloat = 0.86
     var tone: VesperTone = .normal
+    var fpsCap: Double = 60
+    var paused: Bool = false
 
     var body: some View {
-        TimelineView(.animation) { timeline in
+        TimelineView(.animation(minimumInterval: 0.9 / max(15, fpsCap), paused: paused)) { timeline in
             Canvas(opaque: false, rendersAsynchronously: false) { context, size in
                 drawVesper(
                     context: &context,

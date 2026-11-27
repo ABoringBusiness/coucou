@@ -32,77 +32,18 @@ struct DesktopBotView: View {
     @ObservedObject var viewState: DesktopBotViewState
 
     var body: some View {
-        TimelineView(.animation(paused: viewState.paused)) { timeline in
-            Canvas { ctx, size in
-                _ = timeline.date   // force redraw every tick
-
-                // Eye tracking based on the panel's own screen position
-                engine.lookX = tanh((appState.mousePosition.x - viewState.lookOrigin.x) / 260)
-                engine.lookY = -tanh((appState.mousePosition.y - viewState.lookOrigin.y) / 200)
-                engine.moodTarget = MachineVitals.shared.mood
-                engine.setOutfit(appState.resolvedOutfit, animated: true)
-
-                let dancing: Bool = {
-                    #if !APPSTORE
-                    let music = appState.musicPlaying && appState.activeIntegrations.contains("integration_music")
-                    let spotify = SpotifyController.shared.isPlaying
-                        && appState.activeIntegrations.contains(SpotifyController.pillId)
-                    guard music || spotify else { return false }
-                    let allowed: Set<BotState> = [.idle, .working, .thinking, .searching, .finished]
-                    return allowed.contains(appState.effectiveState)
-                    #else
-                    return false
-                    #endif
-                }()
-                engine.setDancing(dancing)
-                MochiFrameClock.advance(engine)
-
-                var c = ctx
-                engine.applyDance(&c, size: size)
-
-                let now = CACurrentMediaTime()
-                let t = CGFloat(now - engine.t0)
-                let breathe: CGFloat = engine.state == .sleeping ? sin(t * 1.4) * 0.035 : sin(t * 1.85) * 0.026
-                let bob = engine.oy + breathe
-
-                let gx: CGFloat
-                let gy: CGFloat
-                if engine.cfg.scans || engine.state == .sleeping || engine.state == .dizzy {
-                    gx = engine.yaw / 0.62
-                    gy = engine.pitch / 0.50
-                } else {
-                    gx = engine.yaw / 0.62 * 0.72 + engine.lookX * 0.28
-                    gy = engine.pitch / 0.50 * 0.72 + engine.lookY * 0.28
-                }
-
-                var resolvedShape = engine.eyeOverride ?? engine.cfg.eye
-                if engine.isDancing && engine.dancingLevel > 0.15 && (engine.state == .idle || engine.state == .finished) {
-                    resolvedShape = .happy
-                }
-                let pulsePhase = CGFloat(t.truncatingRemainder(dividingBy: 1.75) / 1.75)
-
-                HeyApexEyeGlyph.draw(
-                    context: c,
-                    size: size,
-                    state: viewState.isSleeping ? .sleeping : engine.state,
-                    eyeShape: viewState.isSleeping ? .closed : resolvedShape,
-                    gazeX: gx,
-                    gazeY: gy,
-                    open: engine.open,
-                    bob: bob,
-                    shakeX: engine.ox,
-                    tilt: engine.tilt + engine.roll,
-                    scaleX: engine.sx,
-                    scaleY: engine.sy,
-                    eyeScale: engine.es,
-                    pulsePhase: pulsePhase,
-                    isStatic: false,
-                    particleOverhang: 0,
-                    radiusScale: DesktopMochiLogic.bodyRadiusFraction,
-                    showBadge: engine.badge != nil && engine.badgeS > 0.2
-                )
-            }
-        }
+        let gx = tanh((appState.mousePosition.x - viewState.lookOrigin.x) / 260)
+        let gy = -tanh((appState.mousePosition.y - viewState.lookOrigin.y) / 200)
+        let activeState: BotState = viewState.isSleeping ? .sleeping : appState.effectiveState
+        NovaAvatarView(
+            energy: viewState.isSleeping ? 0.05 : appState.effectiveState.novaEnergy,
+            gaze: CGPoint(x: gx, y: gy),
+            detailed: true,
+            bodyScale: 0.80,
+            tone: VesperTone(botState: activeState),
+            fpsCap: viewState.isSleeping ? 15 : 60,
+            paused: viewState.paused
+        )
         .scaleEffect(viewState.isHovered ? 1.07 : 1.0)
         .animation(.spring(response: 0.25, dampingFraction: 0.6), value: viewState.isHovered)
         .onChange(of: appState.effectiveState) { _, newState in
@@ -110,7 +51,6 @@ struct DesktopBotView: View {
         }
         .onAppear {
             engine.setState(appState.effectiveState, force: true)
-            engine.setOutfit(appState.resolvedOutfit, animated: false)
         }
     }
 }

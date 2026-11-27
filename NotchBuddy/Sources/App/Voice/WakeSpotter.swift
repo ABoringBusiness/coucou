@@ -98,7 +98,7 @@ final class WakeSpotter: @unchecked Sendable {
             req.shouldReportPartialResults  = true
             req.requiresOnDeviceRecognition = true
             let extra = startInCommandPhase ? additionalContextualStrings : [String]()
-            req.contextualStrings = ["Coucou", "OK Coucou", "okay Coucou", "hey Coucou"] + extra
+            req.contextualStrings = ["Hey Apex", "OK Apex", "HeyApex", "Apex"] + extra
             preroll.forEach { req.append($0) }
 
             recognizer   = r

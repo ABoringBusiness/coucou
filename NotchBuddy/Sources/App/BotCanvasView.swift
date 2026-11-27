@@ -26,13 +26,17 @@ struct BotCanvasView: View {
         // character it animated. Those are expressions of Mochi, not state a
         // dotted sphere can carry.
         let look = lookXY(state: state)
+        let isHidden = paused || state.mode == .hidden
+        let targetFPS: Double = state.mode == .expanded ? 60 : 30
         NovaAvatarView(
-            energy: paused || state.mode == .hidden ? 0 : state.effectiveState.novaEnergy,
+            energy: isHidden ? 0 : state.effectiveState.novaEnergy,
             gaze: CGPoint(x: look.x, y: look.y),
-            detailed: true,
+            detailed: state.mode == .expanded,
             particleOverhang: particleOverhang,
             bodyScale: 0.55,
-            tone: VesperTone(botState: state.effectiveState)
+            tone: VesperTone(botState: state.effectiveState),
+            fpsCap: targetFPS,
+            paused: isHidden
         )
     }
 

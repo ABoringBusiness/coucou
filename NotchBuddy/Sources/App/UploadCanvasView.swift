@@ -147,10 +147,10 @@ struct UploadCanvasView: View {
             drawChooseView(ctx: &c, f: f)
         }
 
-        // ── Mochi ─────────────────────────────────────────────────
-        drawMochi(ctx: &c, f: f)
+        // ── Vesper gravitational portal ───────────────────────────
+        drawVesperPortal(ctx: &c, f: f, wallTime: wallTime)
 
-        // ── File / suction ────────────────────────────────────────
+        // ── File / orbital absorption ─────────────────────────────
         if f.fileVisible { drawFile(ctx: &c, f: f) }
     }
 
@@ -285,184 +285,138 @@ struct UploadCanvasView: View {
         cCtx.draw(btn2, at: CGPoint(x:350, y:126), anchor: .center)
     }
 
-    // MARK: - Mochi (superellipse body + eyes + mouth)
+    // MARK: - Vesper gravitational portal (replaces legacy Mochi mouth-suction)
 
-    private func drawMochi(ctx: inout GraphicsContext, f: USFrame) {
-        let R  = f.d / 2 / 1.04
-        let m  = f.morph
-        let mc = max(0, min(m, 1.0))
+    private func drawVesperPortal(ctx: inout GraphicsContext, f: USFrame, wallTime: Double) {
+        let baseR = max(14.0, f.d * 0.50)
+        let apertureBoost = 1.0 + 0.24 * max(0, min(1, f.mouth)) + 0.08 * max(0, min(1, f.morph))
+        let maxR = CGFloat(baseR * apertureBoost)
+        let center = CGPoint(
+            x: CGFloat(f.x + f.lookX * 3.5),
+            y: CGFloat(f.y + f.hop + f.lookY * 2.5)
+        )
 
-        var c = ctx
-        c.concatenate(CGAffineTransform(translationX: CGFloat(f.x), y: CGFloat(f.y + f.hop)))
-        c.concatenate(CGAffineTransform(rotationAngle: CGFloat(f.tilt)))
-        c.concatenate(CGAffineTransform(scaleX: CGFloat(f.sx), y: CGFloat(f.sy)))
+        let topColor = Color(red: 0.08, green: 0.94, blue: 0.52)
+        let midColor = Color(red: 0.12, green: 0.82, blue: 0.96)
+        let botColor = Color(red: 0.24, green: 0.18, blue: 0.96)
+        let gradStart = CGPoint(x: center.x, y: center.y - maxR)
+        let gradEnd   = CGPoint(x: center.x, y: center.y + maxR)
 
-        let (bp, rx, ry) = usBodyPath(m: m, R: R)
+        // 1. Ambient aurora halo
+        var halo = Path()
+        halo.addEllipse(in: CGRect(
+            x: center.x - maxR * 0.86,
+            y: center.y - maxR * 0.86,
+            width: maxR * 1.72,
+            height: maxR * 1.72
+        ))
+        ctx.stroke(
+            halo,
+            with: .linearGradient(
+                Gradient(stops: [
+                    .init(color: topColor.opacity(0.28), location: 0),
+                    .init(color: midColor.opacity(0.22), location: 0.5),
+                    .init(color: botColor.opacity(0.28), location: 1)
+                ]),
+                startPoint: gradStart,
+                endPoint: gradEnd
+            ),
+            lineWidth: max(2.0, maxR * 0.30)
+        )
 
-        // ── Body gradient ──────────────────────────────────────────
-        let bodyGrad = Gradient(stops:[
-            .init(color: Pace.ink, location:0),
-            .init(color: Pace.ink2, location:1)
-        ])
-        c.fill(bp, with: .linearGradient(bodyGrad,
-            startPoint:  CGPoint(x:  rx*0.7, y: -ry*0.9),
-            endPoint:    CGPoint(x: -rx*0.8, y:  ry*0.9)))
+        // 2. Undulating Vesper wave-ribbons around the dark axial bore
+        let ringCount = 6
+        let segs = 56
+        let t = wallTime * (1.2 + 0.9 * max(0, min(1, f.mouth + f.suck)))
+        let deform = 0.09 + 0.06 * max(0, min(1, f.mouth))
 
-        // ── Edge shadow ────────────────────────────────────────────
-        let shadowGrad = Gradient(stops:[
-            .init(color: .clear, location:0),
-            .init(color: .clear, location:0.62),
-            .init(color: Color.black.opacity(0.12), location:1)
-        ])
-        c.fill(bp, with: .radialGradient(shadowGrad,
-            center: CGPoint(x:0,y:0), startRadius: CGFloat(R*0.2), endRadius: CGFloat(R*1.3)))
-
-        // ── Top rim (box mode) ─────────────────────────────────────
-        if mc > 0.3 {
-            let rimAlpha = max(0, min(1, (mc-0.3)/0.7))
-            var rimCtx = c
-            rimCtx.clip(to: bp)
-            var rim = Path()
-            rim.move(to: CGPoint(x: -rx*0.72, y: -ry+0.9))
-            rim.addLine(to: CGPoint(x: rx*0.72,  y: -ry+0.9))
-            rimCtx.stroke(rim, with: .color(Color.white.opacity(0.6*rimAlpha)),
-                          style: StrokeStyle(lineWidth:1.2, lineCap:.round))
-        }
-
-        // ── Mouth hole ─────────────────────────────────────────────
-        let mh = f.mouth * R * mc
-        if mh > 0.3 {
-            let mw  = 2*rx - 0.24*R
-            let mxO = CGFloat(-mw/2)
-            let myO = CGFloat(-ry + 0.10*R)
-            let mhr = CGFloat(min(mw/2, mh/2))
-            var mCtx = c
-            mCtx.clip(to: bp)
-            let holeGrad = Gradient(stops:[
-                .init(color: Color(red:0.012,green:0.012,blue:0.016), location:0),
-                .init(color: Color(red:0.063,green:0.067,blue:0.078), location:1)
-            ])
-            let holePath = roundedRect(CGRect(x:mxO, y:myO, width:CGFloat(mw), height:CGFloat(mh)), r:Double(mhr))
-            mCtx.fill(holePath, with: .linearGradient(holeGrad,
-                startPoint: CGPoint(x:0, y:myO),
-                endPoint:   CGPoint(x:0, y:myO+CGFloat(mh))))
-            // Bottom lip
-            if mh > 4 {
-                var lip = Path()
-                lip.move(to:    CGPoint(x:mxO+mhr,              y:myO+CGFloat(mh)+0.5))
-                lip.addLine(to: CGPoint(x:mxO+CGFloat(mw)-mhr,  y:myO+CGFloat(mh)+0.5))
-                mCtx.stroke(lip, with: .color(Color.white.opacity(0.55)),
-                            style: StrokeStyle(lineWidth:1, lineCap:.round))
+        for band in 0..<ringCount {
+            let frac = Double(band) / Double(ringCount - 1)
+            let baseFrac = 0.44 + frac * 0.42
+            let phase = Double(band) * 0.75
+            var wavePath = Path()
+            for s in 0...segs {
+                let ang = (Double(s) / Double(segs)) * Double.pi * 2.0
+                let w1 = sin(ang * 3.0 + t * 1.15 + phase) * 0.52
+                let w2 = cos(ang * 5.0 - t * 0.88 - phase * 0.7) * 0.32
+                let w3 = sin(ang * 7.0 + t * 1.62 + phase * 1.3) * 0.16
+                let r = Double(maxR) * min(0.96, baseFrac * (1.0 + (w1 + w2 + w3) * deform))
+                let px = Double(center.x) + cos(ang) * r
+                let py = Double(center.y) + sin(ang) * r
+                if s == 0 {
+                    wavePath.move(to: CGPoint(x: px, y: py))
+                } else {
+                    wavePath.addLine(to: CGPoint(x: px, y: py))
+                }
             }
+            wavePath.closeSubpath()
+            let alpha = 0.26 + sin(frac * Double.pi) * 0.42
+            ctx.stroke(
+                wavePath,
+                with: .linearGradient(
+                    Gradient(stops: [
+                        .init(color: topColor.opacity(alpha), location: 0),
+                        .init(color: midColor.opacity(alpha * 0.95), location: 0.5),
+                        .init(color: botColor.opacity(alpha), location: 1)
+                    ]),
+                    startPoint: gradStart,
+                    endPoint: gradEnd
+                ),
+                style: StrokeStyle(lineWidth: max(1.1, maxR * 0.10), lineCap: .round, lineJoin: .round)
+            )
         }
 
-        // ── Eyes ───────────────────────────────────────────────────
-        let ew = R * 0.25
-        let eh = R * (0.62 - 0.16*mc)
-        let ey = R * (0.02 + 0.28*mc)
-        let sp = R * 0.30
-        let lx = f.lookX * R * (0.34 - 0.08*mc)
-        let ly = f.lookY * R * (0.16 - 0.09*mc)
-
-        var eCtx = c
-        eCtx.clip(to: bp)
-        for sd in [-1.0, 1.0] {
-            var ec = eCtx
-            ec.concatenate(CGAffineTransform(translationX: CGFloat(sd*sp+lx), y: CGFloat(ey+ly)))
-            drawEyeShape(ctx: &ec, shape: f.eye, w: CGFloat(ew), h: CGFloat(eh))
-        }
+        // 3. Deep obsidian bore center
+        let boreR = maxR * 0.34
+        let bore = Path(ellipseIn: CGRect(
+            x: center.x - boreR,
+            y: center.y - boreR,
+            width: boreR * 2,
+            height: boreR * 2
+        ))
+        ctx.fill(bore, with: .color(Pace.notchBlack.opacity(0.92)))
     }
 
-    // MARK: - Eye shapes
-
-    private func drawEyeShape(ctx: inout GraphicsContext, shape: USEyeShape, w: CGFloat, h: CGFloat) {
-        let ink = Color(red:0.055,green:0.059,blue:0.071)
-        switch shape {
-        case .pill:
-            var p = Path()
-            p.addRoundedRect(in: CGRect(x:-w/2, y:-h/2, width:w, height:h),
-                             cornerSize: CGSize(width:w/2, height:w/2))
-            ctx.fill(p, with: .color(ink))
-
-        case .cup:
-            // Flat top + semicircle bottom (cup shape)
-            let hh = h * 0.55
-            var p = Path()
-            p.move(to: CGPoint(x:-w/2, y:-hh/2))
-            p.addLine(to: CGPoint(x: w/2, y:-hh/2))
-            p.addLine(to: CGPoint(x: w/2, y: hh/2-w/2))
-            p.addArc(center: CGPoint(x:0, y:hh/2-w/2), radius:w/2, startAngle:.degrees(0), endAngle:.degrees(180), clockwise:false)
-            p.closeSubpath()
-            ctx.fill(p, with: .color(ink))
-
-        case .content:
-            // Upward arc (content / happy)
-            var p = Path()
-            p.addArc(center: CGPoint(x:0, y:-h*0.12), radius:w*0.85,
-                     startAngle:.degrees(180*0.15), endAngle:.degrees(180*0.85), clockwise:false)
-            ctx.stroke(p, with: .color(ink),
-                       style: StrokeStyle(lineWidth:w*0.5, lineCap:.round))
-        }
-    }
-
-    // MARK: - File / suction (drawFile port)
+    // MARK: - File / Vesper bore absorption
 
     private func drawFile(ctx: inout GraphicsContext, f: USFrame) {
         let cx = f.cursorX, cy = f.cursorY + 14
         if f.suck <= 0 {
-            var fc = ctx; fc.opacity = 0.92
-            drawDoc(ctx: &fc, cx: cx, cy: cy, wsc:1, hsc:1)
+            var fc = ctx
+            fc.opacity = 0.94
+            drawDoc(ctx: &fc, cx: cx, cy: cy, wsc: 1, hsc: 1)
             return
         }
 
-        let m   = f.mouthRect
-        let W0  = 34.0, H0 = 42.0
-        let p   = usEIn(f.suck)
-        let topY = usLerp(cy - H0/2, m.y - 2, usEInOut(f.suck))
-        let hs  = usLerp(1.08, 0.55, usEInOut(f.suck))
-        let Hh  = H0 * hs
-        let sc  = usLerp(1, 0.55, p)
-        let q   = usEOut(f.suck)
-        let fCx = usLerp(cx, m.x + m.w/2, usEOut(f.suck))
-        let wob = sin(f.suck * .pi * 2) * 0.1 * (1-p)
-        let clipY = m.y + m.h * 0.5
+        let k = max(0, min(1, f.suck))
+        let ease = usEInOut(k)
+        let fx = usLerp(cx, f.x, ease)
+        let fy = usLerp(cy, f.y + f.hop, ease)
+        let scale = max(0.08, 1.0 - 0.88 * usEIn(k))
+        let fade = max(0, 1.0 - pow(k, 1.6))
 
-        // Use withCGContext for the complex strip clipping
-        ctx.withCGContext { cg in
-            cg.saveGState()
-            // Outer clip: above mouth
-            cg.clip(to: CGRect(x:0, y:0, width:640, height:clipY))
+        var fc = ctx
+        fc.opacity = fade
+        fc.translateBy(x: CGFloat(fx), y: CGFloat(fy))
+        fc.rotate(by: .radians(k * 0.55))
+        fc.translateBy(x: CGFloat(-fx), y: CGFloat(-fy))
+        drawDoc(ctx: &fc, cx: fx, cy: fy, wsc: scale, hsc: scale)
 
-            for i in 0..<28 {
-                let v0 = Double(i) / 28
-                let wsc = usLerp(1, usLerp(0.92, 0.22*m.w/W0, pow(v0,1.2)), q) * sc
-                let yy  = topY + v0*Hh
-                let hh  = Hh/28 + 0.6
-
-                cg.saveGState()
-                cg.translateBy(x: CGFloat(fCx), y: CGFloat(yy))
-                cg.rotate(by: CGFloat(wob))
-                cg.clip(to: CGRect(x: CGFloat(-W0*wsc/2), y:0, width: CGFloat(W0*wsc), height: CGFloat(hh)))
-                cg.translateBy(x: CGFloat(-fCx), y: CGFloat(-yy))
-                drawDocCG(cg: cg, cx: fCx, cy: topY+Hh/2, wsc: wsc, hsc: hs, fileIcon: fileIcon)
-                cg.restoreGState()
-            }
-            cg.restoreGState()
-        }
-
-        // Green particles
-        for i in 0..<4 {
-            let a   = Double(i)/4 * .pi*2 + 0.6
-            let r0  = 24.0
-            let k   = max(0, min(1, (f.suck - Double(i)*0.08) / 0.7))
-            guard k > 0 && k < 1 else { continue }
-            let sx0 = cx + cos(a)*r0, sy0 = cy + sin(a)*r0
-            let ex  = m.x + m.w/2,    ey  = m.y + m.h*0.3
-            let kk  = pow(k, 0.7)
-            let px  = usLerp(sx0,ex,kk), py = usLerp(sy0,ey,kk) - sin(.pi*k)*6
-            let rad = 2.2*(1-k*0.5)
-            var pp = Path(); pp.addEllipse(in: CGRect(x:px-rad, y:py-rad, width:rad*2, height:rad*2))
-            ctx.fill(pp, with: .color(Pace.mint.opacity(1-k)))
+        // Orbital Pace Mint & Cyan energy motes converging into the Vesper bore
+        for i in 0..<6 {
+            let a = Double(i) / 6.0 * .pi * 2.0 + k * 2.4
+            let r0 = 28.0
+            let pk = max(0, min(1, (k - Double(i) * 0.06) / 0.72))
+            guard pk > 0 && pk < 1 else { continue }
+            let sx0 = cx + cos(a) * r0
+            let sy0 = cy + sin(a) * r0
+            let kk = pow(pk, 0.72)
+            let px = usLerp(sx0, f.x, kk)
+            let py = usLerp(sy0, f.y + f.hop, kk) - sin(.pi * pk) * 5
+            let rad = 2.1 * (1 - pk * 0.5)
+            let dot = Path(ellipseIn: CGRect(x: px - rad, y: py - rad, width: rad * 2, height: rad * 2))
+            let tone = i.isMultiple(of: 2) ? Pace.mint : Pace.act
+            ctx.fill(dot, with: .color(tone.opacity(1 - pk)))
         }
     }
 
@@ -497,74 +451,6 @@ struct UploadCanvasView: View {
         ctx.fill(roundedRect(CGRect(x:x+w*0.18,y:y+h*0.58,width:w*0.64,height:h*0.16),r:2),
                  with: .color(Color(red:0.231,green:0.510,blue:0.961)))
     }
-}
-
-// MARK: - Doc icon in CGContext (for suction strips)
-
-private func drawDocCG(cg: CGContext, cx: Double, cy: Double, wsc: Double, hsc: Double, fileIcon: NSImage?) {
-    let w = 34*wsc, h = 42*hsc
-    let x = cx-w/2, y = cy-h/2
-    let fold = 8.0*min(wsc,hsc)
-
-    // Use real file icon if available
-    if let icon = fileIcon,
-       let cgImg = icon.cgImage(forProposedRect: nil, context: nil, hints: nil) {
-        cg.saveGState()
-        cg.setShadow(offset: CGSize(width:0,height:3), blur:8, color: CGColor(gray:0, alpha:0.45))
-        let rect = CGRect(x:x, y:y, width:w, height:h)
-        cg.draw(cgImg, in: rect)
-        cg.restoreGState()
-        return
-    }
-
-    // Generic document shape
-    cg.saveGState()
-    cg.setShadow(offset: CGSize(width:0,height:3), blur:8, color: CGColor(gray:0, alpha:0.45))
-    cg.setFillColor(CGColor(red:0.957,green:0.957,blue:0.965,alpha:1))
-    let bp = CGMutablePath()
-    bp.move(to: CGPoint(x:x+2,y:y))
-    bp.addLine(to: CGPoint(x:x+w-fold,y:y))
-    bp.addLine(to: CGPoint(x:x+w,y:y+fold))
-    bp.addLine(to: CGPoint(x:x+w,y:y+h-2))
-    bp.addQuadCurve(to: CGPoint(x:x+w-2,y:y+h), control:CGPoint(x:x+w,y:y+h))
-    bp.addLine(to: CGPoint(x:x+2,y:y+h))
-    bp.addQuadCurve(to: CGPoint(x:x,y:y+h-2), control:CGPoint(x:x,y:y+h))
-    bp.addLine(to: CGPoint(x:x,y:y+2))
-    bp.addQuadCurve(to: CGPoint(x:x+2,y:y), control:CGPoint(x:x,y:y))
-    bp.closeSubpath()
-    cg.addPath(bp); cg.fillPath()
-    cg.restoreGState()
-
-    // Fold
-    cg.setFillColor(CGColor(red:0.835,green:0.839,blue:0.859,alpha:1))
-    let fp = CGMutablePath()
-    fp.move(to: CGPoint(x:x+w-fold,y:y)); fp.addLine(to: CGPoint(x:x+w-fold,y:y+fold)); fp.addLine(to: CGPoint(x:x+w,y:y+fold))
-    cg.addPath(fp); cg.fillPath()
-
-    // Blue accent line
-    cg.setFillColor(CGColor(red:0.231,green:0.510,blue:0.961,alpha:1))
-    cg.addRect(CGRect(x:x+w*0.18, y:y+h*0.58, width:w*0.64, height:h*0.16))
-    cg.fillPath()
-}
-
-// MARK: - Superellipse body path (port of reference bodyPath(m, R))
-
-func usBodyPath(m: Double, R: Double) -> (path: Path, rx: Double, ry: Double) {
-    let mc = max(0, min(m, 1.0))
-    let n  = 2.15 + (5.5-2.15)*mc
-    let rx = R * (1.04 - 0.04*mc)
-    let ry = R * (0.97 - 0.03*mc)
-    var path = Path()
-    for i in 0...96 {
-        let a  = Double(i)/96 * .pi*2
-        let ca = cos(a), sa = sin(a)
-        let px = rx * (ca<0 ? -1 : ca>0 ? 1 : 0) * pow(abs(ca), 2/n)
-        let py = ry * (sa<0 ? -1 : sa>0 ? 1 : 0) * pow(abs(sa), 2/n)
-        if i == 0 { path.move(to:    CGPoint(x:px,y:py)) }
-        else       { path.addLine(to: CGPoint(x:px,y:py)) }
-    }
-    path.closeSubpath()
-    return (path, rx, ry)
 }
 
 // MARK: - Rounded rect helper (mirrors reference rr())
