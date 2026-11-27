@@ -16,40 +16,31 @@ struct SpotifyPill: View {
     var body: some View {
         ZStack {
             // Selection target — full pill area, receives taps where controls don't
-            Capsule()
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
                 .fill(Color.clear)
-                .contentShape(Capsule())
+                .contentShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
                 .onTapGesture { onTap() }
 
-            // Visual fills
-            Capsule()
-                .fill(isHovered ? Color(hex: task.color).opacity(0.18) : Pace.ground)
+            // Visual fills (Pace obsidian surface)
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .fill(isHovered ? Pace.raised2 : Color.white.opacity(0.035))
                 .allowsHitTesting(false)
-            Capsule()
-                .stroke(Color(hex: task.color).opacity(isHovered ? 0.55 : 0.14), lineWidth: 1)
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .stroke(isHovered ? Pace.lineCtrl : Pace.line, lineWidth: 1)
                 .allowsHitTesting(false)
 
-            // Mini Mochi at leading edge
-            HStack(spacing: 0) {
-                MiniBotCanvasView(task: task, isDancing: controller.isPlaying)
-                    .frame(width: 22 / 0.6, height: 22 / 0.6)
-                    .frame(width: 22, height: 22, alignment: .center)
-                    .padding(.leading, 8)
-                Spacer()
+            // Crisp Pace glyph at leading edge
+            HStack(spacing: 8) {
+                MiniBotCanvasView(task: task, isDancing: controller.isPlaying, size: 22)
+                    .padding(.leading, 7)
+                Text(task.name)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(isHovered ? Pace.ink : Pace.ink2)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: showControls ? 52 : 8)
             }
             .allowsHitTesting(false)
-
-            // Title — trailing padding grows on hover to make room for buttons
-            Text(task.name)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(isHovered ? Color(hex: task.color).lighter(by: 0.3) : Pace.ink3)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .padding(.leading, 34)
-                .padding(.trailing, showControls ? 52 : 10)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .animation(.spring(response: 0.2, dampingFraction: 0.7), value: showControls)
-                .allowsHitTesting(false)
 
             // Playback controls — appear on hover when a track is loaded
             if showControls {

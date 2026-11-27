@@ -36,14 +36,18 @@ final class IslandStateMachine {
     /// coucou → petit delay when mouse is hovering over the greeting.
     var greetHoverCollapseDelay: TimeInterval = 10
 
-    /// Opt-in (Settings → General → Behavior): hovering the island opens it, and an island
-    /// opened that way folds shortly after the pointer leaves. Off: hover only peeks (petit).
+    /// Opt-in (Settings → General → Behavior): hovering the island opens it after `hoverExpandDelay`,
+    /// and an island opened that way folds shortly after the pointer leaves.
     var openOnHover = false
+    /// Continuous hover dwell required before expanding or peeking on pointer hover (3.0s).
+    /// Clicking always opens immediately (0ms).
+    var hoverExpandDelay: TimeInterval = 3.0
     /// Grace period after the pointer leaves a hover-opened island (no flicker at the edge).
     var hoverCloseDelay: TimeInterval = 0.6
     /// True while the island is open because of a hover, until the user clicks inside it.
     private(set) var openedByHover = false
 
+    private var hoverExpandWork: DispatchWorkItem?
     private var petitHideWork: DispatchWorkItem?
     private var homeCollapseWork: DispatchWorkItem?
     private var greetCollapseWork: DispatchWorkItem?
@@ -61,8 +65,13 @@ final class IslandStateMachine {
     func mouseEntered() {
         if openOnHover, state == .hidden || state == .petit, isHeldOpen?() != true {
             cancelTimers()
-            openedByHover = true
-            transition(to: .home)
+            scheduleHoverAction { [weak self] in
+                guard let self, self.openOnHover,
+                      self.state == .hidden || self.state == .petit,
+                      self.isHeldOpen?() != true else { return }
+                self.openedByHover = true
+                self.transition(to: .home)
+            }
             return
         }
         switch state {
@@ -72,7 +81,10 @@ final class IslandStateMachine {
                 state = .home
             } else {
                 cancelTimers()
-                transition(to: .petit)
+                scheduleHoverAction { [weak self] in
+                    guard let self, self.state == .hidden, self.isHeldOpen?() != true else { return }
+                    self.transition(to: .petit)
+                }
             }
         case .petit:
             petitHideWork?.cancel()
@@ -84,11 +96,14 @@ final class IslandStateMachine {
             // Mouse hovering during greeting — cancel short auto-collapse, extend to hover delay
             scheduleGreetCollapse(delay: greetHoverCollapseDelay)
         case .listening:
-            // Voice is active; if openOnHover, expand to show the overview.
+            // Voice is active; if openOnHover, expand to show the overview after 3s hover dwell.
             if openOnHover {
                 cancelTimers()
-                openedByHover = true
-                transition(to: .home)
+                scheduleHoverAction { [weak self] in
+                    guard let self, self.openOnHover, self.state == .listening else { return }
+                    self.openedByHover = true
+                    self.transition(to: .home)
+                }
             }
             // else: no timer, island stays compact — voice keeps running.
         }
@@ -96,6 +111,8 @@ final class IslandStateMachine {
 
     /// Mouse left the island notch area
     func mouseLeft() {
+        hoverExpandWork?.cancel()
+        hoverExpandWork = nil
         switch state {
         case .hidden:
             break
@@ -231,7 +248,18 @@ final class IslandStateMachine {
         openedByHover = false
     }
 
+    private func scheduleHoverAction(_ block: @escaping () -> Void) {
+        hoverExpandWork?.cancel()
+        let item = DispatchWorkItem { [weak self] in
+            self?.hoverExpandWork = nil
+            block()
+        }
+        hoverExpandWork = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + hoverExpandDelay, execute: item)
+    }
+
     func cancelTimers() {
+        hoverExpandWork?.cancel(); hoverExpandWork = nil
         petitHideWork?.cancel();    petitHideWork = nil
         homeCollapseWork?.cancel(); homeCollapseWork = nil
         greetCollapseWork?.cancel(); greetCollapseWork = nil

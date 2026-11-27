@@ -488,8 +488,9 @@ final class IslandWindowController: NSWindowController {
         if overBot && !botHovering { botHoverIn(mousePos: NSEvent.mouseLocation) }
         if !overBot && botHovering { botHoverOut() }
         botHovering = overBot
-        // The pointer on Mochi (or on the resting island): the line about the Mac shows under it.
-        let vitalsHover = (state.mode == .compact && inIsland) || overBot
+        // Only show the Mac vitals strip when hovering the companion inside the already-expanded island,
+        // never on an accidental brush across the resting compact notch.
+        let vitalsHover = overBot
         if MachineVitals.shared.hovered != vitalsHover { MachineVitals.shared.hovered = vitalsHover }
         if botHovering {
             let m = NSEvent.mouseLocation

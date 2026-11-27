@@ -2098,6 +2098,14 @@ struct IntegrationCardView: View {
         #endif
     }
 
+    private var isHooksTask: Bool {
+        task.id == "integration_claude" || task.id == "agent_gemini"
+            || task.id == "agent_antigravity" || task.id == "agent_cursor"
+            || task.id == "agent_codex" || task.id == "agent_copilot"
+            || task.id == "agent_muse" || task.id == "agent_opencode"
+            || task.id == "agent_amp" || task.id == "agent_hermes"
+    }
+
     private var statusDot: Color {
         #if !APPSTORE
         if task.id == "integration_music" {
@@ -2116,7 +2124,7 @@ struct IntegrationCardView: View {
                    : task.id == "integration_calcom"  ? appState.calcomError
                    : nil
         if svcErr != nil { return Pace.fail }
-        return isConfigured ? Pace.mint : Pace.fail
+        return isConfigured ? Pace.mint : Pace.hold
     }
 
     private var statusLabel: String {
@@ -2294,11 +2302,11 @@ struct IntegrationCardView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(Color(hex: task.color))
-                        .frame(width: 7, height: 7)
+                        .fill(isConfigured ? Pace.mint : Pace.ink3)
+                        .frame(width: 6, height: 6)
                     Text(task.id == "integration_claude" ? ClaudeHost.pillName(hostApp: task.hostApp)
                                                          : PillCatalog.definition(for: task.id)?.name ?? task.name)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 12.5, weight: .semibold))
                         .foregroundColor(Pace.ink)
                     Text(PillCatalog.definition(for: task.id)?.subtitle ?? "Integration")
                         .font(.system(size: 11))
@@ -2316,18 +2324,32 @@ struct IntegrationCardView: View {
                         .foregroundColor(Pace.ink3)
                 }
                 .padding(.leading, 108)
-                .padding(.top, 2)
+                .padding(.top, 1)
 
                 HStack(spacing: 8) {
+                    if !isConfigured && isHooksTask {
+                        Button(action: {
+                            NotificationCenter.default.post(name: .openFullSettings, object: "agents")
+                        }) {
+                            Text("Set up hooks")
+                                .font(.system(size: 10.5, weight: .semibold))
+                                .foregroundColor(Pace.onMint)
+                                .padding(.horizontal, 9)
+                                .padding(.vertical, 3.5)
+                                .background(Pace.mint)
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
                     if task.id == "integration_claude", task.hostApp != nil {
                         Button("Open \(ClaudeHost.name(for: task.hostApp))") { ClaudeHost.activate(task.hostApp) }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Pace.mint)
+                            .foregroundColor(!isConfigured && isHooksTask ? Pace.ink2 : Pace.mint)
                             .buttonStyle(.plain)
                     } else if task.id == "integration_claude" {
                         Button("Open Visual Studio Code") { openVSCode() }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Pace.mint)
+                            .foregroundColor(!isConfigured && isHooksTask ? Pace.ink2 : Pace.mint)
                             .buttonStyle(.plain)
                     } else if task.id == "agent_cursor" {
                         #if !APPSTORE
@@ -2338,7 +2360,7 @@ struct IntegrationCardView: View {
                                                                    completionHandler: nil)
                             }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Pace.mint)
+                            .foregroundColor(!isConfigured && isHooksTask ? Pace.ink2 : Pace.mint)
                             .buttonStyle(.plain)
                         }
                         #endif
@@ -2351,7 +2373,7 @@ struct IntegrationCardView: View {
                                                                    completionHandler: nil)
                             }
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Pace.mint)
+                            .foregroundColor(!isConfigured && isHooksTask ? Pace.ink2 : Pace.mint)
                             .buttonStyle(.plain)
                         }
                         #endif
@@ -2430,10 +2452,9 @@ struct IntegrationCardView: View {
                             .foregroundColor(Pace.ink2)
                             .buttonStyle(.plain)
                     }
-                    // Settings button: shown when not configured, except cursor/codex and music
+                    // Settings button: shown when not configured and not already displaying "Set up hooks"
                     if !isConfigured
-                       && task.id != "agent_cursor"
-                       && task.id != "agent_codex"
+                       && !isHooksTask
                        && task.id != "integration_music"
                        && task.id != "integration_mail" {
                         Button("Settings…") {
@@ -4141,19 +4162,25 @@ struct AgentPillsView: View {
         Array(others.prefix(4))
     }
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 4),
-        GridItem(.flexible(), spacing: 4)
-    ]
+    private var isStackedRows: Bool {
+        displayTasks.count <= 3
+    }
+
+    private var gridColumns: [GridItem] {
+        isStackedRows
+            ? [GridItem(.flexible(), spacing: 5)]
+            : [GridItem(.flexible(), spacing: 5), GridItem(.flexible(), spacing: 5)]
+    }
 
     var body: some View {
+        let rowHeight: CGFloat = displayTasks.count <= 2 ? 36 : 28
         VStack(spacing: 0) {
             Spacer(minLength: 0)
-            LazyVGrid(columns: columns, spacing: 4) {
+            LazyVGrid(columns: gridColumns, spacing: isStackedRows && displayTasks.count <= 2 ? 6 : 5) {
                 ForEach(displayTasks) { task in
                     #if !APPSTORE
                     if task.id == "integration_music" {
-                        MusicPill(task: task, state: state, swapping: $swapping) {
+                        MusicPill(task: task, state: state, swapping: $swapping, rowHeight: rowHeight) {
                             swapping = true
                             state.setFocus(task.id)
                             SoundEngine.shared.play("blip")
@@ -4167,7 +4194,8 @@ struct AgentPillsView: View {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
                         }
                     } else {
-                        AgentPill(task: task, state: state, swapping: $swapping) {
+                        AgentPill(task: task, state: state, swapping: $swapping,
+                                  showDetailMeta: isStackedRows, rowHeight: rowHeight) {
                             swapping = true
                             state.setFocus(task.id)
                             SoundEngine.shared.play("blip")
@@ -4175,7 +4203,8 @@ struct AgentPillsView: View {
                         }
                     }
                     #else
-                    AgentPill(task: task, state: state, swapping: $swapping) {
+                    AgentPill(task: task, state: state, swapping: $swapping,
+                              showDetailMeta: isStackedRows, rowHeight: rowHeight) {
                         swapping = true
                         state.setFocus(task.id)
                         SoundEngine.shared.play("blip")
@@ -4195,6 +4224,8 @@ struct AgentPill: View {
     let task: AgentTask
     @ObservedObject var state: AppState
     @Binding var swapping: Bool
+    var showDetailMeta: Bool = false
+    var rowHeight: CGFloat = 28
     let onTap: () -> Void
     @State private var isHovered = false
 
@@ -4204,33 +4235,69 @@ struct AgentPill: View {
         task.id == "integration_claude" ? ClaudeHost.pillName(hostApp: task.hostApp) : task.name
     }
 
+    private var stateDotColor: Color {
+        switch task.state {
+        case .working, .searching: return Pace.act
+        case .thinking:            return Pace.think
+        case .approval, .question, .ratelimit: return Pace.hold
+        case .error, .dizzy:       return Pace.fail
+        case .finished:            return Pace.mint
+        case .idle, .sleeping:     return Pace.ink3.opacity(0.65)
+        }
+    }
+
+    private var stateShortLabel: String {
+        if let step = task.steps.last, !step.isEmpty, task.state != .idle {
+            return step
+        }
+        switch task.state {
+        case .working:             return "Running"
+        case .thinking:            return "Thinking"
+        case .searching:           return "Searching"
+        case .approval, .question: return "Needs you"
+        case .error, .dizzy:       return "Issue"
+        case .finished:            return "Done"
+        case .ratelimit:           return "Paused"
+        case .idle, .sleeping:
+            return task.isIntegration ? "Ready" : "Workspace"
+        }
+    }
+
     var body: some View {
         Button(action: { onTap() }) {
             ZStack(alignment: .topTrailing) {
-                ZStack {
-                    Capsule()
-                        .fill(isHovered ? Pace.raised2 : Pace.sunk)
-                    Capsule()
-                        .stroke(isHovered ? Pace.lineCtrl : Pace.line, lineWidth: 1)
-                    HStack(spacing: 0) {
-                        MiniBotCanvasView(task: task)
-                            .frame(width: 22 / 0.6, height: 22 / 0.6)
-                            .frame(width: 22, height: 22, alignment: .center)
-                            .clipped()
-                            .padding(.leading, 7)
-                        Spacer()
-                    }
+                HStack(spacing: 8) {
+                    MiniBotCanvasView(task: task, size: 22)
                     Text(displayName)
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(isHovered ? Pace.ink : Pace.ink2)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                        .padding(.leading, 30)
-                        .padding(.trailing, 8)
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    Spacer(minLength: 4)
+                    if showDetailMeta {
+                        Text(stateShortLabel)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Pace.ink3)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(maxWidth: 96, alignment: .trailing)
+                    }
+                    Circle()
+                        .fill(stateDotColor)
+                        .frame(width: 5, height: 5)
                 }
+                .padding(.leading, 7)
+                .padding(.trailing, 9)
                 .frame(maxWidth: .infinity)
-                .frame(height: 28)
+                .frame(height: rowHeight)
+                .background(
+                    RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                        .fill(isHovered ? Pace.raised2 : Color.white.opacity(0.035))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                        .stroke(isHovered ? Pace.lineCtrl : Pace.line, lineWidth: 1)
+                )
 
                 // Alert badge (approval / finished / error)
                 if let badge = task.pillBadge {
@@ -4240,10 +4307,10 @@ struct AgentPill: View {
             }
         }
         .buttonStyle(.plain)
-        .scaleEffect(isHovered ? 1.02 : 1.0)
+        .scaleEffect(isHovered ? 1.01 : 1.0)
         .onHover { newHover in
             guard !swapping else { return }
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { isHovered = newHover }
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.75)) { isHovered = newHover }
         }
     }
 }
@@ -4255,6 +4322,7 @@ struct MusicPill: View {
     let task: AgentTask
     @ObservedObject var state: AppState
     @Binding var swapping: Bool
+    var rowHeight: CGFloat = 28
     let onTap: () -> Void
     @State private var isHovered = false
 
@@ -4263,38 +4331,29 @@ struct MusicPill: View {
 
     var body: some View {
         ZStack {
-            Capsule()
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
                 .fill(Color.clear)
-                .contentShape(Capsule())
+                .contentShape(RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous))
                 .onTapGesture { onTap() }
 
-            Capsule()
-                .fill(isHovered ? Pace.raised2 : Pace.sunk)
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
+                .fill(isHovered ? Pace.raised2 : Color.white.opacity(0.035))
                 .allowsHitTesting(false)
-            Capsule()
+            RoundedRectangle(cornerRadius: Pace.rCtrl, style: .continuous)
                 .stroke(isHovered ? Pace.lineCtrl : Pace.line, lineWidth: 1)
                 .allowsHitTesting(false)
 
-            HStack(spacing: 0) {
-                MiniBotCanvasView(task: task, isDancing: isPlaying)
-                    .frame(width: 22 / 0.6, height: 22 / 0.6)
-                    .frame(width: 22, height: 22, alignment: .center)
-                    .clipped()
+            HStack(spacing: 8) {
+                MiniBotCanvasView(task: task, isDancing: isPlaying, size: 22)
                     .padding(.leading, 7)
-                Spacer()
+                Text(task.name)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(isHovered ? Pace.ink : Pace.ink2)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: showControls ? 52 : 8)
             }
             .allowsHitTesting(false)
-
-            Text(task.name)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(isHovered ? Pace.ink : Pace.ink2)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .padding(.leading, 34)
-                .padding(.trailing, showControls ? 52 : 10)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .animation(.spring(response: 0.2, dampingFraction: 0.7), value: showControls)
-                .allowsHitTesting(false)
 
             if showControls {
                 HStack(spacing: 0) {
@@ -4313,11 +4372,11 @@ struct MusicPill: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 28)
-        .scaleEffect(isHovered ? 1.02 : 1.0)
+        .frame(height: rowHeight)
+        .scaleEffect(isHovered ? 1.01 : 1.0)
         .onHover { newHover in
             guard !swapping else { return }
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { isHovered = newHover }
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.75)) { isHovered = newHover }
         }
     }
 }
@@ -4498,10 +4557,7 @@ struct ColumnAgentsView: View {
     var body: some View {
         VStack(spacing: 0) {
             ForEach(Array(others.prefix(4).enumerated()), id: \.1.id) { idx, task in
-                MiniBotCanvasView(task: task)
-                    .frame(width: 16 / 0.6, height: 16 / 0.6)
-                    .frame(width: 16, height: 16)
-                    .clipped()
+                MiniBotCanvasView(task: task, size: 16, framed: false)
                     .position(x: 0, y: CGFloat(50 + idx * 24))
                     .animation(.spring(response: 0.5, dampingFraction: 0.72).delay(Double(idx) * 0.035), value: idx)
             }
@@ -4763,7 +4819,7 @@ struct CardBackground<Content: View>: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: Pace.rIslandCard, style: .continuous)
-                .fill(Pace.card)
+                .fill(wash == nil ? Color.white.opacity(0.032) : Pace.card)
                 .overlay(
                     RadialGradient(
                         gradient: Gradient(stops: [

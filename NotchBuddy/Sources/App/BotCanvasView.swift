@@ -69,30 +69,90 @@ struct BotCanvasView: View {
     }
 }
 
-/// Mini bot canvas (for agent pills/column)
+/// Crisp vector glyph badge for secondary agent/service pills and compact notch slots.
+/// Preserves the singular Vesper ring exclusively for the primary companion (`BotCanvasView`),
+/// eliminating cloned/blurry mini rings while reporting live state via Pace tokens.
 struct MiniBotCanvasView: View {
     let task: AgentTask
     var isDancing: Bool = false
+    var size: CGFloat = 22
+    var framed: Bool = true
 
-    // The BotEngine and the init that built it are gone with the character they
-    // drove. Leaving a @StateObject nothing reads would allocate an animation
-    // engine per pill to render nothing.
+    private var symbolName: String {
+        switch task.id {
+        case "integration_github":
+            return "chevron.left.forwardslash.chevron.right"
+        case "integration_claude", "agent_cursor", "agent_codex", "agent_antigravity",
+             "agent_gemini", "agent_copilot", "agent_muse", "agent_opencode",
+             "agent_amp", "agent_hermes", "agent_claude-desktop":
+            return "terminal"
+        case let id where id.hasPrefix("ai_"):
+            return "sparkles"
+        case "integration_vercel":
+            return "triangle.fill"
+        case "integration_stripe":
+            return "creditcard"
+        case "integration_calcom":
+            return "calendar"
+        case "integration_notion":
+            return "doc.text"
+        case "integration_mail", "integration_resend":
+            return "envelope"
+        case "integration_music", "integration_spotify":
+            return isDancing ? "waveform" : "music.note"
+        case "integration_n8n":
+            return "point.3.connected.trianglepath.dotted"
+        case "integration_crypto", "integration_portfolio":
+            return "chart.line.uptrend.xyaxis"
+        default:
+            return task.isIntegration
+                ? "square.grid.2x2"
+                : "point.topleft.down.curvedto.point.bottomright.up"
+        }
+    }
 
+    private var glyphTone: Color {
+        if isDancing { return Pace.mint }
+        switch task.state {
+        case .working, .searching:
+            return Pace.act
+        case .thinking:
+            return Pace.think
+        case .approval, .question, .ratelimit:
+            return Pace.hold
+        case .error, .dizzy:
+            return Pace.fail
+        case .finished:
+            return Pace.mint
+        case .idle, .sleeping:
+            return framed ? Pace.ink2 : Pace.ink3
+        }
+    }
+
+    private var isActiveState: Bool {
+        if isDancing { return true }
+        switch task.state {
+        case .idle, .sleeping:
+            return false
+        default:
+            return true
+        }
+    }
 
     var body: some View {
-        // Nova at pill size. `isDancing` was a Mochi gesture; here it reads as
-        // the loudest thing a mini can say, which is what a dance was for.
-        //
-        // task.color, task.emote and task.miniEye are no longer applied. They
-        // were Mochi's vocabulary — a tint, a face, an eye shape — and Nova
-        // says the same things through motion instead. Keeping them wired to
-        // nothing would be worse than dropping them: a colour picked in
-        // Settings that changes nothing on screen is a dead control.
-        NovaAvatarView(
-            energy: isDancing ? 0.85 : task.state.novaEnergy,
-            bodyScale: 0.54,
-            tone: VesperTone(botState: task.state)
-        )
+        let iconSize = framed ? max(8, round(size * 0.48)) : max(8, round(size * 0.78))
+        ZStack {
+            if framed {
+                RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                    .fill(isActiveState ? glyphTone.opacity(0.14) : Pace.raised)
+                RoundedRectangle(cornerRadius: Pace.r, style: .continuous)
+                    .stroke(isActiveState ? glyphTone.opacity(0.34) : Pace.line, lineWidth: 1)
+            }
+            Image(systemName: symbolName)
+                .font(.system(size: iconSize, weight: .semibold))
+                .foregroundColor(glyphTone)
+        }
+        .frame(width: size, height: size)
     }
 }
 

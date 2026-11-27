@@ -67,6 +67,7 @@ CONTRACT_TESTS=(
   "scripts/test-pill-colors.sh"
   "scripts/test-plan-gauge.sh"
   "scripts/test-approval-queue.sh"
+  "scripts/test-island-fsm.sh"
   "scripts/test-flow-keys.sh"
   "scripts/test-notetaker.sh"
 )

@@ -340,8 +340,8 @@ struct SettingsView: View {
 
         GroupBox("Behavior") {
             VStack(alignment: .leading, spacing: 10) {
-                Toggle("Open on hover", isOn: $state.openOnHover)
-                    .help("Hovering the island opens it; it folds again shortly after the pointer leaves. Click inside to keep it open.")
+                Toggle("Open on hover (3s hold)", isOn: $state.openOnHover)
+                    .help("Holding the pointer on the island for 3 seconds opens it; clicking opens immediately.")
                 HStack(spacing: 8) {
                     Text("Close after")
                     TextField("60", value: $state.autoCloseInterval, format: .number)
